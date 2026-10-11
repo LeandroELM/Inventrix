@@ -48,4 +48,28 @@ describe("ControlCantidad", () => {
     await fireEvent.changeText(screen.getByLabelText("Cantidad a salir"), "7");
     expect(onCambio).toHaveBeenCalledWith("7");
   });
+
+  it("muestra la etiqueta visible", async () => {
+    await montar({ valor: "1" });
+    expect(screen.getByText("Cantidad a salir")).toBeTruthy();
+  });
+
+  it("Aumentar no supera el máximo con valor decimal", async () => {
+    const onCambio = await montar({ valor: "4.5", unidad: "libra", maximo: 5 });
+    await fireEvent.press(screen.getByLabelText("Aumentar"));
+    expect(onCambio).toHaveBeenCalledWith("5");
+  });
+
+  it("texto vacío: Disminuir deshabilitado y Aumentar da 1", async () => {
+    const onCambio = await montar({ valor: "" });
+    expect(screen.getByLabelText("Disminuir").props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(screen.getByLabelText("Aumentar"));
+    expect(onCambio).toHaveBeenCalledWith("1");
+  });
+
+  it("Aumentar deshabilitado no llama onCambio", async () => {
+    const onCambio = await montar({ valor: "5", maximo: 5 });
+    await fireEvent.press(screen.getByLabelText("Aumentar"));
+    expect(onCambio).not.toHaveBeenCalled();
+  });
 });

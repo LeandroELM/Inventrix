@@ -25,7 +25,12 @@ export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta }: P
   const sinBajar = base <= minimo;
   const sinSubir = maximo !== undefined && base >= maximo;
 
-  const boton = (nombre: "mas" | "menos", etiquetaBoton: string, deshabilitado: boolean, alPulsar: () => void) => (
+  const boton = (
+    nombre: "mas" | "menos",
+    etiquetaBoton: string,
+    deshabilitado: boolean,
+    alPulsar: () => void,
+  ) => (
     <Presionable
       accessibilityRole="button"
       accessibilityLabel={etiquetaBoton}
@@ -49,29 +54,37 @@ export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta }: P
   );
 
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      {boton("menos", "Disminuir", sinBajar, () => cambiar(Math.max(minimo, base - 1)))}
-      <EntradaTexto
-        accessibilityLabel={etiqueta}
-        value={valor}
-        onChangeText={onCambio}
-        keyboardType={entera ? "number-pad" : "decimal-pad"}
-        textAlign="center"
-        style={{
-          flex: 1,
-          minHeight: 48,
-          borderRadius: RADIO.campo,
-          borderWidth: 1.5,
-          borderColor: colores.borde,
-          backgroundColor: colores.superficie,
-          paddingHorizontal: 12,
-        }}
-      />
-      {boton("mas", "Aumentar", sinSubir, () => {
-        const siguiente = Math.max(minimo, base + 1);
-        cambiar(maximo !== undefined ? Math.min(maximo, siguiente) : siguiente);
-      })}
-      <Texto tono="secundario">{abreviatura}</Texto>
+    <View style={{ gap: 8 }}>
+      <Texto variante="etiqueta" tono="secundario" importantForAccessibility="no">
+        {etiqueta}
+      </Texto>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {boton("menos", "Disminuir", sinBajar, () => cambiar(Math.max(minimo, base - 1)))}
+        <EntradaTexto
+          accessibilityLabel={etiqueta}
+          value={valor}
+          onChangeText={onCambio}
+          keyboardType={entera ? "number-pad" : "decimal-pad"}
+          textAlign="center"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            minHeight: 48,
+            borderRadius: RADIO.campo,
+            borderWidth: 1.5,
+            borderColor: colores.borde,
+            backgroundColor: colores.superficie,
+            paddingHorizontal: 12,
+          }}
+        />
+        {boton("mas", "Aumentar", sinSubir, () => {
+          const siguiente = Math.max(minimo, base + 1);
+          cambiar(maximo !== undefined ? Math.min(maximo, siguiente) : siguiente);
+        })}
+        <Texto tono="secundario" style={{ flexShrink: 0 }}>
+          {abreviatura}
+        </Texto>
+      </View>
     </View>
   );
 }
