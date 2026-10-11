@@ -9,6 +9,17 @@ set -euo pipefail
 DB="${DB_CONTAINER:-supabase_db_Inventrix}"
 psql_db() { docker exec -i "$DB" psql -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 "$@"; }
 
+USUARIO_ID=""; PRODUCTO_ID=""
+LOG_A=$(mktemp); LOG_B=$(mktemp)
+limpiar() {
+  psql_db -c "delete from public.alertas where producto_id in (select id from public.productos where codigo = 'CONC-1');
+              delete from public.movimientos where producto_id in (select id from public.productos where codigo = 'CONC-1');
+              delete from public.productos where codigo = 'CONC-1';
+              delete from auth.users where email = 'concurrencia@usuarios.inventrix.app';" >/dev/null 2>&1 || true
+}
+trap 'limpiar; rm -f "$LOG_A" "$LOG_B"' EXIT
+limpiar  # restos de una corrida anterior
+
 USUARIO_ID=$(psql_db -tA <<'SQL'
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
@@ -17,18 +28,8 @@ values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticate
 returning id;
 SQL
 )
-PRODUCTO_ID=$(psql_db -tA -c \
-  "insert into public.productos (nombre, codigo, unidad, existencias, punto_pedido)
+PRODUCTO_ID=$(psql_db -tA -c   "insert into public.productos (nombre, codigo, unidad, existencias, punto_pedido)
    values ('Concurrencia', 'CONC-1', 'unidad', 5, 0) returning id;")
-
-limpiar() {
-  psql_db -c "delete from public.alertas where producto_id = '$PRODUCTO_ID';
-              delete from public.movimientos where producto_id = '$PRODUCTO_ID';
-              delete from public.productos where id = '$PRODUCTO_ID';
-              delete from auth.users where id = '$USUARIO_ID';" >/dev/null
-}
-LOG_A=$(mktemp); LOG_B=$(mktemp)
-trap 'limpiar; rm -f "$LOG_A" "$LOG_B"' EXIT
 
 sesion() { # $1 = segundos de espera antes de confirmar
   psql_db <<SQL
@@ -58,9 +59,13 @@ FINAL=$(psql_db -tA -c "select existencias from public.productos where id = '$PR
 SALIDAS=$(psql_db -tA -c "select count(*) from public.movimientos where producto_id = '$PRODUCTO_ID';")
 echo "Existencias finales: $FINAL | movimientos registrados: $SALIDAS"
 
-if [ "$ESTADO_A" -eq 0 ] && [ "$ESTADO_B" -ne 0 ] && grep -q EXISTENCIAS_INSUFICIENTES "$LOG_B" \
-   && [ "$FINAL" = "0.00" ] && [ "$SALIDAS" = "1" ]; then
-  echo "OK: la segunda salida esperó el bloqueo y fue rechazada"
+# Independiente del orden: exactamente una sesión tiene éxito y la otra falla por existencias.
+if [ "$ESTADO_A" -eq 0 ]; then LOG_FALLIDA="$LOG_B"; ESTADO_FALLIDA=$ESTADO_B
+else LOG_FALLIDA="$LOG_A"; ESTADO_FALLIDA=$ESTADO_A; fi
+EXITOS=0; [ "$ESTADO_A" -eq 0 ] && EXITOS=$((EXITOS+1)); [ "$ESTADO_B" -eq 0 ] && EXITOS=$((EXITOS+1))
+
+if [ "$EXITOS" -eq 1 ] && [ "$ESTADO_FALLIDA" -ne 0 ] && grep -q EXISTENCIAS_INSUFICIENTES "$LOG_FALLIDA"    && [ "$FINAL" = "0.00" ] && [ "$SALIDAS" = "1" ]; then
+  echo "OK: una salida tuvo éxito y la otra fue rechazada por existencias insuficientes"
 else
   echo "FALLO: comportamiento concurrente inesperado"; exit 1
 fi

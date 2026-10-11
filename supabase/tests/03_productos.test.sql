@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(18);
+select plan(19);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -66,5 +66,9 @@ select throws_ok($$select public.dar_baja_producto((select id from public.produc
 select throws_ok($$select public.registrar_producto('Z', 'Z1', 'unidad', 1, 1)$$,
                  'P0001', 'NO_AUTORIZADO', 'operativo no registra');
 reset role;
+select ok(not has_function_privilege('anon', 'public.registrar_producto(text,text,public.unidad_medida,numeric,numeric)', 'EXECUTE')
+          and not has_function_privilege('anon', 'public.actualizar_producto(uuid,text,public.unidad_medida,numeric)', 'EXECUTE')
+          and not has_function_privilege('anon', 'public.dar_baja_producto(uuid,text)', 'EXECUTE'),
+          'anon sin EXECUTE en RPC de productos');
 select * from finish();
 rollback;

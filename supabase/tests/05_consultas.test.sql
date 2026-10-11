@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(9);
+select plan(14);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -57,6 +57,11 @@ select is((select count(*)::int from public.reporte_movimientos(null, now() + in
 select is((select usuario from public.historial_movimientos where producto_id = :'harina' and tipo = 'salida'),
           'adm', 'historial_movimientos expone nombre de usuario');
 
+-- p_hasta exclusivo: igual al created_at del movimiento lo excluye
+select is((select count(*)::int from public.reporte_movimientos(
+             'salida', null, (select created_at from public.movimientos where producto_id = :'harina' and tipo = 'salida'), :'harina')),
+          0, 'reporte_movimientos: p_hasta igual a created_at excluye la fila');
+
 -- Operativo
 select pg_temp.como(:'ope');
 select throws_ok($$select * from public.reporte_movimientos()$$,
@@ -73,6 +78,20 @@ select ok(not has_table_privilege('anon', 'public.productos_a_pedir', 'SELECT')
           and has_table_privilege('authenticated', 'public.productos_a_pedir', 'SELECT')
           and has_table_privilege('authenticated', 'public.historial_movimientos', 'SELECT'),
           'vistas: authenticated select, anon sin acceso');
+select ok(not has_function_privilege('anon', 'public.resumen_existencias()', 'EXECUTE'),
+          'anon sin EXECUTE en resumen_existencias');
+select ok(not has_function_privilege('anon', 'public.reporte_movimientos(public.tipo_movimiento,timestamptz,timestamptz,uuid)', 'EXECUTE'),
+          'anon sin EXECUTE en reporte_movimientos');
+
+-- Usuario inactivo
+select pg_temp.crear_usuario('ina', 'operativo') as ina \gset
+update public.perfiles set activo = false where id = :'ina';
+select pg_temp.como(:'ina');
+select is((select count(*)::int from public.historial_movimientos), 0,
+          'usuario inactivo no ve historial_movimientos');
+select throws_ok($$select * from public.resumen_existencias()$$,
+                 'P0001', 'NO_AUTORIZADO', 'usuario inactivo no usa resumen_existencias');
+reset role;
 
 select * from finish();
 rollback;

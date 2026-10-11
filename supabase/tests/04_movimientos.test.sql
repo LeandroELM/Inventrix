@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(27);
+select plan(30);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -103,5 +103,16 @@ select lives_ok($$select public.marcar_alertas_leidas()$$, 'admin marca alertas 
 select is((select count(*)::int from public.alertas where not leida), 0, 'no quedan alertas sin leer');
 
 reset role;
+select pg_temp.crear_usuario('ina', 'operativo') as ina \gset
+update public.perfiles set activo = false where id = :'ina';
+select pg_temp.como(:'ina');
+select throws_ok(format('select public.registrar_movimiento(%L, %L, 1)', :'det', 'entrada'),
+                 'P0001', 'NO_AUTORIZADO', 'usuario inactivo no registra movimientos');
+reset role;
+select ok(not has_function_privilege('anon', 'public.registrar_movimiento(uuid,public.tipo_movimiento,numeric,public.motivo_salida)', 'EXECUTE'),
+          'anon sin EXECUTE en registrar_movimiento');
+select ok(not has_function_privilege('anon', 'public.marcar_alertas_leidas()', 'EXECUTE'),
+          'anon sin EXECUTE en marcar_alertas_leidas');
+
 select * from finish();
 rollback;
