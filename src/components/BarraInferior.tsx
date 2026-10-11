@@ -53,7 +53,7 @@ export function BarraInferior({
     const ruta = state.routes.find((r) => r.name === nombre);
     const evento = navigation.emit({ type: "tabPress", target: ruta?.key, canPreventDefault: true });
     if (evento.defaultPrevented) return;
-    if (CON_STACK.includes(nombre)) navigation.navigate(nombre, { screen: "index" });
+    if (CON_STACK.includes(nombre)) navigation.navigate(nombre, { screen: "index", pop: true });
     else navigation.navigate(nombre);
   };
 

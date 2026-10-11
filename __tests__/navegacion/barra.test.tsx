@@ -75,7 +75,7 @@ describe("BarraInferior", () => {
     const { props, navigate } = propsBarra("operativo");
     await dibujar(props);
     fireEvent.press(screen.getByRole("tab", { name: "Movimientos" }));
-    expect(navigate).toHaveBeenCalledWith("movimientos", { screen: "index" });
+    expect(navigate).toHaveBeenCalledWith("movimientos", { screen: "index", pop: true });
   });
 
   it("no navega si tabPress fue prevenido", async () => {
