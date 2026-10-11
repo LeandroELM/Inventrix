@@ -1,101 +1,145 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { configurarCierrePorNoAutorizado, queryClient } from "@/lib/queryClient";
 import { emailDeUsuario } from "@/features/auth/usuario";
 import type { Rol } from "@/features/auth/permisos";
 
 export type Perfil = { id: string; usuario: string; nombre: string; rol: Rol };
-type Estado = "cargando" | "anonimo" | "autenticado";
+type Estado = "cargando" | "anonimo" | "autenticado" | "error";
 
 type AuthContexto = {
   estado: Estado;
   perfil: Perfil | null;
   iniciarSesion(usuario: string, password: string): Promise<void>;
   cerrarSesion(): Promise<void>;
+  reintentar(): Promise<void>;
 };
+
+type ResultadoPerfil =
+  | { tipo: "ok"; perfil: Perfil }
+  | { tipo: "sin_perfil" }
+  | { tipo: "error"; error: unknown };
 
 const LOGIN_INVALIDO = "No fue posible iniciar sesión. Verifica tus datos.";
 const Contexto = createContext<AuthContexto | null>(null);
 
-async function cargarPerfil(userId: string): Promise<Perfil | null> {
-  const { data, error } = await supabase
-    .from("perfiles")
-    .select("id,usuario,nombre,rol,activo")
-    .eq("id", userId)
-    .single();
-  if (error || !data || !data.activo) return null;
-  return { id: data.id, usuario: data.usuario, nombre: data.nombre, rol: data.rol };
+async function cargarPerfil(userId: string): Promise<ResultadoPerfil> {
+  try {
+    const { data, error } = await supabase
+      .from("perfiles")
+      .select("id,usuario,nombre,rol,activo")
+      .eq("id", userId)
+      .single();
+    if (error) return error.code === "PGRST116" ? { tipo: "sin_perfil" } : { tipo: "error", error };
+    if (!data || !data.activo) return { tipo: "sin_perfil" };
+    return { tipo: "ok", perfil: { id: data.id, usuario: data.usuario, nombre: data.nombre, rol: data.rol } };
+  } catch (error) {
+    return { tipo: "error", error };
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<Estado>("cargando");
   const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const perfilRef = useRef<Perfil | null>(null);
+  const iniciandoRef = useRef(false);
+
+  const fijarPerfil = useCallback((p: Perfil | null) => {
+    perfilRef.current = p;
+    setPerfil(p);
+  }, []);
+
+  const volverAnonimo = useCallback(() => {
+    fijarPerfil(null);
+    setEstado("anonimo");
+  }, [fijarPerfil]);
 
   const cerrarSesion = useCallback(async () => {
     await supabase.auth.signOut();
     queryClient.clear();
-    setPerfil(null);
-    setEstado("anonimo");
-  }, []);
+    volverAnonimo();
+  }, [volverAnonimo]);
 
-  // Sesión existente (arranque) y cambios posteriores (signOut remoto, etc.).
-  useEffect(() => {
-    let activo = true;
-    const aplicar = async (userId: string | null) => {
-      if (!userId) {
-        if (activo) {
-          setPerfil(null);
-          setEstado("anonimo");
-        }
-        return;
-      }
-      const p = await cargarPerfil(userId).catch(() => null);
-      if (!activo) return;
-      if (!p) {
+  // Carga el perfil de una sesión existente (arranque, listener, reintento).
+  // Solo "sin_perfil" cierra sesión; un error de transporte conserva la sesión.
+  const resolverSesion = useCallback(
+    async (userId: string | null) => {
+      if (!userId) return volverAnonimo();
+      if (perfilRef.current?.id === userId) return;
+      const r = await cargarPerfil(userId);
+      if (r.tipo === "ok") {
+        fijarPerfil(r.perfil);
+        setEstado("autenticado");
+      } else if (r.tipo === "sin_perfil") {
         await supabase.auth.signOut();
-        setPerfil(null);
-        setEstado("anonimo");
-        return;
+        volverAnonimo();
+      } else {
+        setEstado("error");
       }
-      setPerfil(p);
-      setEstado("autenticado");
-    };
+    },
+    [fijarPerfil, volverAnonimo],
+  );
 
-    void supabase.auth.getSession().then(({ data }) => aplicar(data.session?.user.id ?? null));
+  const arrancar = useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      await resolverSesion(data.session?.user.id ?? null);
+    } catch {
+      setEstado("error");
+    }
+  }, [resolverSesion]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial asíncrona de la sesión
+    void arrancar();
     const { data: suscripcion } = supabase.auth.onAuthStateChange((evento, sesion) => {
       // No llamar a supabase de forma síncrona dentro del callback (riesgo de deadlock).
-      if (evento === "SIGNED_OUT") setTimeout(() => void aplicar(null), 0);
-      else if (evento === "SIGNED_IN") setTimeout(() => void aplicar(sesion?.user.id ?? null), 0);
+      if (evento === "SIGNED_OUT") setTimeout(() => void resolverSesion(null), 0);
+      else if (evento === "SIGNED_IN" && !iniciandoRef.current) {
+        setTimeout(() => void resolverSesion(sesion?.user.id ?? null), 0);
+      }
     });
-    return () => {
-      activo = false;
-      suscripcion.subscription.unsubscribe();
-    };
-  }, []);
+    return () => suscripcion.subscription.unsubscribe();
+  }, [arrancar, resolverSesion]);
 
   useEffect(() => {
     configurarCierrePorNoAutorizado(() => void cerrarSesion());
     return () => configurarCierrePorNoAutorizado(null);
   }, [cerrarSesion]);
 
-  const iniciarSesion = useCallback(async (usuario: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailDeUsuario(usuario),
-      password,
-    });
-    if (error) throw error;
-    const p = await cargarPerfil(data.user.id).catch(() => null);
-    if (!p) {
-      await supabase.auth.signOut();
-      throw new Error(LOGIN_INVALIDO);
-    }
-    setPerfil(p);
-    setEstado("autenticado");
-  }, []);
+  // iniciarSesion es el único dueño de la carga durante el login: el listener ignora SIGNED_IN mientras tanto.
+  const iniciarSesion = useCallback(
+    async (usuario: string, password: string) => {
+      iniciandoRef.current = true;
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailDeUsuario(usuario),
+          password,
+        });
+        if (error) throw error;
+        const r = await cargarPerfil(data.user.id);
+        if (r.tipo === "error") throw r.error;
+        if (r.tipo === "sin_perfil") {
+          await supabase.auth.signOut();
+          throw new Error(LOGIN_INVALIDO);
+        }
+        fijarPerfil(r.perfil);
+        setEstado("autenticado");
+      } finally {
+        iniciandoRef.current = false;
+      }
+    },
+    [fijarPerfil],
+  );
+
+  const reintentar = useCallback(async () => {
+    setEstado("cargando");
+    await arrancar();
+  }, [arrancar]);
 
   const valor = useMemo(
-    () => ({ estado, perfil, iniciarSesion, cerrarSesion }),
-    [estado, perfil, iniciarSesion, cerrarSesion],
+    () => ({ estado, perfil, iniciarSesion, cerrarSesion, reintentar }),
+    [estado, perfil, iniciarSesion, cerrarSesion, reintentar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
