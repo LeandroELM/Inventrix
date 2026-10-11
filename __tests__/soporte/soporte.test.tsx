@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Linking } from "react-native";
 import Soporte from "../../app/soporte";
+import { PREGUNTAS_RAPIDAS } from "@/features/soporte/preguntas";
 
+const mockBack = jest.fn();
+jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack }) }));
 const mockEnviar = jest.fn();
 jest.mock("@/features/soporte/api", () => ({
   enviarPregunta: (...args: unknown[]) => mockEnviar(...args),
@@ -9,10 +12,11 @@ jest.mock("@/features/soporte/api", () => ({
 }));
 let mockRol = "operativo";
 jest.mock("@/features/auth/AuthProvider", () => ({
-  useAuth: () => ({ perfil: { id: "1", usuario: "a", nombre: "A", rol: mockRol } }),
+  useAuth: () => ({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol: mockRol } }),
 }));
 
-const SALUDO = "¡Hola! Soy el asistente virtual del sistema de inventarios. ¿En qué puedo ayudarte?";
+const SALUDO = "¡Hola, Ana! Soy Trix. ¿En qué te ayudo?";
+const BOTON_WA = { name: "Contactar soporte por WhatsApp" };
 
 async function preguntar(texto: string) {
   await fireEvent.changeText(screen.getByLabelText("Escribe tu pregunta"), texto);
@@ -23,9 +27,11 @@ describe("Soporte", () => {
   const original = process.env.EXPO_PUBLIC_SOPORTE_WHATSAPP;
   beforeEach(() => {
     mockEnviar.mockReset();
+    mockBack.mockReset();
     mockRol = "operativo";
     process.env.EXPO_PUBLIC_SOPORTE_WHATSAPP = "50588887777";
     jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    (Linking.openURL as jest.Mock).mockClear();
   });
   afterEach(() => {
     if (original === undefined) delete process.env.EXPO_PUBLIC_SOPORTE_WHATSAPP;
@@ -33,35 +39,72 @@ describe("Soporte", () => {
     jest.restoreAllMocks();
   });
 
-  it("muestra el saludo y sugerencias según el rol", async () => {
+  it("saluda por nombre como Trix", async () => {
     await render(<Soporte />);
     expect(screen.getByText(SALUDO)).toBeTruthy();
-    expect(screen.queryByText("¿Cómo genero un reporte?")).toBeNull();
-    await screen.unmount();
-    mockRol = "admin";
-    await render(<Soporte />);
-    expect(screen.getByText("¿Cómo genero un reporte?")).toBeTruthy();
   });
 
-  it("envía la pregunta y muestra la respuesta sin WhatsApp si resuelto", async () => {
+  it("muestra las cuatro preguntas rápidas para ambos roles", async () => {
+    for (const rol of ["admin", "operativo"]) {
+      mockRol = rol;
+      await render(<Soporte />);
+      expect(PREGUNTAS_RAPIDAS).toHaveLength(4);
+      for (const q of PREGUNTAS_RAPIDAS) expect(screen.getByText(q)).toBeTruthy();
+      await screen.unmount();
+    }
+  });
+
+  it("una pregunta rápida se envía al chatbot", async () => {
+    mockEnviar.mockResolvedValue({ respuesta: "Es el mínimo.", resuelto: true });
+    await render(<Soporte />);
+    await fireEvent.press(screen.getByText("¿Qué es el punto de pedido?"));
+    expect(mockEnviar).toHaveBeenCalledWith([
+      { rol: "usuario", texto: "¿Qué es el punto de pedido?" },
+    ]);
+    expect(await screen.findByText("Es el mínimo.")).toBeTruthy();
+  });
+
+  it("el botón de WhatsApp siempre está disponible", async () => {
+    await render(<Soporte />);
+    await fireEvent.press(screen.getByRole("button", BOTON_WA));
+    await waitFor(() => expect(Linking.openURL).toHaveBeenCalledTimes(1));
+    const url = (Linking.openURL as jest.Mock).mock.calls[0][0] as string;
+    expect(url.startsWith("https://wa.me/50588887777?text=")).toBe(true);
+  });
+
+  it("tocar fuera cierra el panel", async () => {
+    await render(<Soporte />);
+    await fireEvent.press(screen.getByLabelText("Cerrar"));
+    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+  });
+
+  it("envía la pregunta y muestra la respuesta", async () => {
     mockEnviar.mockResolvedValue({ respuesta: "Ve a Movimientos.", resuelto: true });
     await render(<Soporte />);
     await preguntar("¿Cómo registro una salida?");
     expect(await screen.findByText("Ve a Movimientos.")).toBeTruthy();
     expect(screen.getByText("¿Cómo registro una salida?")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Contactar soporte por WhatsApp" })).toBeNull();
-    expect(mockEnviar).toHaveBeenCalledWith([{ rol: "usuario", texto: "¿Cómo registro una salida?" }]);
+    expect(mockEnviar).toHaveBeenCalledWith([
+      { rol: "usuario", texto: "¿Cómo registro una salida?" },
+    ]);
   });
 
-  it("con resuelto false ofrece WhatsApp y abre el enlace con la última pregunta", async () => {
+  it("abre WhatsApp con la última pregunta tras una respuesta no resuelta", async () => {
     mockEnviar.mockResolvedValue({ respuesta: "No encontré eso.", resuelto: false });
     await render(<Soporte />);
     await preguntar("Algo raro");
-    await fireEvent.press(await screen.findByRole("button", { name: "Contactar soporte por WhatsApp" }));
+    await screen.findByText("No encontré eso.");
+    await fireEvent.press(screen.getByRole("button", BOTON_WA));
     await waitFor(() => expect(Linking.openURL).toHaveBeenCalledTimes(1));
     const url = (Linking.openURL as jest.Mock).mock.calls[0][0] as string;
-    expect(url.startsWith("https://wa.me/50588887777?text=")).toBe(true);
     expect(decodeURIComponent(url)).toContain("Mi consulta es: Algo raro");
+  });
+
+  it("si WhatsApp no abre muestra un error", async () => {
+    (Linking.openURL as jest.Mock).mockRejectedValue(new Error("x"));
+    await render(<Soporte />);
+    await fireEvent.press(screen.getByRole("button", BOTON_WA));
+    expect(await screen.findByText("No se pudo abrir WhatsApp.")).toBeTruthy();
   });
 
   it("sin número configurado no se rompe y no muestra el botón", async () => {
@@ -70,7 +113,7 @@ describe("Soporte", () => {
     await render(<Soporte />);
     await preguntar("Algo raro");
     expect(await screen.findByText("No encontré eso.")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Contactar soporte por WhatsApp" })).toBeNull();
+    expect(screen.queryByRole("button", BOTON_WA)).toBeNull();
     expect(screen.getByText("El contacto por WhatsApp no está disponible por ahora.")).toBeTruthy();
   });
 });

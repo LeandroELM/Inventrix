@@ -38,17 +38,38 @@ function Navegacion() {
   }
   if (estado === "error") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 16 }}>
+      <View
+        style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 16 }}
+      >
         <Texto>No se pudo cargar tu perfil.</Texto>
         <Boton titulo="Reintentar" onPress={() => void reintentar()} />
       </View>
     );
   }
   return (
-    <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", contentStyle: { backgroundColor: colores.fondo } }}>
-      <Stack.Screen name="escaner" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="notificaciones" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="soporte" options={{ presentation: "modal" }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        contentStyle: { backgroundColor: colores.fondo },
+      }}
+    >
+      <Stack.Screen
+        name="escaner"
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      />
+      <Stack.Screen
+        name="notificaciones"
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      />
+      <Stack.Screen
+        name="soporte"
+        options={{
+          presentation: "transparentModal",
+          animation: "none",
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
     </Stack>
   );
 }
