@@ -32,7 +32,13 @@ function Navegacion() {
       </View>
     );
   }
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="escaner" options={{ presentation: "modal" }} />
+      <Stack.Screen name="notificaciones" options={{ presentation: "modal" }} />
+      <Stack.Screen name="soporte" options={{ presentation: "modal" }} />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
