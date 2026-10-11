@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { configurarCierrePorNoAutorizado, queryClient } from "@/lib/queryClient";
+import { eliminarDispositivoActual, registrarPush } from "@/features/alertas/push";
 import { emailDeUsuario } from "@/features/auth/usuario";
 import type { Rol } from "@/features/auth/permisos";
 
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fijarPerfil]);
 
   const cerrarSesion = useCallback(async () => {
+    await eliminarDispositivoActual(); // nunca lanza; debe ir antes de perder la sesión
     await supabase.auth.signOut();
     volverAnonimo();
   }, [volverAnonimo]);
@@ -106,6 +108,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => suscripcion.subscription.unsubscribe();
   }, [arrancar, resolverSesion]);
+
+  // Registro de push solo para administradores, una vez por perfil; nunca bloquea el acceso.
+  const pushPerfilRef = useRef<string | null>(null);
+  const idAdmin = perfil?.rol === "admin" ? perfil.id : null;
+  useEffect(() => {
+    if (!idAdmin) {
+      pushPerfilRef.current = null;
+      return;
+    }
+    if (pushPerfilRef.current === idAdmin) return;
+    pushPerfilRef.current = idAdmin;
+    registrarPush().catch((e: unknown) => console.warn("No se pudo registrar el dispositivo para push", e));
+  }, [idAdmin]);
 
   useEffect(() => {
     configurarCierrePorNoAutorizado(() => void cerrarSesion());

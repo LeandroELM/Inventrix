@@ -24,6 +24,13 @@ jest.mock("@/lib/supabase", () => ({
   },
 }));
 
+const mockRegistrarPush = jest.fn();
+const mockEliminarDispositivo = jest.fn();
+jest.mock("@/features/alertas/push", () => ({
+  registrarPush: () => mockRegistrarPush(),
+  eliminarDispositivoActual: () => mockEliminarDispositivo(),
+}));
+
 jest.mock("@/lib/queryClient", () => ({
   queryClient: { clear: () => mockClear() },
   configurarCierrePorNoAutorizado: jest.fn(),
@@ -46,6 +53,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockSignOut.mockResolvedValue({});
   mockGetSession.mockResolvedValue({ data: { session: null } });
+  mockRegistrarPush.mockResolvedValue("autorizado");
+  mockEliminarDispositivo.mockResolvedValue(undefined);
 });
 
 describe("AuthProvider", () => {
@@ -108,5 +117,42 @@ describe("AuthProvider", () => {
       await auth.reintentar();
     });
     expect(auth.estado).toBe("autenticado");
+  });
+
+  it("admin -> registra push una sola vez; un fallo no bloquea el acceso", async () => {
+    mockRegistrarPush.mockRejectedValue(new Error("sin permiso"));
+    const aviso = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
+    mockSingle.mockResolvedValue({ data: PERFIL, error: null });
+    await montar();
+    expect(await screen.findByText("estado:autenticado")).toBeTruthy();
+    await act(async () => {
+      await auth.reintentar();
+    });
+    expect(mockRegistrarPush).toHaveBeenCalledTimes(1);
+    aviso.mockRestore();
+  });
+
+  it("operativo -> no registra push", async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: "u2" } } } });
+    mockSingle.mockResolvedValue({ data: { ...PERFIL, id: "u2", rol: "operativo" }, error: null });
+    await montar();
+    expect(await screen.findByText("estado:autenticado")).toBeTruthy();
+    expect(mockRegistrarPush).not.toHaveBeenCalled();
+  });
+
+  it("cerrarSesion elimina el dispositivo antes de signOut y aunque falle sigue", async () => {
+    const orden: string[] = [];
+    mockEliminarDispositivo.mockImplementation(async () => void orden.push("eliminar"));
+    mockSignOut.mockImplementation(async () => void orden.push("signOut"));
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
+    mockSingle.mockResolvedValue({ data: PERFIL, error: null });
+    await montar();
+    expect(await screen.findByText("estado:autenticado")).toBeTruthy();
+    await act(async () => {
+      await auth.cerrarSesion();
+    });
+    expect(orden).toEqual(["eliminar", "signOut"]);
+    expect(auth.estado).toBe("anonimo");
   });
 });

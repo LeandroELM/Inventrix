@@ -1,3 +1,4 @@
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -45,6 +46,26 @@ isOneToOne: false
       columns: ["producto_id"]
 isOneToOne: false
       referencedRelation: "productos_a_pedir"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"dispositivos": {
+                  Row: {
+                    "actualizado_at": string,"token": string,"usuario_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actualizado_at"?: string,"token": string,"usuario_id": string
+                  }
+                  Update: {
+                    "actualizado_at"?: string,"token"?: string,"usuario_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dispositivos_usuario_id_fkey"
+      columns: ["usuario_id"]
+isOneToOne: false
+      referencedRelation: "perfiles"
       referencedColumns: ["id"]
     }
                   ]
@@ -202,11 +223,17 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"eliminar_dispositivo":
+{ Args: { "p_token": string }; Returns: undefined
+                           },
 "es_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "marcar_alertas_leidas":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"registrar_dispositivo":
+{ Args: { "p_token": string }; Returns: undefined
                            },
 "registrar_movimiento":
 { Args: { "p_cantidad": number,"p_motivo"?: Database["public"]['Enums']["motivo_salida"],"p_producto_id": string,"p_tipo": Database["public"]['Enums']["tipo_movimiento"] }; Returns: {
