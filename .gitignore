@@ -47,3 +47,6 @@ example
 .env.local
 google-services.json
 
+
+# Maquetas del brainstorming
+.superpowers/
