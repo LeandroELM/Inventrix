@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
-import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, Text } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Pantalla } from "@/components/Pantalla";
+import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { registrarPush, type ResultadoPush } from "@/features/alertas/push";
 import { useAuth } from "@/features/auth/AuthProvider";
 import {
@@ -97,6 +97,11 @@ function SeccionNotificaciones() {
   const [error, setError] = useState<string | null>(null);
 
   const consultar = useCallback(async () => {
+    const Notifications = cargarNotificaciones();
+    if (!Notifications) {
+      setPermiso("No disponible");
+      return;
+    }
     try {
       const { status } = await Notifications.getPermissionsAsync();
       setPermiso(ESTADO_PERMISO[status]);

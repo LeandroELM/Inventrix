@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import * as Notifications from "expo-notifications";
+import type * as Notifications from "expo-notifications";
 import { useRouter, type Href } from "expo-router";
+import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { rutaDeNotificacion } from "@/features/alertas/ruta";
 
 /**
@@ -28,6 +29,9 @@ export function useAbrirDesdeNotificacion(listo: boolean) {
   }, [listo]);
 
   useEffect(() => {
+    const modulo = cargarNotificaciones();
+    if (!modulo) return;
+
     function procesar(r: Notifications.NotificationResponse) {
       const id = r.notification.request.identifier;
       if (id === ultimoId.current) return;
@@ -38,8 +42,8 @@ export function useAbrirDesdeNotificacion(listo: boolean) {
       else pendiente.current = ruta;
     }
 
-    const sub = Notifications.addNotificationResponseReceivedListener(procesar);
-    void Notifications.getLastNotificationResponseAsync()
+    const sub = modulo.addNotificationResponseReceivedListener(procesar);
+    void modulo.getLastNotificationResponseAsync()
       .then((r) => {
         if (r) procesar(r);
       })
