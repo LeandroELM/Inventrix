@@ -27,7 +27,7 @@ export function mensajeDeError(e: unknown): string {
   const texto = textoDe(e)?.trim();
   if (!texto) return GENERICO;
   if (/network request failed|failed to fetch/i.test(texto)) return SIN_CONEXION;
-  if (/invalid login credentials/i.test(texto)) return LOGIN_INVALIDO;
+  if (/invalid login credentials/i.test(texto) || texto === LOGIN_INVALIDO) return LOGIN_INVALIDO;
   if (Object.hasOwn(MENSAJES, texto)) return MENSAJES[texto];
   const codigo = Object.keys(MENSAJES).find((c) => texto.includes(c));
   return codigo ? MENSAJES[codigo] : GENERICO;
