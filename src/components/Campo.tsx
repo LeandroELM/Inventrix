@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, type TextInputProps } from "react-native";
 import { EntradaTexto } from "@/components/EntradaTexto";
 import { Texto } from "@/components/Texto";
+import { RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Props = Omit<TextInputProps, "accessibilityLabel"> & { label: string; error?: string };
@@ -30,7 +31,7 @@ export function Campo({ label, error, onFocus, onBlur, style, ...resto }: Props)
         style={[
           {
             minHeight: 48,
-            borderRadius: 12,
+            borderRadius: RADIO.campo,
             borderWidth: 1.5,
             borderColor: borde,
             backgroundColor: colores.superficie,

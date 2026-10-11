@@ -8,7 +8,8 @@ export type TonoTexto =
   | "exito"
   | "peligro"
   | "interactivo"
-  | "sobrePrimario";
+  | "sobrePrimario"
+  | "sobreInteractivo";
 
 type Props = TextProps & { variante?: VarianteTexto; tono?: TonoTexto };
 
@@ -21,6 +22,7 @@ export function Texto({ variante = "cuerpo", tono = "texto", style, ...resto }: 
     peligro: colores.peligro,
     interactivo: colores.interactivo,
     sobrePrimario: colores.sobrePrimario,
+    sobreInteractivo: colores.sobreInteractivo,
   }[tono];
   return <Text {...resto} style={[TIPOGRAFIA[variante], { color }, style]} />;
 }

@@ -10,6 +10,10 @@ export type Colores = {
   primario: string;
   sobrePrimario: string;
   interactivo: string;
+  sobreInteractivo: string;
+  sobrePeligro: string;
+  marca: string;
+  marcaAcento: string;
   exito: string;
   exitoSuave: string;
   textoExito: string;
@@ -33,6 +37,10 @@ export const PALETAS: Record<Esquema, Colores> = {
     primario: "#102B50",
     sobrePrimario: "#FFFFFF",
     interactivo: "#1764A0",
+    sobreInteractivo: "#FFFFFF",
+    sobrePeligro: "#FFFFFF",
+    marca: "#102B50",
+    marcaAcento: "#219653",
     exito: "#219653",
     exitoSuave: "#E8F5EE",
     textoExito: "#1A7A44",
@@ -54,6 +62,10 @@ export const PALETAS: Record<Esquema, Colores> = {
     primario: "#1764A0",
     sobrePrimario: "#FFFFFF",
     interactivo: "#6FB1EA",
+    sobreInteractivo: "#0A1424",
+    sobrePeligro: "#0A1424",
+    marca: "#102B50",
+    marcaAcento: "#219653",
     exito: "#3CC37A",
     exitoSuave: "rgba(60,195,122,0.14)",
     textoExito: "#3CC37A",

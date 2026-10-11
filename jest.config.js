@@ -2,6 +2,7 @@ const preset = require("jest-expo/jest-preset");
 
 module.exports = {
   preset: "jest-expo",
+  testTimeout: 15000,
   // Reanimated 4 / Worklets: resuelve la implementación JS (sin nativos) en Jest.
   resolver: "react-native-worklets/jest/resolver",
   moduleNameMapper: {

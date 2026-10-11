@@ -27,7 +27,7 @@ export function Boton({
   const estilos = {
     primario: { fondo: colores.primario, texto: colores.sobrePrimario, borde: undefined },
     secundario: { fondo: colores.superficie, texto: colores.interactivo, borde: colores.borde },
-    peligro: { fondo: colores.peligro, texto: colores.sobrePrimario, borde: undefined },
+    peligro: { fondo: colores.peligro, texto: colores.sobrePeligro, borde: undefined },
     fantasma: { fondo: "transparent", texto: colores.interactivo, borde: undefined },
   }[variante];
   return (

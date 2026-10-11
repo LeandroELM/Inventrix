@@ -34,7 +34,7 @@ export function SelectorUnidad({ valor, onChange }: Props) {
                 borderColor: colores.borde,
               }}
             >
-              <Texto variante="cuerpoFuerte" tono={activa ? "sobrePrimario" : "texto"}>
+              <Texto variante="cuerpoFuerte" tono={activa ? "sobreInteractivo" : "texto"}>
                 {UNIDADES[u].nombre}
               </Texto>
             </Presionable>
