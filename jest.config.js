@@ -4,7 +4,11 @@ module.exports = {
   preset: "jest-expo",
   // Reanimated 4 / Worklets: resuelve la implementación JS (sin nativos) en Jest.
   resolver: "react-native-worklets/jest/resolver",
-  moduleNameMapper: { "^@/(.*)$": "<rootDir>/src/$1" },
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    // El campo "react-native" apunta a un .mjs sin transformar: usa la build CJS.
+    "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js",
+  },
   testPathIgnorePatterns: ["/node_modules/", "/supabase/"],
   // Extiende el patrón de jest-expo para transformar también lucide-react-native.
   transformIgnorePatterns: preset.transformIgnorePatterns.map((p) =>
