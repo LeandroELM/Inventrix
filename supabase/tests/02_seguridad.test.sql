@@ -15,7 +15,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
 $$;
 -- volver a superusuario: reset role;
 
-select plan(6);
+select plan(7);
 
 select pg_temp.crear_usuario('op1', 'operativo') as op_id \gset
 select pg_temp.crear_usuario('inactivo1', 'operativo') as ina_id \gset
@@ -23,12 +23,13 @@ update public.perfiles set activo = false where id = :'ina_id';
 insert into public.productos(nombre,codigo,unidad,existencias,punto_pedido) values ('P','seg-1','unidad',5,1);
 
 select pg_temp.como(:'op_id'::uuid);
-select lives_ok($$select count(*) from public.productos$$, 'operativo activo puede leer productos');
+select is((select count(*) from public.productos), 1::bigint, 'operativo activo ve productos');
 select throws_ok(
   $$insert into public.productos(nombre,codigo,unidad,existencias,punto_pedido) values ('Q','seg-2','unidad',1,1)$$,
   '42501', null, 'operativo no puede insertar productos');
 select throws_ok($$update public.movimientos set cantidad = 1$$, '42501', null, 'operativo no puede actualizar movimientos');
 select throws_ok($$delete from public.movimientos$$, '42501', null, 'operativo no puede borrar movimientos');
+select throws_ok($$truncate public.movimientos$$, '42501', null, 'operativo no puede truncar movimientos');
 
 reset role;
 select pg_temp.como(:'ina_id'::uuid);

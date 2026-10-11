@@ -44,9 +44,11 @@ create policy movimientos_select on public.movimientos
   for select to authenticated
   using ((select public.usuario_activo()));
 
-revoke insert, update, delete on all tables in schema public from anon, authenticated;
-revoke all on all tables in schema public from anon;
+revoke all on all tables in schema public from anon, authenticated;
+grant select on all tables in schema public to authenticated;
+revoke all on all sequences in schema public from anon, authenticated;
 
--- Tablas futuras: sin escritura directa para anon/authenticated.
-alter default privileges in schema public revoke insert, update, delete on tables from anon, authenticated;
-alter default privileges in schema public revoke all on tables from anon;
+-- Objetos futuros: authenticated solo SELECT, anon nada.
+alter default privileges in schema public revoke all on tables from anon, authenticated;
+alter default privileges in schema public grant select on tables to authenticated;
+alter default privileges in schema public revoke all on sequences from anon, authenticated;
