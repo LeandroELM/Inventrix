@@ -21,7 +21,7 @@ const FILTROS: { titulo: string; estado?: Estado }[] = [
   { titulo: "Sin existencias", estado: "sin" },
 ];
 
-export default function Existencias() {
+export default function Buscar() {
   const { colores } = useTema();
   const router = useRouter();
   const { perfil } = useAuth();

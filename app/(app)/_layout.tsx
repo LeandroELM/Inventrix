@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BarraInferior, ALTO_BARRA, ESPACIO_TRIX, MARGEN_BARRA } from "@/components/BarraInferior";
+import { BarraInferior, espacioInferior } from "@/components/BarraInferior";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { tabsPara, type NombreTab } from "@/features/auth/navegacion";
 import { useTema } from "@/tema/TemaProvider";
@@ -22,7 +22,7 @@ export default function LayoutApp() {
         // Reserva espacio para la barra flotante y el botón de Trix: ningún contenido queda tapado.
         sceneStyle: {
           backgroundColor: colores.fondo,
-          paddingBottom: ALTO_BARRA + MARGEN_BARRA + bottom + ESPACIO_TRIX,
+          paddingBottom: espacioInferior(bottom),
         },
       }}
     >

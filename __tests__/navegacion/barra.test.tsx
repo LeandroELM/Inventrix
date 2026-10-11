@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import type { ComponentProps } from "react";
-import { ALTO_BARRA, BarraInferior, ESPACIO_TRIX, MARGEN_BARRA } from "@/components/BarraInferior";
+import { ALTO_BARRA, BarraInferior, ESPACIO_TRIX, MARGEN_BARRA, espacioInferior } from "@/components/BarraInferior";
 import { tabsPara } from "@/features/auth/navegacion";
 import { useTecladoVisible } from "@/lib/useTecladoVisible";
 import { TemaProvider } from "@/tema/TemaProvider";
@@ -16,14 +16,15 @@ type Props = ComponentProps<typeof BarraInferior>;
 function propsBarra(rol: "admin" | "operativo", activa = 0) {
   const visibles = tabsPara(rol);
   const navigate = jest.fn();
+  const emit = jest.fn((_e: unknown) => ({ defaultPrevented: false }));
   const props = {
     state: { index: activa, routes: visibles.map((name) => ({ key: name, name })) },
-    navigation: { navigate },
+    navigation: { navigate, emit },
     descriptors: {},
     insets: { top: 0, bottom: 0, left: 0, right: 0 },
     visibles,
   } as unknown as Props;
-  return { props, navigate };
+  return { props, navigate, emit };
 }
 
 async function dibujar(props: Props) {
@@ -63,6 +64,33 @@ describe("BarraInferior", () => {
     expect(navigate).toHaveBeenCalledWith("buscar");
   });
 
+  it("emite tabPress con la clave de la ruta", async () => {
+    const { props, emit } = propsBarra("operativo");
+    await dibujar(props);
+    fireEvent.press(screen.getByRole("tab", { name: "Buscar" }));
+    expect(emit).toHaveBeenCalledWith({ type: "tabPress", target: "buscar", canPreventDefault: true });
+  });
+
+  it("Movimientos navega a la raíz de su stack", async () => {
+    const { props, navigate } = propsBarra("operativo");
+    await dibujar(props);
+    fireEvent.press(screen.getByRole("tab", { name: "Movimientos" }));
+    expect(navigate).toHaveBeenCalledWith("movimientos", { screen: "index" });
+  });
+
+  it("no navega si tabPress fue prevenido", async () => {
+    const { props, navigate, emit } = propsBarra("operativo");
+    emit.mockReturnValue({ defaultPrevented: true });
+    await dibujar(props);
+    fireEvent.press(screen.getByRole("tab", { name: "Buscar" }));
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("la barra es un tablist", async () => {
+    await dibujar(propsBarra("admin").props);
+    expect(screen.getByTestId("barra-inferior").props.accessibilityRole).toBe("tablist");
+  });
+
   it("no se dibuja con el teclado visible", async () => {
     jest.mocked(useTecladoVisible).mockReturnValue(true);
     await dibujar(propsBarra("admin").props);
@@ -71,7 +99,7 @@ describe("BarraInferior", () => {
   });
 
   it("reserva espacio para barra y Trix", () => {
-    expect(ALTO_BARRA + MARGEN_BARRA + 20 + ESPACIO_TRIX).toBe(62 + 12 + 20 + 64);
+    expect(espacioInferior(24)).toBe(162);
     expect([ALTO_BARRA, MARGEN_BARRA, ESPACIO_TRIX]).toEqual([62, 12, 64]);
   });
 });

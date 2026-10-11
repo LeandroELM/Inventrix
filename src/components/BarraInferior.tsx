@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import type { BottomTabBarProps } from "expo-router/build/layouts/Tabs";
+import type { BottomTabBarProps } from "expo-router/tabs";
 import { Presionable } from "@/animacion/Presionable";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
@@ -11,6 +11,13 @@ import { useTema } from "@/tema/TemaProvider";
 export const ALTO_BARRA = 62;
 export const MARGEN_BARRA = 12;
 export const ESPACIO_TRIX = 64;
+
+export function espacioInferior(insetInferior: number): number {
+  return ALTO_BARRA + MARGEN_BARRA + insetInferior + ESPACIO_TRIX;
+}
+
+// Pestañas con un Stack anidado: al tocarlas se vuelve a su pantalla raíz.
+const CON_STACK: NombreTab[] = ["administracion", "movimientos"];
 
 const TAMANO_MAS = 54;
 const ELEVACION_MAS = 30;
@@ -42,8 +49,18 @@ export function BarraInferior({
   if (tecladoVisible) return null;
   const activa = state.routes[state.index]?.name;
 
+  const presionar = (nombre: NombreTab) => {
+    const ruta = state.routes.find((r) => r.name === nombre);
+    const evento = navigation.emit({ type: "tabPress", target: ruta?.key, canPreventDefault: true });
+    if (evento.defaultPrevented) return;
+    if (CON_STACK.includes(nombre)) navigation.navigate(nombre, { screen: "index" });
+    else navigation.navigate(nombre);
+  };
+
   return (
     <View
+      accessibilityRole="tablist"
+      testID="barra-inferior"
       style={[
         {
           position: "absolute",
@@ -66,7 +83,7 @@ export function BarraInferior({
               <Presionable
                 accessibilityRole="button"
                 accessibilityLabel="Nuevo producto"
-                onPress={() => navigation.navigate(nombre)}
+                onPress={() => presionar(nombre)}
                 style={[
                   {
                     width: TAMANO_MAS,
@@ -95,7 +112,7 @@ export function BarraInferior({
             accessibilityRole="tab"
             accessibilityLabel={TITULOS[nombre]}
             accessibilityState={{ selected: seleccionada }}
-            onPress={() => navigation.navigate(nombre)}
+            onPress={() => presionar(nombre)}
             style={{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", gap: 2 }}
           >
             <Icono nombre={ICONOS_TAB[nombre]} tamano={22} color={color} />

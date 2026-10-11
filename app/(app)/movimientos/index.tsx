@@ -54,7 +54,7 @@ function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
   );
 }
 
-export default function Historial() {
+export default function Movimientos() {
   const { colores } = useTema();
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
