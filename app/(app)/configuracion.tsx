@@ -1,24 +1,18 @@
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, Text } from "react-native";
+import { ScrollView, Switch, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Pantalla } from "@/components/Pantalla";
 import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { registrarPush, type ResultadoPush } from "@/features/alertas/push";
 import { useAuth } from "@/features/auth/AuthProvider";
-import {
-  APARIENCIAS,
-  guardarApariencia,
-  leerApariencia,
-  type Apariencia,
-} from "@/features/configuracion/apariencia";
 import { validarContrasenaNueva } from "@/features/configuracion/contrasena";
 import { mensajeDeError } from "@/lib/errores";
 import { supabase } from "@/lib/supabase";
+import { useTema } from "@/tema/TemaProvider";
 
 const ROLES = { admin: "Administrador", operativo: "Operativo" } as const;
-const ETIQUETAS_APARIENCIA: Record<Apariencia, string> = { claro: "Claro", oscuro: "Oscuro", sistema: "Sistema" };
 const ESTADO_PERMISO = {
   granted: "Permitido",
   denied: "Denegado",
@@ -138,39 +132,13 @@ function SeccionNotificaciones() {
   );
 }
 
-function SeccionApariencia() {
-  const [actual, setActual] = useState<Apariencia>("sistema");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let vigente = true;
-    void leerApariencia().then((v) => {
-      if (vigente) setActual(v);
-    });
-    return () => {
-      vigente = false;
-    };
-  }, []);
-
-  async function elegir(valor: Apariencia) {
-    setError(null);
-    try {
-      await guardarApariencia(valor);
-      setActual(valor);
-    } catch {
-      setError("No se pudo guardar la preferencia.");
-    }
-  }
-
+function FilaModoOscuro() {
+  const { esquema, alternarEsquema } = useTema();
   return (
-    <>
-      <Text accessibilityRole="header">Apariencia</Text>
-      <Text>Actual: {ETIQUETAS_APARIENCIA[actual]}</Text>
-      {APARIENCIAS.map((a) => (
-        <Boton key={a} titulo={ETIQUETAS_APARIENCIA[a]} onPress={() => void elegir(a)} disabled={a === actual} />
-      ))}
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
-    </>
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Text>Modo oscuro</Text>
+      <Switch accessibilityLabel="Modo oscuro" value={esquema === "oscuro"} onValueChange={alternarEsquema} />
+    </View>
   );
 }
 
@@ -183,7 +151,7 @@ export default function Configuracion() {
         <Text accessibilityRole="header">Configuración</Text>
         <SeccionCuenta />
         {perfil?.rol === "admin" ? <SeccionNotificaciones /> : null}
-        <SeccionApariencia />
+        <FilaModoOscuro />
         <Text accessibilityRole="header">Soporte técnico</Text>
         <Boton titulo="Abrir soporte" onPress={() => router.push("/soporte")} />
         <Boton titulo="Cerrar sesión" onPress={() => void cerrarSesion()} />

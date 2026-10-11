@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import Configuracion from "../../app/(app)/configuracion";
+import { guardarApariencia } from "@/features/configuracion/apariencia";
+import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockUpdateUser = jest.fn();
 const mockCerrarSesion = jest.fn();
@@ -14,9 +16,9 @@ jest.mock("expo-notifications", () => ({
   getPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
 }));
 jest.mock("@/features/alertas/push", () => ({ registrarPush: jest.fn().mockResolvedValue("autorizado") }));
-jest.mock("expo-secure-store", () => ({
-  getItemAsync: jest.fn().mockResolvedValue(null),
-  setItemAsync: jest.fn().mockResolvedValue(undefined),
+jest.mock("@/features/configuracion/apariencia", () => ({
+  leerApariencia: jest.fn().mockResolvedValue("claro"),
+  guardarApariencia: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock("@/features/auth/AuthProvider", () => ({
   useAuth: () => ({
@@ -69,5 +71,16 @@ describe("Configuración", () => {
     expect(mockPush).toHaveBeenCalledWith("/soporte");
     await fireEvent.press(screen.getByRole("button", { name: "Cerrar sesión" }));
     expect(mockCerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it("el switch de modo oscuro alterna el tema", async () => {
+    await render(
+      <TemaProvider>
+        <Configuracion />
+      </TemaProvider>,
+    );
+    const sw = screen.getByRole("switch", { name: "Modo oscuro" });
+    await fireEvent(sw, "valueChange", true);
+    await waitFor(() => expect(guardarApariencia).toHaveBeenCalledWith("oscuro"));
   });
 });

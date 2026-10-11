@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useAbrirDesdeNotificacion } from "@/features/alertas/useAbrirDesdeNotificacion";
 import { ActivityIndicator, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
+import { CargadorFuentes } from "@/tema/CargadorFuentes";
+import { TemaProvider, useTema } from "@/tema/TemaProvider";
 import { Boton } from "@/components/Boton";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,6 +16,7 @@ function Navegacion() {
   const { estado, reintentar } = useAuth();
   const segmentos = useSegments();
   const router = useRouter();
+  const { colores } = useTema();
   const enLogin = segmentos[0] === "login";
 
   useEffect(() => {
@@ -37,7 +43,7 @@ function Navegacion() {
     );
   }
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colores.fondo } }}>
       <Stack.Screen name="escaner" options={{ presentation: "modal" }} />
       <Stack.Screen name="notificaciones" options={{ presentation: "modal" }} />
       <Stack.Screen name="soporte" options={{ presentation: "modal" }} />
@@ -45,12 +51,33 @@ function Navegacion() {
   );
 }
 
+function Raiz() {
+  const { colores, esquema } = useTema();
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(colores.fondo).catch(() => {});
+  }, [colores.fondo]);
+
+  return (
+    <>
+      <StatusBar style={esquema === "oscuro" ? "light" : "dark"} />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Navegacion />
+        </AuthProvider>
+      </QueryClientProvider>
+    </>
+  );
+}
+
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Navegacion />
-      </AuthProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <TemaProvider>
+        <CargadorFuentes>
+          <Raiz />
+        </CargadorFuentes>
+      </TemaProvider>
+    </GestureHandlerRootView>
   );
 }
