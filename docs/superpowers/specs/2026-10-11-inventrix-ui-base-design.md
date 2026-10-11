@@ -41,17 +41,18 @@ Dos paletas con las mismas claves:
 | `fondo` | `#F3F6FA` | `#0A1424` | Fondo general |
 | `superficie` | `#FFFFFF` | `#13223A` | Tarjetas, barra inferior, panel |
 | `texto` | `#102B50` | `#E6EDF7` | Títulos y texto principal |
-| `textoSecundario` | `#64748B` | `#94A3B8` | Descripciones, etiquetas |
+| `textoSecundario` | `#5B6B82` | `#94A3B8` | Descripciones, etiquetas (el `#64748B` del prompt da 4.4:1 sobre `fondo`) |
 | `primario` | `#102B50` | `#1764A0` | Botones principales, "+" |
 | `sobrePrimario` | `#FFFFFF` | `#FFFFFF` | Texto sobre `primario` |
 | `interactivo` | `#1764A0` | `#6FB1EA` | Enlaces, estado activo, foco |
-| `exito` | `#219653` | `#3CC37A` | Entradas, disponible, punto activo |
+| `exito` | `#219653` | `#3CC37A` | Íconos y acentos de entradas, disponible, punto activo |
+| `textoExito` | `#1A7A44` | `#3CC37A` | Texto verde (cantidades de entrada); `#219653` da 3.8:1 como texto |
 | `exitoSuave` | `#E8F5EE` | `rgba(60,195,122,0.14)` | Fondo de ícono/etiqueta de éxito |
 | `peligro` | `#D92D3A` | `#F05A66` | Salidas, alertas, acciones críticas |
 | `peligroSuave` | `#FDECEE` | `rgba(240,90,102,0.15)` | Fondo de ícono/etiqueta de peligro |
 | `textoPeligro` | `#B4232F` | `#FF8A93` | Texto dentro de `peligroSuave` |
 | `linea` | `#E5EBF2` | `#1F3150` | Divisores |
-| `borde` | `#94A3B8` | `#4A5D7A` | Borde de campos (≥ 3:1 contra `superficie`) |
+| `borde` | `#7B8BA1` | `#5B7090` | Borde de campos (≥ 3:1 contra `superficie`) |
 | `inactivo` | `#CBD5E1` | `#334561` | Switch apagado, controles deshabilitados |
 | `encabezado` | `#1764A0 → #102B50` | `#14558A → #0E2442` | Degradado radial del encabezado |
 
@@ -65,8 +66,8 @@ Dos paletas con las mismas claves:
 ### `TemaProvider` y `useTema()`
 
 - `useTema()` devuelve `{ colores, esquema, alternarEsquema }`. `esquema` es `"claro" | "oscuro"`.
-- Valor inicial: la preferencia guardada en `expo-secure-store` (clave `inventrix.tema`) si existe; si no, `useColorScheme()` del sistema.
-- `alternarEsquema()` cambia el esquema y lo guarda. Si falla el guardado, el cambio se mantiene en memoria y no se muestra error.
+- Valor inicial: la preferencia guardada con el módulo existente `src/features/configuracion/apariencia.ts` (`leerApariencia`, clave `apariencia`): `claro` u `oscuro` se usan tal cual; `sistema` (o nada guardado) usa `useColorScheme()`.
+- `alternarEsquema()` cambia el esquema y lo guarda con `guardarApariencia` (`claro` u `oscuro`). La sección actual "Apariencia" de tres opciones se reemplaza por el switch. Si falla el guardado, el cambio se mantiene en memoria y no se muestra error.
 - `expo-status-bar` usa estilo claro sobre encabezados oscuros; `expo-system-ui` fija el color de fondo de la raíz según el esquema.
 - La fuente Inter (`@expo-google-fonts/inter`) se carga con `useFonts` antes de ocultar el splash (`expo-splash-screen`). Si falla la carga, se usa la fuente del sistema.
 - `app.json` mantiene `userInterfaceStyle: "automatic"`.
@@ -79,7 +80,8 @@ Dos paletas con las mismas claves:
 - **`Boton`**: nueva prop opcional `variante: "primario" | "secundario" | "peligro" | "fantasma"` (por defecto `primario`) y `icono` opcional. Alto mínimo 48, radio 12, texto `cuerpoFuerte`. Deshabilitado con opacidad 0.5. Se basa en `Presionable`.
 - **`Campo`**: etiqueta arriba, caja de 48 con radio 12, borde `borde`; al enfocar, borde `interactivo` y halo suave; error en `peligro` debajo con `accessibilityRole="alert"` como hoy.
 - **`Cantidad`** y **`SelectorUnidad`**: mismo estilo de caja que `Campo`.
-- **`Pantalla`**: fondo del tema, respeta `useSafeAreaInsets`, prop `scroll` opcional, y reserva el alto de la barra inferior al pie.
+- **`Pantalla`**: fondo del tema, respeta `useSafeAreaInsets` arriba, prop `scroll` opcional. El espacio de la barra inferior lo reserva el layout de pestañas (`sceneStyle`), para cubrir también pantallas que no usan `Pantalla`.
+- **`Texto`** (nuevo) y **`EntradaTexto`** (nuevo): `Text` y `TextInput` con color, fuente y variante del tema. Todas las pantallas existentes pasan a usarlos; una regla de ESLint (`no-restricted-imports`) prohíbe importar `Text` y `TextInput` de `react-native` fuera de `src/components/`, para que ningún texto quede negro en modo oscuro.
 
 ### Nuevos
 
@@ -105,7 +107,7 @@ Ninguna pantalla ni componente define colores literales: todo sale de `useTema()
 | `Presionable` | Escala a 0.96 en 150 ms con `Easing.out`; vuelve a 1 al soltar. Sin escala si `disabled`. |
 | `Skeleton` | Bloques `linea` con pulso de opacidad 0.5↔1 cada 900 ms. Variantes `Skeleton.Fila`, `Skeleton.Tarjeta`, `Skeleton.Cifra`. `accessibilityLabel="Cargando"`. |
 | `NumeroAnimado` | `valor`, `formato?`. Primera aparición: de 0 a `valor` en 600 ms con `Easing.out(Easing.cubic)`. Cambios posteriores: del valor anterior al nuevo. Se dibuja en el hilo de UI (`useAnimatedProps` sobre un `TextInput` no editable). `accessibilityLabel` y el texto que ven los tests son siempre el valor final formateado. |
-| `Confirmacion` | `ConfirmacionProvider` y `useConfirmacion().mostrar({ mensaje, tipo: "exito", alCerrar? })`. Tarjeta centrada sobre fondo tenue; el check se dibuja (trazo SVG) en 400 ms, el texto aparece después; se cierra sola a los 1400 ms y llama a `alCerrar`. Anuncia el mensaje con `AccessibilityInfo.announceForAccessibility`. |
+| `Confirmacion` | `ConfirmacionProvider` y `useConfirmacion().mostrar({ mensaje, alCerrar? })`. Tarjeta centrada sobre fondo tenue; el check se dibuja (trazo SVG) en 400 ms, el texto aparece después; se cierra sola a los 1400 ms y llama a `alCerrar`. Anuncia el mensaje con `AccessibilityInfo.announceForAccessibility`. |
 | Entrada de listas | `entradaEscalonada(indice)`: solo las primeras 6 filas, 60 ms entre filas, opacidad y 12 px hacia arriba en 300 ms. Solo en la primera carga. |
 
 Reglas:
@@ -157,7 +159,7 @@ Las pestañas no visibles para el rol usan `href: null`. Las rutas siguen proteg
 
 ## Pruebas
 
-- **Contraste** (`__tests__/tema/contraste.test.ts`): para ambos esquemas, `texto`/`fondo`, `texto`/`superficie`, `textoSecundario`/`superficie`, `sobrePrimario`/`primario`, `textoPeligro`/`peligroSuave` ≥ 4.5:1; `borde`/`superficie` ≥ 3:1.
+- **Contraste** (`__tests__/tema/contraste.test.ts`): para ambos esquemas, `texto`/`fondo`, `texto`/`superficie`, `textoSecundario`/`superficie`, `textoSecundario`/`fondo`, `textoExito`/`superficie`, `peligro`/`superficie`, `interactivo`/`superficie`, `sobrePrimario`/`primario`, `textoPeligro`/`peligroSuave` ≥ 4.5:1; `borde`/`superficie` y `exito`/`superficie` ≥ 3:1.
 - **Tema**: `TemaProvider` arranca con el esquema del sistema; `alternarEsquema` cambia y guarda; con preferencia guardada, la usa al arrancar.
 - **Navegación**: `tabsPara` con las listas nuevas; la barra muestra 5 pestañas para admin y 4 para operativo; "+" solo para admin.
 - **Componentes**: `ControlCantidad` respeta mínimo, máximo y paso por unidad; `Etiqueta` y `FilaLista` exponen texto y rol accesible.
