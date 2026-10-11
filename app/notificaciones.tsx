@@ -1,5 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
+import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAlertas, useMarcarLeidas } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
@@ -15,6 +16,14 @@ function fechaLegible(iso: string): string {
 }
 
 export default function Notificaciones() {
+  return (
+    <RequiereRol rol="admin">
+      <ListaAlertas />
+    </RequiereRol>
+  );
+}
+
+function ListaAlertas() {
   const { data, isLoading, isError } = useAlertas();
   const marcar = useMarcarLeidas();
   const hayNoLeidas = data?.some((a) => !a.leida) ?? false;

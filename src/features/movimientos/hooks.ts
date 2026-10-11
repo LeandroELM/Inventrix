@@ -17,6 +17,8 @@ export function useRegistrarMovimiento() {
         qc.invalidateQueries({ queryKey: ["producto", i.productoId] }),
         qc.invalidateQueries({ queryKey: ["inicio"] }),
         qc.invalidateQueries({ queryKey: ["historial"] }),
+        qc.invalidateQueries({ queryKey: ["a-pedir"] }),
+        qc.invalidateQueries({ queryKey: ["alertas"] }),
       ]),
   });
 }

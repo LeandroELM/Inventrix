@@ -28,6 +28,9 @@ function useInvalidar() {
     Promise.all([
       qc.invalidateQueries({ queryKey: ["productos"] }),
       qc.invalidateQueries({ queryKey: ["inicio"] }),
+      qc.invalidateQueries({ queryKey: ["a-pedir"] }),
+      qc.invalidateQueries({ queryKey: ["alertas"] }),
+      qc.invalidateQueries({ queryKey: ["historial"] }),
       ...(id ? [qc.invalidateQueries({ queryKey: ["producto", id] })] : []),
     ]);
 }

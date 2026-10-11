@@ -22,11 +22,15 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    const { data: producto } = await admin
+    const { data: producto, error: errorProducto } = await admin
       .from("productos")
       .select("nombre, existencias, punto_pedido, unidad")
       .eq("id", productoId)
       .single();
+    if (errorProducto && errorProducto.code !== "PGRST116") {
+      console.error("PRODUCTO_ERROR", errorProducto.message);
+      return json({ error: "ERROR_INTERNO" }, 500);
+    }
     if (!producto) return json({ error: "PRODUCTO_NO_ENCONTRADO" }, 404);
 
     // Solo dispositivos de admins activos.
@@ -35,7 +39,10 @@ Deno.serve(async (req) => {
       .select("token, perfiles!inner(rol, activo)")
       .eq("perfiles.activo", true)
       .eq("perfiles.rol", "admin");
-    if (error) return json({ error: "ERROR_INTERNO" }, 500);
+    if (error) {
+      console.error("DISPOSITIVOS_ERROR", error.message);
+      return json({ error: "ERROR_INTERNO" }, 500);
+    }
 
     const tokens = (filas ?? []).map((f: { token: string }) => f.token);
     const mensajes = construirMensajes({
@@ -47,18 +54,26 @@ Deno.serve(async (req) => {
 
     const invalidos: string[] = [];
     for (const lote of enLotes(mensajes, 100)) {
-      const resp = await fetch(EXPO_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(lote),
-      });
-      if (!resp.ok) continue;
-      const { data } = await resp.json();
-      if (Array.isArray(data)) invalidos.push(...tokensNoRegistrados(lote, data));
+      try {
+        const resp = await fetch(EXPO_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(lote),
+        });
+        if (!resp.ok) {
+          console.error("EXPO_PUSH_HTTP", `status ${resp.status}`);
+          continue;
+        }
+        const { data } = await resp.json();
+        if (Array.isArray(data)) invalidos.push(...tokensNoRegistrados(lote, data));
+      } catch (e) {
+        console.error("EXPO_PUSH_ERROR", e instanceof Error ? e.message : "desconocido");
+      }
     }
 
     if (invalidos.length > 0) {
-      await admin.from("dispositivos").delete().in("token", invalidos);
+      const { error: errorBorrado } = await admin.from("dispositivos").delete().in("token", invalidos);
+      if (errorBorrado) console.error("TOKENS_DELETE_ERROR", errorBorrado.message);
     }
     return json({ enviados: mensajes.length, eliminados: invalidos.length });
   } catch {

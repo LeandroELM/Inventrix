@@ -15,7 +15,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
 $$;
 
 
-select plan(5);
+select plan(7);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 
@@ -39,6 +39,17 @@ select is((select count(*)::int from public.alertas where producto_id = :'prod')
 select ok(not has_function_privilege('anon', 'public.notificar_alerta_nueva()', 'execute')
           and not has_function_privilege('authenticated', 'public.notificar_alerta_nueva()', 'execute'),
           'anon y authenticated no ejecutan la función del trigger');
+
+-- Con secretos presentes y una URL inalcanzable, la salida tampoco falla
+select vault.create_secret('http://127.0.0.1:1/inalcanzable', 'notificar_alerta_url');
+select vault.create_secret('secreto-de-prueba', 'webhook_secret');
+select pg_temp.como(:'adm');
+select (public.registrar_producto('Prod webhook 2', 'WH-2', 'unidad', 5, 3)).id as prod2 \gset
+select lives_ok(format('select public.registrar_movimiento(%L, %L, 4, %L)', :'prod2', 'salida', 'venta'),
+                'salida que cruza el punto funciona con secretos y URL inalcanzable');
+reset role;
+select is((select count(*)::int from public.alertas where producto_id = :'prod2'), 1,
+          'la alerta se creó con secretos presentes');
 
 select * from finish();
 rollback;

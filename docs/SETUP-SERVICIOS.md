@@ -68,8 +68,9 @@ El trigger `alertas_notificar` llama a la Edge Function `notificar-alerta` usand
 1. Elige un valor aleatorio largo para `WEBHOOK_SECRET` y despliega la función con el mismo valor:
 ```
 npx supabase secrets set WEBHOOK_SECRET=<valor>
-npx supabase functions deploy notificar-alerta --no-verify-jwt
+npx supabase functions deploy notificar-alerta
 ```
+`supabase/config.toml` ya declara `[functions.notificar-alerta] verify_jwt = false` (el trigger solo envía `x-webhook-secret`, sin JWT), así que un `supabase functions deploy` normal conserva el ajuste. Por si acaso, también puedes añadir `--no-verify-jwt`.
 2. En el SQL Editor del proyecto remoto crea los dos secretos de Vault (mismo valor):
 ```sql
 select vault.create_secret('https://<ref>.supabase.co/functions/v1/notificar-alerta', 'notificar_alerta_url');
