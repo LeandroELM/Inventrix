@@ -35,6 +35,10 @@ npx supabase functions deploy
 ```
 npx supabase secrets set ANTHROPIC_API_KEY=<clave> ANTHROPIC_MODEL=claude-opus-5-5 WEBHOOK_SECRET=<cadena-aleatoria>
 ```
+Despliega el chatbot (mantiene la verificacion JWT activa, la app lo llama con el token del usuario):
+```
+npx supabase functions deploy soporte-chat
+```
 (`ANTHROPIC_API_KEY` se crea en console.anthropic.com; hasta entonces el chatbot responde "no configurado" y ofrece WhatsApp.)
 4. Pon la URL y la anon key remotas en `.env` (Settings > API) para builds contra remoto.
 
