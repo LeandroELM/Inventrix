@@ -58,6 +58,21 @@ npx eas-cli credentials
 
 Verifica: `eas credentials` muestra la clave FCM v1 asociada.
 
+## 4b. Webhook de alertas (push de reabastecimiento)
+El trigger `alertas_notificar` llama a la Edge Function `notificar-alerta` usando dos secretos de Supabase Vault (no se guardan en git). Si faltan, no hace nada.
+
+1. Elige un valor aleatorio largo para `WEBHOOK_SECRET` y despliega la función con el mismo valor:
+```
+npx supabase secrets set WEBHOOK_SECRET=<valor>
+npx supabase functions deploy notificar-alerta --no-verify-jwt
+```
+2. En el SQL Editor del proyecto remoto crea los dos secretos de Vault (mismo valor):
+```sql
+select vault.create_secret('https://<ref>.supabase.co/functions/v1/notificar-alerta', 'notificar_alerta_url');
+select vault.create_secret('<valor>', 'webhook_secret');
+```
+Verifica: `select name from vault.decrypted_secrets;` lista ambos nombres; una salida que cruza el punto de pedido genera una notificación en el teléfono del admin.
+
 ## 5. Primer administrador (tarea posterior)
 ```
 npx tsx scripts/crear-admin.ts
