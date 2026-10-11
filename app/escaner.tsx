@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { CameraView, scanFromURLAsync, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
+import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
@@ -124,6 +125,7 @@ export default function Escaner() {
 
   return (
     <View style={styles.contenedor}>
+      <StatusBar style="light" />
       <CameraView
         style={StyleSheet.absoluteFill}
         facing="back"

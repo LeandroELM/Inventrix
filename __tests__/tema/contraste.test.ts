@@ -13,6 +13,7 @@ describe.each<Esquema>(["claro", "oscuro"])("paleta %s", (esquema) => {
     ["textoSecundario", "fondo"], ["textoExito", "superficie"], ["peligro", "superficie"],
     ["interactivo", "superficie"], ["sobrePrimario", "primario"],
     ["sobreInteractivo", "interactivo"], ["sobrePeligro", "peligro"],
+    ["textoPeligro", "fondo"], ["textoPeligro", "superficie"], ["textoExito", "fondo"],
   ] as const)("%s sobre %s ≥ 4.5", (a, b) => {
     expect(contraste(c[a], c[b])).toBeGreaterThanOrEqual(4.5);
   });

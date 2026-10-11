@@ -31,15 +31,23 @@ const PERIODOS: { valor: Periodo; texto: string }[] = [
 const esMovimientos = (t: TipoReporte) => t === "entradas" || t === "salidas" || t === "historial";
 
 function Opcion({ texto, activa, onPress }: { texto: string; activa: boolean; onPress: () => void }) {
+  const { colores } = useTema();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={texto}
       accessibilityState={{ selected: activa }}
       onPress={onPress}
-      style={{ padding: 8, borderWidth: 1, backgroundColor: activa ? "#ddd" : undefined }}
+      style={{
+        minHeight: 48,
+        justifyContent: "center",
+        padding: 8,
+        borderWidth: 1,
+        borderColor: activa ? colores.interactivo : colores.borde,
+        backgroundColor: activa ? colores.interactivo : undefined,
+      }}
     >
-      <Texto>{texto}</Texto>
+      <Texto tono={activa ? "sobreInteractivo" : "texto"}>{texto}</Texto>
     </Pressable>
   );
 }
@@ -154,7 +162,7 @@ function Reportes() {
                 </View>
               ) : null}
               {data.map((fila, i) => (
-                <View key={i} style={{ flexDirection: "row", borderTopWidth: 1 }}>
+                <View key={i} style={{ flexDirection: "row", borderTopWidth: 1, borderColor: colores.linea }}>
                   {columnas.map((c) => (
                     <Texto key={c} style={{ width: 130, padding: 4 }}>
                       {String(fila[c])}

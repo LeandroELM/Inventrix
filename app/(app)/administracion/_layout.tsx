@@ -12,6 +12,7 @@ export default function Layout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Administración" }} />
+      <Stack.Screen name="existencias" options={{ headerShown: false }} />
       <Stack.Screen name="reportes" options={{ title: "Reportes" }} />
       <Stack.Screen name="baja" options={{ title: "Dar de baja producto" }} />
       <Stack.Screen name="pedir" options={{ title: "Productos a pedir" }} />

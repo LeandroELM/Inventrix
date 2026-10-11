@@ -8,6 +8,8 @@ import { useInicio } from "@/features/inicio/hooks";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { Texto } from "@/components/Texto";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTema } from "@/tema/TemaProvider";
 
 export default function Inicio() {
   const { perfil } = useAuth();
@@ -17,13 +19,16 @@ export default function Inicio() {
 
 function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativo" }) {
   const router = useRouter();
+  const { colores } = useTema();
+  const insets = useSafeAreaInsets();
   const esAdmin = rol === "admin";
   const inicio = useInicio(rol);
   const { data } = inicio;
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 16, gap: 12 }}
+      style={{ backgroundColor: colores.fondo }}
+      contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, gap: 12 }}
       refreshControl={<RefreshControl refreshing={inicio.isRefetching} onRefresh={() => void inicio.refetch()} />}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -38,7 +43,7 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
 
       {data && (
         <>
-          <View style={{ borderWidth: 1, padding: 12, gap: 4 }}>
+          <View style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
             <Texto>{`Productos activos: ${data.productosActivos}`}</Texto>
             {textoResumen(data.resumen).map((t) => (
               <Texto key={t}>{t}</Texto>
@@ -46,7 +51,7 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
           </View>
 
           {data.aPedir && (
-            <View style={{ borderWidth: 1, padding: 12, gap: 4 }}>
+            <View style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
               <Texto>{`Productos en punto de pedido: ${data.aPedir.total}`}</Texto>
               <Texto>Productos próximos a agotarse</Texto>
               {data.aPedir.primeros.map((p) => (

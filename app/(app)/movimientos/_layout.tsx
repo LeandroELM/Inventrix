@@ -12,6 +12,7 @@ export default function Layout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Historial de movimientos" }} />
+      <Stack.Screen name="historial" options={{ headerShown: false }} />
       <Stack.Screen name="entrada" options={{ title: "Registrar entrada" }} />
       <Stack.Screen name="salida" options={{ title: "Registrar salida" }} />
     </Stack>

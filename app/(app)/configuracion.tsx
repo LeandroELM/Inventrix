@@ -147,7 +147,7 @@ export default function Configuracion() {
   const { perfil, cerrarSesion } = useAuth();
   const router = useRouter();
   return (
-    <Pantalla>
+    <Pantalla bordeSuperior>
       <ScrollView contentContainerStyle={{ gap: 12 }}>
         <Texto accessibilityRole="header" variante="subtitulo">Configuración</Texto>
         <SeccionCuenta />

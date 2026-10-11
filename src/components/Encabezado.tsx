@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useIsFocused } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,6 +30,7 @@ const BOTON = { width: 48, height: 48, alignItems: "center", justifyContent: "ce
 export function Encabezado(props: PropsInicio | PropsPantalla) {
   const { colores } = useTema();
   const insets = useSafeAreaInsets();
+  const enfocada = useIsFocused();
   const [inicio, fin] = colores.encabezado;
 
   return (
@@ -42,10 +44,12 @@ export function Encabezado(props: PropsInicio | PropsPantalla) {
         borderBottomRightRadius: RADIO.encabezado,
       }}
     >
-      <StatusBar style="light" />
+      {enfocada ? <StatusBar style="light" /> : null}
       {props.variante === "inicio" ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.m }}>
           <View
+            importantForAccessibility="no-hide-descendants"
+            accessibilityElementsHidden
             style={{
               width: 34,
               height: 34,
@@ -104,7 +108,7 @@ export function Encabezado(props: PropsInicio | PropsPantalla) {
               <Icono nombre="atras" tamano={26} color={colores.sobrePrimario} />
             </Presionable>
           ) : null}
-          <Texto variante="titulo" tono="sobrePrimario" numberOfLines={1} style={{ flex: 1 }}>
+          <Texto accessibilityRole="header" variante="titulo" tono="sobrePrimario" numberOfLines={1} style={{ flex: 1 }}>
             {props.titulo}
           </Texto>
           {props.accion ? (

@@ -75,7 +75,7 @@ export default function Movimientos() {
             accessibilityLabel={s.titulo}
             accessibilityState={{ selected: segmento === s.valor }}
             onPress={() => setSegmento(s.valor)}
-            style={{ flex: 1, padding: 8, alignItems: "center", borderWidth: segmento === s.valor ? 2 : 1 }}
+            style={{ flex: 1, padding: 8, alignItems: "center", borderWidth: segmento === s.valor ? 2 : 1, borderColor: segmento === s.valor ? colores.interactivo : colores.borde }}
           >
             <Texto>{s.titulo}</Texto>
           </Pressable>

@@ -21,6 +21,7 @@ const CON_STACK: NombreTab[] = ["administracion", "movimientos"];
 
 const TAMANO_MAS = 54;
 const ELEVACION_MAS = 30;
+const ALTO_TOTAL = ALTO_BARRA + ELEVACION_MAS;
 
 const TITULOS: Record<Exclude<NombreTab, "nuevo">, string> = {
   index: "Inicio",
@@ -28,6 +29,15 @@ const TITULOS: Record<Exclude<NombreTab, "nuevo">, string> = {
   administracion: "Admin.",
   movimientos: "Movimientos",
   configuracion: "Config.",
+};
+
+// Lo que lee TalkBack: nombres completos aunque el texto visible sea corto.
+const ETIQUETAS: Record<Exclude<NombreTab, "nuevo">, string> = {
+  index: "Inicio",
+  buscar: "Buscar",
+  administracion: "Administración",
+  movimientos: "Movimientos",
+  configuracion: "Configuración",
 };
 
 const ICONOS_TAB: Record<Exclude<NombreTab, "nuevo">, NombreIcono> = {
@@ -67,19 +77,33 @@ export function BarraInferior({
           left: MARGEN_BARRA,
           right: MARGEN_BARRA,
           bottom: MARGEN_BARRA + insets.bottom,
-          height: ALTO_BARRA,
+          height: ALTO_TOTAL,
           flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: colores.superficie,
-          borderRadius: RADIO.barra,
+          alignItems: "flex-end",
         },
-        sombra("elevada", esquema),
       ]}
     >
+      <View
+        pointerEvents="none"
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: ALTO_BARRA,
+            backgroundColor: colores.superficie,
+            borderRadius: RADIO.barra,
+          },
+          sombra("elevada", esquema),
+        ]}
+      />
       {visibles.map((nombre) => {
         if (nombre === "nuevo") {
           return (
-            <View key={nombre} style={{ flex: 1, alignItems: "center" }}>
+            // El hueco ocupa todo el alto (barra + elevación): el círculo completo queda dentro de
+            // los límites de su padre y recibe toques en cualquiera de sus puntos.
+            <View key={nombre} pointerEvents="box-none" style={{ flex: 1, height: ALTO_TOTAL, alignItems: "center" }}>
               <Presionable
                 accessibilityRole="button"
                 accessibilityLabel="Nuevo producto"
@@ -89,7 +113,6 @@ export function BarraInferior({
                     width: TAMANO_MAS,
                     height: TAMANO_MAS,
                     borderRadius: TAMANO_MAS / 2,
-                    marginTop: -ELEVACION_MAS,
                     borderWidth: 4,
                     borderColor: colores.fondo,
                     backgroundColor: colores.primario,
@@ -110,10 +133,10 @@ export function BarraInferior({
           <Presionable
             key={nombre}
             accessibilityRole="tab"
-            accessibilityLabel={TITULOS[nombre]}
+            accessibilityLabel={ETIQUETAS[nombre]}
             accessibilityState={{ selected: seleccionada }}
             onPress={() => presionar(nombre)}
-            style={{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", gap: 2 }}
+            style={{ flex: 1, height: ALTO_BARRA, alignItems: "center", justifyContent: "center", gap: 2 }}
           >
             <Icono nombre={ICONOS_TAB[nombre]} tamano={22} color={color} />
             <Texto variante="pequeno" tono={seleccionada ? "texto" : "secundario"} numberOfLines={1}>

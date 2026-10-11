@@ -5,6 +5,7 @@ import { useAlertas, useMarcarLeidas } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 function dos(n: number): string {
   return String(n).padStart(2, "0");
@@ -25,6 +26,7 @@ export default function Notificaciones() {
 }
 
 function ListaAlertas() {
+  const { colores } = useTema();
   const { data, isLoading, isError } = useAlertas();
   const marcar = useMarcarLeidas();
   const hayNoLeidas = data?.some((a) => !a.leida) ?? false;
@@ -42,7 +44,7 @@ function ListaAlertas() {
       {isError && <Texto accessibilityRole="alert" tono="peligro">No se pudieron cargar las alertas.</Texto>}
       {data?.length === 0 && <Texto>No hay alertas.</Texto>}
       {data?.map((a) => (
-        <View key={a.id} style={{ borderWidth: 1, padding: 12, gap: 4 }}>
+        <View key={a.id} style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
           <Texto>{a.producto}</Texto>
           <Texto>{`Existencias: ${formatearCantidad(a.existencias, a.unidad)} · Punto de pedido: ${formatearCantidad(a.punto_pedido, a.unidad)}`}</Texto>
           <Texto>{fechaLegible(a.created_at)}</Texto>

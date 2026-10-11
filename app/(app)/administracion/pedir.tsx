@@ -4,6 +4,7 @@ import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAPedir } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 export default function Pedir() {
   return (
@@ -14,6 +15,7 @@ export default function Pedir() {
 }
 
 function ListaAPedir() {
+  const { colores } = useTema();
   const router = useRouter();
   const { data, isLoading, isError } = useAPedir();
 
@@ -36,7 +38,7 @@ function ListaAPedir() {
           accessibilityRole="button"
           accessibilityLabel={p.nombre}
           onPress={() => router.push({ pathname: "/administracion/producto/[id]", params: { id: p.id } })}
-          style={{ flexDirection: "row", gap: 8, borderWidth: 1, padding: 8 }}
+          style={{ flexDirection: "row", gap: 8, borderWidth: 1, borderColor: colores.linea, padding: 8 }}
         >
           <Texto style={{ flex: 2 }}>{p.nombre}</Texto>
           <Texto style={{ flex: 1 }}>{formatearCantidad(p.existencias, p.unidad)}</Texto>

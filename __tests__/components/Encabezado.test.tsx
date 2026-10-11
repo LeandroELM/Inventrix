@@ -3,6 +3,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Encabezado } from "@/components/Encabezado";
 import { TemaProvider } from "@/tema/TemaProvider";
 
+const mockEnfocada = { valor: true };
+jest.mock("expo-router", () => ({ useIsFocused: () => mockEnfocada.valor }));
+jest.mock("expo-status-bar", () => {
+  const { View } = jest.requireActual("react-native");
+  return { StatusBar: () => <View testID="barra-estado" /> };
+});
 jest.mock("@/features/configuracion/apariencia", () => ({
   leerApariencia: () => Promise.resolve("claro"),
   guardarApariencia: () => Promise.resolve(),
@@ -19,6 +25,23 @@ async function montar(ui: React.ReactElement) {
 }
 
 describe("Encabezado", () => {
+  beforeEach(() => {
+    mockEnfocada.valor = true;
+  });
+
+  it("monta la barra de estado solo mientras la pantalla está enfocada", async () => {
+    await montar(<Encabezado variante="pantalla" titulo="Reportes" />);
+    expect(screen.queryByTestId("barra-estado")).toBeTruthy();
+    mockEnfocada.valor = false;
+    await montar(<Encabezado variante="pantalla" titulo="Otra" />);
+    expect(screen.queryByTestId("barra-estado")).toBeNull();
+  });
+
+  it("el título es un encabezado accesible", async () => {
+    await montar(<Encabezado variante="pantalla" titulo="Reportes" />);
+    expect(screen.getByRole("header", { name: "Reportes" })).toBeTruthy();
+  });
+
   it("inicio muestra saludo, rol y alertas", async () => {
     await montar(<Encabezado variante="inicio" saludo="Hola, Ana 👋" rol="Administrador" alertas={3} />);
     expect(screen.getByText("Hola, Ana 👋")).toBeTruthy();

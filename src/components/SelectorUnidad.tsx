@@ -25,7 +25,7 @@ export function SelectorUnidad({ valor, onChange }: Props) {
               accessibilityState={{ selected: activa }}
               onPress={() => onChange(u)}
               style={{
-                minHeight: 40,
+                minHeight: 48,
                 justifyContent: "center",
                 paddingHorizontal: 14,
                 borderRadius: RADIO.completo,

@@ -25,7 +25,7 @@ describe("Texto", () => {
     await renderOscuro(<Texto tono="peligro">Hola</Texto>);
     await waitFor(() => {
       const estilo = StyleSheet.flatten(screen.getByText("Hola").props.style);
-      expect(estilo.color).toBe("#F05A66");
+      expect(estilo.color).toBe("#FF8A93");
     });
   });
 

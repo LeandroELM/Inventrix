@@ -145,7 +145,7 @@ export default function Soporte() {
                   accessibilityLabel={q}
                   onPress={() => void enviar(q)}
                   style={{
-                    minHeight: 40,
+                    minHeight: 48,
                     justifyContent: "center",
                     paddingHorizontal: 12,
                     borderRadius: RADIO.completo,

@@ -12,6 +12,8 @@ import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/fea
 import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
 import { EntradaTexto } from "@/components/EntradaTexto";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 const FILTROS: { titulo: string; estado?: Estado }[] = [
@@ -23,6 +25,7 @@ const FILTROS: { titulo: string; estado?: Estado }[] = [
 
 export default function Buscar() {
   const { colores } = useTema();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { perfil } = useAuth();
   const [busqueda, setBusqueda] = useState("");
@@ -54,14 +57,21 @@ export default function Buscar() {
   }
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
+    <View style={{ flex: 1, padding: 16, paddingTop: insets.top + 16, gap: 12, backgroundColor: colores.fondo }}>
       <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
         <EntradaTexto
           accessibilityLabel="Buscar producto"
           placeholder="Buscar por nombre o código"
           value={busqueda}
           onChangeText={setBusqueda}
-          style={{ flex: 1, borderWidth: 1, padding: 8 }}
+          style={{
+            flex: 1,
+            borderWidth: 1.5,
+            borderColor: colores.borde,
+            borderRadius: RADIO.campo,
+            backgroundColor: colores.superficie,
+            padding: 8,
+          }}
         />
         <Boton titulo="Escanear" onPress={() => router.push("/escaner?destino=existencias")} />
       </View>
@@ -73,7 +83,7 @@ export default function Buscar() {
             accessibilityLabel={`Filtrar: ${f.titulo}`}
             accessibilityState={{ selected: estado === f.estado }}
             onPress={() => setEstado(f.estado)}
-            style={{ borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6, opacity: estado === f.estado ? 1 : 0.5 }}
+            style={{ borderWidth: 1, borderColor: colores.borde, paddingHorizontal: 10, paddingVertical: 6, opacity: estado === f.estado ? 1 : 0.5 }}
           >
             <Texto>{f.titulo}</Texto>
           </Pressable>
@@ -97,7 +107,7 @@ export default function Buscar() {
               accessibilityRole="button"
               accessibilityLabel={item.nombre}
               onPress={() => router.push(`/administracion/producto/${item.id}`)}
-              style={{ paddingVertical: 8, borderBottomWidth: 1 }}
+              style={{ paddingVertical: 8, borderBottomWidth: 1, borderColor: colores.linea }}
             >
               <Texto>{item.nombre}</Texto>
               <Texto>

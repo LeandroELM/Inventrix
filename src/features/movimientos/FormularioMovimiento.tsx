@@ -136,7 +136,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
               accessibilityLabel={m.texto}
               accessibilityState={{ selected: motivo === m.valor }}
               onPress={() => setMotivoElegido(m.valor)}
-              style={{ borderWidth: 1, padding: 8, opacity: motivo === m.valor ? 1 : 0.5 }}
+              style={{ borderWidth: 1, borderColor: colores.borde, padding: 8, opacity: motivo === m.valor ? 1 : 0.5 }}
             >
               <Texto>{m.texto}</Texto>
             </Pressable>

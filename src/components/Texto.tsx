@@ -19,7 +19,7 @@ export function Texto({ variante = "cuerpo", tono = "texto", style, ...resto }: 
     texto: colores.texto,
     secundario: colores.textoSecundario,
     exito: colores.textoExito,
-    peligro: colores.peligro,
+    peligro: colores.textoPeligro,
     interactivo: colores.interactivo,
     sobrePrimario: colores.sobrePrimario,
     sobreInteractivo: colores.sobreInteractivo,

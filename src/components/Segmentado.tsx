@@ -34,7 +34,7 @@ export function Segmentado<T extends string>({ opciones, valor, onCambio }: Prop
             onPress={() => onCambio(o.valor)}
             style={{
               flex: 1,
-              minHeight: 40,
+              minHeight: 48,
               alignItems: "center",
               justifyContent: "center",
               borderRadius: RADIO.campo - 3,

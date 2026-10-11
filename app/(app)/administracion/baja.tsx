@@ -9,6 +9,7 @@ import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
+import { RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 const MOTIVOS = ["Descontinuado", "Registro duplicado", "Otro"] as const;
@@ -99,7 +100,7 @@ function Baja() {
               accessibilityLabel={m}
               accessibilityState={{ selected: motivo === m }}
               onPress={() => setMotivo(m)}
-              style={{ borderWidth: 1, padding: 8, opacity: motivo === m ? 1 : 0.5 }}
+              style={{ borderWidth: 1, borderColor: colores.borde, padding: 8, opacity: motivo === m ? 1 : 0.5 }}
             >
               <Texto>{m}</Texto>
             </Pressable>
@@ -110,8 +111,8 @@ function Baja() {
         </View>
       )}
       <Modal visible={confirmando} transparent animationType="fade" onRequestClose={() => setConfirmando(false)}>
-        <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={{ backgroundColor: "#fff", padding: 16, gap: 12 }}>
+        <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: colores.velo }}>
+          <View style={{ backgroundColor: colores.superficie, borderRadius: RADIO.tarjeta, padding: 16, gap: 12 }}>
             <Texto>{`¿Dar de baja "${p.nombre}"? Dejará de aparecer en Existencias.`}</Texto>
             <Boton titulo="Confirmar baja" loading={baja.isPending} onPress={() => void confirmar()} />
             <Boton titulo="Cancelar" onPress={() => setConfirmando(false)} />

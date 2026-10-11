@@ -44,6 +44,12 @@ describe("BarraInferior", () => {
     expect(screen.getByLabelText("Nuevo producto")).toBeTruthy();
   });
 
+  it("las pestañas usan nombres completos para lectores de pantalla", async () => {
+    await dibujar(propsBarra("admin").props);
+    expect(screen.getByRole("tab", { name: "Administración" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Configuración" })).toBeTruthy();
+  });
+
   it("operativo: 4 pestañas y sin Nuevo producto", async () => {
     await dibujar(propsBarra("operativo").props);
     expect(screen.getAllByRole("tab")).toHaveLength(4);
