@@ -19,6 +19,7 @@ export type Colores = {
   linea: string;
   borde: string;
   inactivo: string;
+  velo: string;
   encabezado: readonly [string, string];
   avatares: readonly string[];
 };
@@ -41,6 +42,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     linea: "#E5EBF2",
     borde: "#7B8BA1",
     inactivo: "#CBD5E1",
+    velo: "rgba(10,20,36,0.35)",
     encabezado: ["#1764A0", "#102B50"],
     avatares: ["#D6E8F8", "#D5F0E1", "#FBE3D3", "#EADCF7", "#FBF0C9", "#D3EEF0"],
   },
@@ -61,6 +63,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     linea: "#1F3150",
     borde: "#5B7090",
     inactivo: "#334561",
+    velo: "rgba(10,20,36,0.35)",
     encabezado: ["#14558A", "#0E2442"],
     avatares: ["#1F3A5C", "#1D4A38", "#5A3A26", "#44305F", "#54482A", "#1F4A50"],
   },

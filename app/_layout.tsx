@@ -12,6 +12,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
 import { queryClient } from "@/lib/queryClient";
 import { Texto } from "@/components/Texto";
+import { ConfirmacionProvider } from "@/animacion/Confirmacion";
 
 function Navegacion() {
   const { estado, reintentar } = useAuth();
@@ -75,9 +76,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TemaProvider>
-        <CargadorFuentes>
-          <Raiz />
-        </CargadorFuentes>
+        <ConfirmacionProvider>
+          <CargadorFuentes>
+            <Raiz />
+          </CargadorFuentes>
+        </ConfirmacionProvider>
       </TemaProvider>
     </GestureHandlerRootView>
   );
