@@ -17,6 +17,10 @@ $$;
 
 select plan(7);
 
+-- aislar de los datos del seed (la transaccion se revierte)
+delete from public.movimientos;
+delete from public.productos;
+
 select pg_temp.crear_usuario('op1', 'operativo') as op_id \gset
 select pg_temp.crear_usuario('inactivo1', 'operativo') as ina_id \gset
 update public.perfiles set activo = false where id = :'ina_id';

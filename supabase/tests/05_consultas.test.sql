@@ -16,6 +16,10 @@ $$;
 
 select plan(14);
 
+-- aislar de los datos del seed (la transaccion se revierte)
+delete from public.movimientos;
+delete from public.productos;
+
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
 
