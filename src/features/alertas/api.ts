@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { traerTodo } from "@/lib/paginar";
 import type { ProductoAPedir } from "@/features/inicio/api";
 import type { Unidad } from "@/features/productos/unidades";
 
@@ -39,4 +40,13 @@ export async function listarAPedir(): Promise<ProductoAPedir[]> {
   const { data, error } = await supabase.from("productos_a_pedir").select("*").order("nombre");
   if (error) throw error;
   return data.map((p) => ({ ...p, existencias: Number(p.existencias), punto_pedido: Number(p.punto_pedido) })) as ProductoAPedir[];
+}
+
+// Reportes: pagina para no cortar la lista en 1000 filas.
+export async function listarTodoAPedir(): Promise<ProductoAPedir[]> {
+  return traerTodo<ProductoAPedir>(async (desde, hasta) => {
+    const { data, error } = await supabase.from("productos_a_pedir").select("*").order("nombre").order("id").range(desde, hasta);
+    if (error) throw error;
+    return data.map((p) => ({ ...p, existencias: Number(p.existencias), punto_pedido: Number(p.punto_pedido) })) as ProductoAPedir[];
+  });
 }

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
+import { traerTodo } from "@/lib/paginar";
 import { estadoInventario, type Estado, type Producto } from "@/features/productos/estado";
 
 export type FiltroProductos = { texto?: string; estado?: Estado };
@@ -9,14 +10,32 @@ export function limpiarTexto(texto: string): string {
   return texto.replace(/[,()%*\\]/g, " ").trim();
 }
 
-export async function listarProductos(filtro: FiltroProductos = {}): Promise<Producto[]> {
+function consultaProductos(filtro: FiltroProductos) {
   let consulta = supabase.from("productos").select("*").eq("activo", true);
   const texto = filtro.texto ? limpiarTexto(filtro.texto) : "";
   if (texto) consulta = consulta.or(`nombre.ilike.%${texto}%,codigo.ilike.%${texto}%`);
-  const { data, error } = await consulta.order("nombre");
+  return consulta.order("nombre").order("id");
+}
+
+function filtrarPorEstado(productos: Producto[], estado?: Estado): Producto[] {
+  return estado ? productos.filter((p) => estadoInventario(p.existencias, p.punto_pedido) === estado) : productos;
+}
+
+// Pantalla interactiva: una sola respuesta (tope de max_rows del servidor).
+export async function listarProductos(filtro: FiltroProductos = {}): Promise<Producto[]> {
+  const { data, error } = await consultaProductos(filtro);
   if (error) throw error;
-  const { estado } = filtro;
-  return estado ? data.filter((p) => estadoInventario(p.existencias, p.punto_pedido) === estado) : data;
+  return filtrarPorEstado(data, filtro.estado);
+}
+
+// Exportaciones y reportes: pagina para no cortar el inventario en 1000 filas.
+export async function listarTodosProductos(filtro: FiltroProductos = {}): Promise<Producto[]> {
+  const todos = await traerTodo<Producto>(async (desde, hasta) => {
+    const { data, error } = await consultaProductos(filtro).range(desde, hasta);
+    if (error) throw error;
+    return data;
+  });
+  return filtrarPorEstado(todos, filtro.estado);
 }
 
 export async function buscarPorCodigo(codigo: string): Promise<Producto | null> {
