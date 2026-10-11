@@ -27,6 +27,12 @@
           "imageWidth": 76
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Inventrix usa la cámara para escanear códigos de barras y QR de tus productos."
+        }
+      ],
       "expo-secure-store",
       "expo-sharing"
     ],
