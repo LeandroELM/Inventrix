@@ -1,4 +1,4 @@
-import { generaAlerta, proyectar, validarSalida } from "@/features/movimientos/calculo";
+import { etiquetaMovimiento, generaAlerta, proyectar, validarSalida } from "@/features/movimientos/calculo";
 
 describe("calculo de movimientos", () => {
   it("proyecta existencias", () => {
@@ -14,5 +14,10 @@ describe("calculo de movimientos", () => {
     expect(generaAlerta(12, 2, 10)).toBe(true);
     expect(generaAlerta(9, 1, 10)).toBe(false);
     expect(generaAlerta(12, 1, 10)).toBe(false);
+  });
+  it("etiqueta movimientos con signo y unidad", () => {
+    expect(etiquetaMovimiento("salida", 2, "unidad")).toBe("−2 unid.");
+    expect(etiquetaMovimiento("entrada", 25, "libra")).toBe("+25 lb");
+    expect(etiquetaMovimiento("inicial", 50, "libra")).toBe("+50 lb");
   });
 });

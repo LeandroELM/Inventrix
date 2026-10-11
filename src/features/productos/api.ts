@@ -5,7 +5,7 @@ import { estadoInventario, type Estado, type Producto } from "@/features/product
 export type FiltroProductos = { texto?: string; estado?: Estado };
 
 // Quita caracteres con significado especial en filtros PostgREST (or/ilike).
-function limpiarTexto(texto: string): string {
+export function limpiarTexto(texto: string): string {
   return texto.replace(/[,()%*\\]/g, " ").trim();
 }
 

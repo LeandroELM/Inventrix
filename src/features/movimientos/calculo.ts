@@ -1,3 +1,5 @@
+import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
+
 export function proyectar(existencias: number, cantidad: number, tipo: "entrada" | "salida"): number {
   const total = tipo === "entrada" ? existencias + cantidad : existencias - cantidad;
   return Math.round((total + Number.EPSILON) * 100) / 100;
@@ -10,4 +12,8 @@ export function validarSalida(existencias: number, cantidad: number): string | n
 // Aviso previo en la UI; la alerta real la crea la base de datos.
 export function generaAlerta(existencias: number, cantidad: number, puntoPedido: number): boolean {
   return existencias > puntoPedido && existencias - cantidad <= puntoPedido;
+}
+
+export function etiquetaMovimiento(tipo: "entrada" | "salida" | "inicial", cantidad: number, unidad: Unidad): string {
+  return `${tipo === "salida" ? "−" : "+"}${formatearCantidad(cantidad, unidad)}`;
 }
