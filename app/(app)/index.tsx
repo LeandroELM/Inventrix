@@ -1,9 +1,10 @@
-import { Link, useRouter, type Href } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { textoResumen } from "@/features/inicio/api";
-import { useAlertasNoLeidas, useInicio } from "@/features/inicio/hooks";
+import { useAlertasNoLeidas } from "@/features/alertas/hooks";
+import { useInicio } from "@/features/inicio/hooks";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { formatearCantidad } from "@/features/productos/unidades";
 
@@ -17,7 +18,6 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
   const router = useRouter();
   const esAdmin = rol === "admin";
   const inicio = useInicio(rol);
-  const alertas = useAlertasNoLeidas(esAdmin);
   const { data } = inicio;
 
   return (
@@ -30,11 +30,7 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
           <Text>{`Hola, ${nombre}`}</Text>
           <Text>{esAdmin ? "Administrador" : "Operativo"}</Text>
         </View>
-        {esAdmin && (
-          <Link href={"/notificaciones" as Href} accessibilityRole="link" accessibilityLabel="Alertas">
-            <Text>{`Alertas (${alertas.data ?? 0})`}</Text>
-          </Link>
-        )}
+        {esAdmin && <CampanaAlertas />}
       </View>
 
       {inicio.isError && <Text>No se pudo cargar el inicio. Desliza para reintentar.</Text>}
@@ -73,5 +69,14 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
         <Text key={m.id}>{`${m.producto}: ${etiquetaMovimiento(m.tipo, m.cantidad, m.unidad)} (${m.usuario})`}</Text>
       ))}
     </ScrollView>
+  );
+}
+
+function CampanaAlertas() {
+  const noLeidas = useAlertasNoLeidas();
+  return (
+    <Link href="/notificaciones" accessibilityRole="link" accessibilityLabel="Alertas">
+      <Text>{`Alertas (${noLeidas})`}</Text>
+    </Link>
   );
 }
