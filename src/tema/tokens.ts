@@ -14,6 +14,7 @@ export type Colores = {
   sobrePeligro: string;
   marca: string;
   marcaAcento: string;
+  marcaFondo: string;
   exito: string;
   exitoSuave: string;
   textoExito: string;
@@ -41,6 +42,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     sobrePeligro: "#FFFFFF",
     marca: "#102B50",
     marcaAcento: "#219653",
+    marcaFondo: "#FFFFFF",
     exito: "#219653",
     exitoSuave: "#E8F5EE",
     textoExito: "#1A7A44",
@@ -66,6 +68,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     sobrePeligro: "#0A1424",
     marca: "#102B50",
     marcaAcento: "#219653",
+    marcaFondo: "#FFFFFF",
     exito: "#3CC37A",
     exitoSuave: "rgba(60,195,122,0.14)",
     textoExito: "#3CC37A",
