@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     if (error) return json({ error: "ERROR_INTERNO" }, 500);
 
     const client = new Anthropic(); // ANTHROPIC_API_KEY desde secretos
-    const modelo = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-opus-5-5";
+    const modelo = (Deno.env.get("ANTHROPIC_MODEL") ?? "").trim() || "claude-opus-5-5";
     try {
       const r = await client.beta.messages.create({
         model: modelo,

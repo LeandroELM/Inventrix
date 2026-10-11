@@ -56,7 +56,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:db": "supabase test db"
+    "test:db": "supabase test db",
+    "test:functions": "deno test --config supabase/functions/deno.json supabase/functions"
   },
   "private": true
 }
