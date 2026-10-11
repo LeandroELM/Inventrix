@@ -57,7 +57,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:db": "supabase test db",
-    "test:functions": "deno test --config supabase/functions/deno.json supabase/functions"
+    "test:functions": "deno check --config supabase/functions/deno.json supabase/functions/admin-usuarios/index.ts supabase/functions/notificar-alerta/index.ts supabase/functions/soporte-chat/index.ts && deno test --config supabase/functions/deno.json supabase/functions"
   },
   "private": true
 }
