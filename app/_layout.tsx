@@ -45,9 +45,9 @@ function Navegacion() {
     );
   }
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colores.fondo } }}>
-      <Stack.Screen name="escaner" options={{ presentation: "modal" }} />
-      <Stack.Screen name="notificaciones" options={{ presentation: "modal" }} />
+    <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", contentStyle: { backgroundColor: colores.fondo } }}>
+      <Stack.Screen name="escaner" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+      <Stack.Screen name="notificaciones" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
       <Stack.Screen name="soporte" options={{ presentation: "modal" }} />
     </Stack>
   );

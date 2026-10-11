@@ -33,7 +33,7 @@ function Baja() {
     return (
       <View style={{ padding: 16, gap: 12 }}>
         <Texto accessibilityRole="alert" tono="exito">Producto dado de baja correctamente</Texto>
-        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/administracion/existencias")} />
+        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/buscar")} />
       </View>
     );
   }

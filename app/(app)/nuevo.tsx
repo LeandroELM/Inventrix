@@ -77,7 +77,7 @@ function NuevoProducto() {
     return (
       <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: "center" }}>
         <Texto accessibilityRole="alert" tono="exito">Producto registrado correctamente</Texto>
-        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/administracion/existencias")} />
+        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/buscar")} />
         <Boton
           titulo="Registrar otro"
           onPress={() => {
