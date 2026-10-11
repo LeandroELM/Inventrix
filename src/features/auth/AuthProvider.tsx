@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { configurarCierrePorNoAutorizado, queryClient } from "@/lib/queryClient";
+import { eliminarDispositivoActual, registrarPush } from "@/features/alertas/push";
 import { emailDeUsuario } from "@/features/auth/usuario";
 import type { Rol } from "@/features/auth/permisos";
 
@@ -20,6 +21,7 @@ type ResultadoPerfil =
   | { tipo: "sin_perfil" }
   | { tipo: "error"; error: unknown };
 
+const TIMEOUT_ELIMINAR_DISPOSITIVO_MS = 3000;
 const LOGIN_INVALIDO = "No fue posible iniciar sesión. Verifica tus datos.";
 const Contexto = createContext<AuthContexto | null>(null);
 
@@ -49,14 +51,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPerfil(p);
   }, []);
 
+  // Todo regreso a anónimo limpia la caché: evita datos residuales tras un cierre forzado.
   const volverAnonimo = useCallback(() => {
+    queryClient.clear();
     fijarPerfil(null);
     setEstado("anonimo");
   }, [fijarPerfil]);
 
   const cerrarSesion = useCallback(async () => {
+    // Debe ir antes de perder la sesión, pero acotado: un fetch colgado no debe bloquear el cierre.
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    const limite = new Promise<void>((resolve) => {
+      temporizador = setTimeout(resolve, TIMEOUT_ELIMINAR_DISPOSITIVO_MS);
+    });
+    await Promise.race([eliminarDispositivoActual(), limite]).catch(() => undefined);
+    clearTimeout(temporizador);
     await supabase.auth.signOut();
-    queryClient.clear();
     volverAnonimo();
   }, [volverAnonimo]);
 
@@ -65,7 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resolverSesion = useCallback(
     async (userId: string | null) => {
       if (!userId) return volverAnonimo();
-      if (perfilRef.current?.id === userId) return;
+      if (perfilRef.current?.id === userId) {
+        // Perfil ya cargado (p. ej. arranque + listener): terminar en un estado definido.
+        setEstado("autenticado");
+        return;
+      }
       const r = await cargarPerfil(userId);
       if (r.tipo === "ok") {
         fijarPerfil(r.perfil);
@@ -102,6 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => suscripcion.subscription.unsubscribe();
   }, [arrancar, resolverSesion]);
 
+  // Registro de push solo para administradores, una vez por perfil; nunca bloquea el acceso.
+  const pushPerfilRef = useRef<string | null>(null);
+  const idAdmin = perfil?.rol === "admin" ? perfil.id : null;
+  useEffect(() => {
+    if (!idAdmin) {
+      pushPerfilRef.current = null;
+      return;
+    }
+    if (pushPerfilRef.current === idAdmin) return;
+    pushPerfilRef.current = idAdmin;
+    registrarPush().catch((e: unknown) => console.warn("No se pudo registrar el dispositivo para push", e));
+  }, [idAdmin]);
+
   useEffect(() => {
     configurarCierrePorNoAutorizado(() => void cerrarSesion());
     return () => configurarCierrePorNoAutorizado(null);
@@ -118,7 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         if (error) throw error;
         const r = await cargarPerfil(data.user.id);
-        if (r.tipo === "error") throw r.error;
+        if (r.tipo === "error") {
+          // Sin perfil no hay sesión útil: limpiar la local para que la UI (anónima) sea coherente.
+          await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+          throw r.error;
+        }
         if (r.tipo === "sin_perfil") {
           await supabase.auth.signOut();
           throw new Error(LOGIN_INVALIDO);

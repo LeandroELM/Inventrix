@@ -5,6 +5,7 @@ import { Boton } from "@/components/Boton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
 import { ETIQUETA_ESTADO, estadoInventario, type Estado } from "@/features/productos/estado";
+import { listarTodosProductos } from "@/features/productos/api";
 import { useProductos } from "@/features/productos/hooks";
 import { UNIDADES, formatearCantidad } from "@/features/productos/unidades";
 import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/features/reportes/excel";
@@ -34,12 +35,13 @@ export default function Existencias() {
   const { data, isLoading, error, refetch } = useProductos({ texto, estado });
 
   async function exportar() {
-    if (!data) return;
     setErrorExportar(null);
     setExportando(true);
     try {
       const ahora = new Date();
-      await exportarExcel(nombreArchivoExistencias(ahora), { Existencias: filasExistencias(data, ahora) });
+      // Paginado: la exportación no se corta en las 1000 filas del servidor.
+      const todos = await listarTodosProductos({ texto, estado });
+      await exportarExcel(nombreArchivoExistencias(ahora), { Existencias: filasExistencias(todos, ahora) });
     } catch (e) {
       setErrorExportar(mensajeDeError(e));
     } finally {

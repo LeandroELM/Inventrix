@@ -35,6 +35,10 @@ npx supabase functions deploy
 ```
 npx supabase secrets set ANTHROPIC_API_KEY=<clave> ANTHROPIC_MODEL=claude-opus-5-5 WEBHOOK_SECRET=<cadena-aleatoria>
 ```
+Despliega el chatbot (mantiene la verificacion JWT activa, la app lo llama con el token del usuario):
+```
+npx supabase functions deploy soporte-chat
+```
 (`ANTHROPIC_API_KEY` se crea en console.anthropic.com; hasta entonces el chatbot responde "no configurado" y ofrece WhatsApp.)
 4. Pon la URL y la anon key remotas en `.env` (Settings > API) para builds contra remoto.
 
@@ -58,17 +62,36 @@ npx eas-cli credentials
 
 Verifica: `eas credentials` muestra la clave FCM v1 asociada.
 
+## 4b. Webhook de alertas (push de reabastecimiento)
+El trigger `alertas_notificar` llama a la Edge Function `notificar-alerta` usando dos secretos de Supabase Vault (no se guardan en git). Si faltan, no hace nada.
+
+1. Elige un valor aleatorio largo para `WEBHOOK_SECRET` y despliega la función con el mismo valor:
+```
+npx supabase secrets set WEBHOOK_SECRET=<valor>
+npx supabase functions deploy notificar-alerta
+```
+`supabase/config.toml` ya declara `[functions.notificar-alerta] verify_jwt = false` (el trigger solo envía `x-webhook-secret`, sin JWT), así que un `supabase functions deploy` normal conserva el ajuste. Por si acaso, también puedes añadir `--no-verify-jwt`.
+2. En el SQL Editor del proyecto remoto crea los dos secretos de Vault (mismo valor):
+```sql
+select vault.create_secret('https://<ref>.supabase.co/functions/v1/notificar-alerta', 'notificar_alerta_url');
+select vault.create_secret('<valor>', 'webhook_secret');
+```
+Verifica: `select name from vault.decrypted_secrets;` lista ambos nombres; una salida que cruza el punto de pedido genera una notificación en el teléfono del admin.
+
 ## 5. Primer administrador (tarea posterior)
 ```
 npx tsx scripts/crear-admin.ts
 ```
 El script se agrega en una tarea posterior; requiere la service_role del entorno destino. Verifica: puedes iniciar sesión en la app con ese usuario.
 
-## 6. Ingesta de manuales remota (tarea posterior)
+## 6. Ingesta de manuales remota
+Carga los manuales (`docs/manuales/*.md`) como fragmentos con embeddings en la tabla `manual_fragmentos` del proyecto remoto. Requiere haber aplicado la migración `20261010000008_manuales.sql` (`npx supabase db push`) y poner en `.env` `SUPABASE_URL` (o `EXPO_PUBLIC_SUPABASE_URL`) y `SUPABASE_SERVICE_ROLE_KEY` del proyecto remoto (nunca se sube a git).
 ```
-npx tsx scripts/ingestar-manuales.ts
+npx tsx --env-file=.env scripts/ingestar-manuales.ts
 ```
-Se agrega en una tarea posterior. Verifica: la tabla de fragmentos de manuales tiene filas en el proyecto remoto.
+La primera vez descarga el modelo `Supabase/gte-small` (~35 MB). El script borra e inserta los fragmentos por perfil, así que se puede repetir cada vez que cambien los manuales. (`@huggingface/transformers` es solo devDependency; no entra en la APK.)
+
+Verifica en el SQL Editor: `select perfil, count(*) from manual_fragmentos group by 1;` muestra `admin` y `operativo`.
 
 ## 7. Builds
 ```

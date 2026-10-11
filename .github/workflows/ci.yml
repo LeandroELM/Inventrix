@@ -19,6 +19,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:functions
 
   db:
     runs-on: ubuntu-latest
@@ -26,6 +27,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.120.0
       - run: supabase db start
       - run: supabase test db

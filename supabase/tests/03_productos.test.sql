@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(19);
+select plan(22);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -39,6 +39,15 @@ select is((select existencias from public.productos where codigo = '750'), 45.00
           'actualizar_producto no toca existencias');
 select is((select punto_pedido from public.productos where codigo = '750'), 20.00::numeric,
           'actualizar_producto cambia punto_pedido');
+
+select (public.registrar_producto('Aceite', 'F1', 'litro', 2.5, 1)).id as f1 \gset
+select throws_ok($$select public.actualizar_producto((select id from public.productos where codigo = 'F1'), 'Aceite', 'unidad', 1)$$,
+                 'P0001', 'DATOS_INVALIDOS', 'no pasa a unidad entera con existencias fraccionarias');
+select lives_ok($$select public.actualizar_producto((select id from public.productos where codigo = 'F1'), 'Aceite', 'kilogramo', 1)$$,
+                'cambio entre unidades decimales permitido');
+select (public.registrar_producto('Cajas', 'F2', 'libra', 3, 1)).id as f2 \gset
+select lives_ok($$select public.actualizar_producto((select id from public.productos where codigo = 'F2'), 'Cajas', 'caja', 1)$$,
+                'a unidad entera con existencias enteras permitido');
 
 select throws_ok($$select public.dar_baja_producto((select id from public.productos where codigo = '750'), '')$$,
                  'P0001', 'MOTIVO_REQUERIDO', 'baja sin motivo');

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useAbrirDesdeNotificacion } from "@/features/alertas/useAbrirDesdeNotificacion";
 import { ActivityIndicator, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -16,6 +17,9 @@ function Navegacion() {
     if (estado === "anonimo" && !enLogin) router.replace("/login");
     else if (estado === "autenticado" && enLogin) router.replace("/");
   }, [estado, enLogin, router]);
+
+  // Solo cuando hay sesión y ya se salió de /login (la redirección posterior al login terminó).
+  useAbrirDesdeNotificacion(estado === "autenticado" && !enLogin);
 
   if (estado === "cargando") {
     return (

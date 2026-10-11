@@ -1,4 +1,4 @@
-import { esquemaProducto, validarCantidad } from "@/features/productos/validacion";
+import { esquemaProducto, validarCantidad, validarFormularioProducto } from "@/features/productos/validacion";
 
 const no = { permitirCero: false };
 const si = { permitirCero: true };
@@ -48,5 +48,31 @@ describe("esquemaProducto", () => {
   it("cantidades", () => {
     expect(msg({ cantidadInicial: -1 })).toBe("La cantidad inicial no puede ser negativa.");
     expect(msg({ puntoPedido: -1 })).toBe("El punto de pedido no puede ser negativo.");
+  });
+});
+
+describe("validarFormularioProducto", () => {
+  const base = { nombre: "Harina", unidad: "kilogramo" as const, codigo: "ABC-123", cantidadInicial: "10,5", puntoPedido: "2" };
+  it("valida y recorta el nombre", () => {
+    expect(validarFormularioProducto({ ...base, nombre: "  Harina  " })).toEqual({
+      ok: true,
+      datos: { nombre: "Harina", unidad: "kilogramo", codigo: "ABC-123", cantidadInicial: 10.5, puntoPedido: 2 },
+    });
+  });
+  it("rechaza nombre solo con espacios", () => {
+    const r = validarFormularioProducto({ ...base, nombre: "   " });
+    expect(r).toEqual({ ok: false, errores: { nombre: "Ingresa el nombre." } });
+  });
+  it("aplica reglas de unidad a las cantidades", () => {
+    const r = validarFormularioProducto({ ...base, unidad: "caja", cantidadInicial: "1.5", puntoPedido: "x" });
+    expect(r).toEqual({
+      ok: false,
+      errores: { cantidadInicial: "Esta unidad solo admite números enteros.", puntoPedido: "Ingresa un número válido." },
+    });
+  });
+  it("mensajes en español para código inválido", () => {
+    const r = validarFormularioProducto({ ...base, codigo: "a" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errores.codigo).toMatch(/^El código debe tener/);
   });
 });

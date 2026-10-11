@@ -1,12 +1,179 @@
-import { Text } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useQuery } from "@tanstack/react-query";
+import { Boton } from "@/components/Boton";
 import { Pantalla } from "@/components/Pantalla";
 import { RequiereRol } from "@/features/auth/RequiereRol";
+import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
+import { filasDeReporte, obtenerReporte, type TipoReporte } from "@/features/reportes/api";
+import { exportarExcel, nombreArchivoReporte } from "@/features/reportes/excel";
+import { rangoPeriodo, type Periodo } from "@/features/reportes/rango";
+import { mensajeDeError } from "@/lib/errores";
 
-export default function Placeholder() {
+const REPORTES: { valor: TipoReporte; texto: string }[] = [
+  { valor: "existencias", texto: "Existencias" },
+  { valor: "a_pedir", texto: "A pedir" },
+  { valor: "entradas", texto: "Entradas" },
+  { valor: "salidas", texto: "Salidas" },
+  { valor: "historial", texto: "Historial" },
+];
+
+const PERIODOS: { valor: Periodo; texto: string }[] = [
+  { valor: "hoy", texto: "Hoy" },
+  { valor: "7d", texto: "7 días" },
+  { valor: "30d", texto: "30 días" },
+  { valor: "personalizado", texto: "Personalizado" },
+];
+
+const esMovimientos = (t: TipoReporte) => t === "entradas" || t === "salidas" || t === "historial";
+
+function Opcion({ texto, activa, onPress }: { texto: string; activa: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={texto}
+      accessibilityState={{ selected: activa }}
+      onPress={onPress}
+      style={{ padding: 8, borderWidth: 1, backgroundColor: activa ? "#ddd" : undefined }}
+    >
+      <Text>{texto}</Text>
+    </Pressable>
+  );
+}
+
+const fechaCorta = (f: Date) => f.toLocaleDateString("es");
+
+function Reportes() {
+  const [tipo, setTipo] = useState<TipoReporte>("existencias");
+  const [periodo, setPeriodo] = useState<Periodo>("7d");
+  const [desde, setDesde] = useState<Date>(new Date());
+  const [hasta, setHasta] = useState<Date>(new Date());
+  const [selector, setSelector] = useState<"desde" | "hasta" | null>(null);
+  const [producto, setProducto] = useState<{ id: string; nombre: string } | null>(null);
+  const [eligiendo, setEligiendo] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState<string | null>(null);
+
+  const movs = esMovimientos(tipo);
+  const rango = movs ? rangoPeriodo(periodo, new Date(), { desde, hasta }) : {};
+  const filtros = { desde: rango.desde, hasta: rango.hasta, productoId: movs ? producto?.id : undefined };
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["reporte", tipo, rango.desde?.getTime(), rango.hasta?.getTime(), filtros.productoId],
+    queryFn: async () => filasDeReporte(tipo, await obtenerReporte(tipo, filtros), new Date()),
+  });
+
+  async function exportar() {
+    if (!data) return;
+    setErrorExportar(null);
+    setExportando(true);
+    try {
+      await exportarExcel(nombreArchivoReporte(tipo, new Date()), { Reporte: data });
+    } catch (e) {
+      setErrorExportar(mensajeDeError(e));
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  const columnas = data && data.length > 0 ? Object.keys(data[0]) : [];
+
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {REPORTES.map((r) => (
+          <Opcion key={r.valor} texto={r.texto} activa={tipo === r.valor} onPress={() => setTipo(r.valor)} />
+        ))}
+      </View>
+
+      {movs ? (
+        <View style={{ gap: 8 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {PERIODOS.map((p) => (
+              <Opcion key={p.valor} texto={p.texto} activa={periodo === p.valor} onPress={() => setPeriodo(p.valor)} />
+            ))}
+          </View>
+          {periodo === "personalizado" ? (
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Boton titulo={`Desde: ${fechaCorta(desde)}`} onPress={() => setSelector("desde")} />
+              <Boton titulo={`Hasta: ${fechaCorta(hasta)}`} onPress={() => setSelector("hasta")} />
+            </View>
+          ) : null}
+          {selector ? (
+            <DateTimePicker
+              value={selector === "desde" ? desde : hasta}
+              mode="date"
+              onChange={(_, f) => {
+                const cual = selector;
+                setSelector(null);
+                if (!f) return;
+                if (cual === "desde") setDesde(f);
+                else setHasta(f);
+              }}
+            />
+          ) : null}
+          <Text>Producto: {producto ? producto.nombre : "Todos"}</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Boton titulo={eligiendo ? "Cerrar búsqueda" : "Filtrar por producto"} onPress={() => setEligiendo(!eligiendo)} />
+            {producto ? <Boton titulo="Quitar filtro" onPress={() => setProducto(null)} /> : null}
+          </View>
+          {eligiendo ? (
+            <BuscadorProducto
+              onElegir={(id, nombre) => {
+                setProducto({ id, nombre });
+                setEligiendo(false);
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {isLoading ? <ActivityIndicator /> : null}
+      {error ? (
+        <View>
+          <Text accessibilityRole="alert">{mensajeDeError(error)}</Text>
+          <Boton titulo="Reintentar" onPress={() => refetch()} />
+        </View>
+      ) : null}
+      {data ? (
+        <>
+          <Text>Total de registros: {data.length}</Text>
+          {data.length === 0 ? <Text>No hay registros para mostrar.</Text> : null}
+          <ScrollView horizontal>
+            <View>
+              {columnas.length > 0 ? (
+                <View style={{ flexDirection: "row" }}>
+                  {columnas.map((c) => (
+                    <Text key={c} style={{ width: 130, fontWeight: "bold", padding: 4 }}>
+                      {c}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+              {data.map((fila, i) => (
+                <View key={i} style={{ flexDirection: "row", borderTopWidth: 1 }}>
+                  {columnas.map((c) => (
+                    <Text key={c} style={{ width: 130, padding: 4 }}>
+                      {String(fila[c])}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </>
+      ) : null}
+      {errorExportar ? <Text accessibilityRole="alert">{errorExportar}</Text> : null}
+      <Boton titulo="Exportar a Excel" onPress={exportar} disabled={!data || data.length === 0} loading={exportando} />
+    </ScrollView>
+  );
+}
+
+export default function PantallaReportes() {
   return (
     <RequiereRol rol="admin">
       <Pantalla>
-        <Text>Reportes</Text>
+        <Reportes />
       </Pantalla>
     </RequiereRol>
   );
