@@ -31,6 +31,7 @@ export function validarCantidad(
 export const esquemaProducto = z.object({
   nombre: z
     .string()
+    .trim()
     .min(1, "Ingresa el nombre.")
     .max(120, "El nombre admite máximo 120 caracteres."),
   unidad: z.enum(UNIDADES_VALIDAS, { error: "Selecciona una unidad válida." }),
@@ -51,3 +52,39 @@ export const esquemaProducto = z.object({
 });
 
 export type DatosProducto = z.infer<typeof esquemaProducto>;
+
+export type ValoresFormulario = {
+  nombre: string;
+  unidad: Unidad;
+  codigo: string;
+  cantidadInicial: string;
+  puntoPedido: string;
+};
+export type ErroresFormulario = Partial<Record<keyof ValoresFormulario, string>>;
+export type ResultadoFormulario =
+  | { ok: true; datos: DatosProducto }
+  | { ok: false; errores: ErroresFormulario };
+
+// Valida el formulario de producto: cantidades según la unidad y el resto con zod.
+export function validarFormularioProducto(v: ValoresFormulario): ResultadoFormulario {
+  const errores: ErroresFormulario = {};
+  const inicial = validarCantidad(v.cantidadInicial, v.unidad, { permitirCero: true });
+  const pedido = validarCantidad(v.puntoPedido, v.unidad, { permitirCero: true });
+  if (!inicial.ok) errores.cantidadInicial = inicial.error;
+  if (!pedido.ok) errores.puntoPedido = pedido.error;
+  const r = esquemaProducto.safeParse({
+    nombre: v.nombre,
+    unidad: v.unidad,
+    codigo: v.codigo.trim(),
+    cantidadInicial: inicial.ok ? inicial.valor : 0,
+    puntoPedido: pedido.ok ? pedido.valor : 0,
+  });
+  if (!r.success) {
+    for (const i of r.error.issues) {
+      const campo = i.path[0] as keyof ValoresFormulario;
+      if (!errores[campo]) errores[campo] = i.message;
+    }
+  }
+  if (Object.keys(errores).length > 0 || !r.success) return { ok: false, errores };
+  return { ok: true, datos: r.data };
+}
