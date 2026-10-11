@@ -1,10 +1,5 @@
-import { Text } from "react-native";
-import { Pantalla } from "@/components/Pantalla";
+import { FormularioMovimiento } from "@/features/movimientos/FormularioMovimiento";
 
-export default function Placeholder() {
-  return (
-    <Pantalla>
-      <Text>Registrar salida</Text>
-    </Pantalla>
-  );
+export default function Salida() {
+  return <FormularioMovimiento tipo="salida" />;
 }
