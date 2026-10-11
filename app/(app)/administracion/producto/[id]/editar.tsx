@@ -6,9 +6,12 @@ import { Campo } from "@/components/Campo";
 import { SelectorUnidad } from "@/components/SelectorUnidad";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useActualizarProducto, useProducto } from "@/features/productos/hooks";
-import type { Unidad } from "@/features/productos/unidades";
+import { UNIDADES, type Unidad } from "@/features/productos/unidades";
 import { validarFormularioProducto, type ErroresFormulario } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+
+const MENSAJE_UNIDAD_ENTERA =
+  "No puedes cambiar a una unidad entera mientras el producto tenga existencias con decimales. Ajusta primero las existencias.";
 
 type Producto = NonNullable<ReturnType<typeof useProducto>["data"]>;
 
@@ -43,11 +46,17 @@ function Formulario({ p }: { p: Producto }) {
       return;
     }
     setErrores({});
+    if (UNIDADES[unidad].entera && !Number.isInteger(Number(p.existencias))) {
+      setErrorGeneral(MENSAJE_UNIDAD_ENTERA);
+      return;
+    }
     try {
       await actualizar.mutateAsync({ nombre: r.datos.nombre, unidad: r.datos.unidad, puntoPedido: r.datos.puntoPedido });
       router.back();
     } catch (e) {
-      setErrorGeneral(mensajeDeError(e));
+      const datosInvalidos = mensajeDeError({ message: "DATOS_INVALIDOS" });
+      const mensaje = mensajeDeError(e);
+      setErrorGeneral(mensaje === datosInvalidos && UNIDADES[unidad].entera ? MENSAJE_UNIDAD_ENTERA : mensaje);
     }
   }
 
