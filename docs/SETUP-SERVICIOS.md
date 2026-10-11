@@ -79,11 +79,14 @@ npx tsx scripts/crear-admin.ts
 ```
 El script se agrega en una tarea posterior; requiere la service_role del entorno destino. Verifica: puedes iniciar sesión en la app con ese usuario.
 
-## 6. Ingesta de manuales remota (tarea posterior)
+## 6. Ingesta de manuales remota
+Carga los manuales (`docs/manuales/*.md`) como fragmentos con embeddings en la tabla `manual_fragmentos` del proyecto remoto. Requiere haber aplicado la migración `20261010000008_manuales.sql` (`npx supabase db push`) y poner en `.env` `SUPABASE_URL` (o `EXPO_PUBLIC_SUPABASE_URL`) y `SUPABASE_SERVICE_ROLE_KEY` del proyecto remoto (nunca se sube a git).
 ```
-npx tsx scripts/ingestar-manuales.ts
+npx tsx --env-file=.env scripts/ingestar-manuales.ts
 ```
-Se agrega en una tarea posterior. Verifica: la tabla de fragmentos de manuales tiene filas en el proyecto remoto.
+La primera vez descarga el modelo `Supabase/gte-small` (~35 MB). El script borra e inserta los fragmentos por perfil, así que se puede repetir cada vez que cambien los manuales. (`@huggingface/transformers` es solo devDependency; no entra en la APK.)
+
+Verifica en el SQL Editor: `select perfil, count(*) from manual_fragmentos group by 1;` muestra `admin` y `operativo`.
 
 ## 7. Builds
 ```

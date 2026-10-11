@@ -69,6 +69,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"manual_fragmentos": {
+                  Row: {
+                    "contenido": string,"embedding": string,"id": number,"perfil": string,"seccion": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contenido": string,"embedding": string,"id"?: never,"perfil": string,"seccion": string
+                  }
+                  Update: {
+                    "contenido"?: string,"embedding"?: string,"id"?: never,"perfil"?: string,"seccion"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"movimientos": {
                   Row: {
                     "cantidad": number,"created_at": string,"existencias_antes": number,"existencias_despues": number,"id": number,"motivo": Database["public"]['Enums']["motivo_salida"] | null,"producto_id": string,"tipo": Database["public"]['Enums']["tipo_movimiento"],"usuario_id": string
@@ -202,6 +216,11 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"buscar_manual":
+{ Args: { "p_cantidad"?: number,"p_embedding": string,"p_perfil": string }; Returns: {
+              "contenido": string,"seccion": string,"similitud": number
+            }[]
+                           },
 "dar_baja_producto":
 { Args: { "p_id": string,"p_motivo": string }; Returns: {
               "activo": boolean,
