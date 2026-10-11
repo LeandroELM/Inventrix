@@ -1,3 +1,8 @@
+-- Rechazar NaN (numeric lo ordena por encima de todo y pasa los CHECK >= 0).
+alter table public.productos add constraint productos_existencias_no_nan check (existencias <> 'NaN'::numeric);
+alter table public.productos add constraint productos_punto_pedido_no_nan check (punto_pedido <> 'NaN'::numeric);
+alter table public.movimientos add constraint movimientos_cantidad_no_nan check (cantidad <> 'NaN'::numeric);
+
 -- RPC de productos (solo admin). Escriben como definer; el rol authenticated no tiene DML.
 
 create function public.registrar_producto(
@@ -21,8 +26,8 @@ begin
   end if;
   if v_nombre = '' or length(v_nombre) > 120 or v_codigo = ''
      or p_unidad is null
-     or p_cantidad_inicial is null or p_cantidad_inicial < 0
-     or p_punto_pedido is null or p_punto_pedido < 0 then
+     or p_cantidad_inicial is null or not (p_cantidad_inicial between 0 and 9999999999.99)
+     or p_punto_pedido is null or not (p_punto_pedido between 0 and 9999999999.99) then
     raise exception 'DATOS_INVALIDOS' using errcode = 'P0001';
   end if;
 
@@ -60,7 +65,7 @@ begin
     raise exception 'NO_AUTORIZADO' using errcode = 'P0001';
   end if;
   if v_nombre = '' or length(v_nombre) > 120 or p_unidad is null
-     or p_punto_pedido is null or p_punto_pedido < 0 then
+     or p_punto_pedido is null or not (p_punto_pedido between 0 and 9999999999.99) then
     raise exception 'DATOS_INVALIDOS' using errcode = 'P0001';
   end if;
 
