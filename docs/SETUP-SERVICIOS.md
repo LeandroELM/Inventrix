@@ -25,9 +25,12 @@ Verifica: `npx eas-cli whoami` muestra tu usuario; `npx supabase projects list` 
 2. Enlázalo y publica:
 ```
 npx supabase link --project-ref <ref>
+npx supabase config push
 npx supabase db push
 npx supabase functions deploy
 ```
+   `db push` NO aplica los ajustes de auth de `config.toml`; `config push` los envia al proyecto remoto (registro publico desactivado, sin confirmacion de email, `site_url` y redirect `inventrix://`). Alternativa manual en el dashboard (Authentication): desactivar "Allow new users to sign up", desactivar "Confirm email", Site URL = `inventrix://` y agregar `inventrix://` en Redirect URLs.
+   Verifica: en el dashboard (Authentication > Sign In / Providers y URL Configuration) el registro de nuevos usuarios aparece desactivado, Site URL es `inventrix://` y la lista de redirect incluye `inventrix://`.
 3. Secretos de las funciones:
 ```
 npx supabase secrets set ANTHROPIC_API_KEY=<clave> ANTHROPIC_MODEL=claude-opus-5-5 WEBHOOK_SECRET=<cadena-aleatoria>
