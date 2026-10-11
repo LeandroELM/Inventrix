@@ -7,9 +7,11 @@ export type RespuestaSoporte = { respuesta: string; resuelto: boolean };
 export const MAX_MENSAJES = 20;
 export const MAX_CARACTERES = 2000;
 
-/** Últimos MAX_MENSAJES mensajes; la ventana debe terminar en un mensaje del usuario. */
+/** Últimos MAX_MENSAJES mensajes, sin turnos iniciales del asistente: la API de Claude exige empezar con el usuario. */
 export function ventana(mensajes: MensajeChat[]): MensajeChat[] {
-  return mensajes.slice(-MAX_MENSAJES);
+  const recientes = mensajes.slice(-MAX_MENSAJES);
+  const primero = recientes.findIndex((m) => m.rol === "usuario");
+  return primero === -1 ? [] : recientes.slice(primero);
 }
 
 async function respuestaDelCuerpo(error: unknown): Promise<string | null> {

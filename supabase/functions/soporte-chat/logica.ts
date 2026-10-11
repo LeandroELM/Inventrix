@@ -77,11 +77,15 @@ export function validarEntrada(body: unknown): Mensaje[] {
     return { rol, texto };
   });
   if (salida[salida.length - 1].rol !== "usuario") throw new Error("DATOS_INVALIDOS");
-  return salida;
+  // La API de Claude exige que el primer mensaje sea del usuario.
+  const primero = salida.findIndex((m) => m.rol === "usuario");
+  return salida.slice(primero);
 }
 
 /** El contexto va en el último mensaje del usuario, antes de la pregunta. */
-export function aMensajesClaude(mensajes: Mensaje[], ctx: string): Anthropic.MessageParam[] {
+export function aMensajesClaude(entrada: Mensaje[], ctx: string): Anthropic.MessageParam[] {
+  const primero = entrada.findIndex((m) => m.rol === "usuario");
+  const mensajes = primero === -1 ? [] : entrada.slice(primero);
   const ultimo = mensajes.length - 1;
   return mensajes.map((m, i) => ({
     role: m.rol === "usuario" ? "user" : "assistant",

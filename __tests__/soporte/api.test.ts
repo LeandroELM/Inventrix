@@ -51,9 +51,21 @@ describe("enviarPregunta", () => {
     mockInvoke.mockResolvedValue({ data: { respuesta: "ok", resuelto: true }, error: null });
     await enviarPregunta(largo);
     const enviados = (mockInvoke.mock.calls[0][1] as { body: { mensajes: MensajeChat[] } }).body.mensajes;
-    expect(enviados).toHaveLength(20);
+    expect(enviados).toHaveLength(19);
+    expect(enviados[0].rol).toBe("usuario");
     expect(enviados[enviados.length - 1]).toEqual(largo[30]);
     expect(enviados[enviados.length - 1].rol).toBe("usuario");
-    expect(ventana(largo)).toHaveLength(20);
+    expect(ventana(largo)).toHaveLength(19);
+  });
+
+  it("la ventana no empieza con un turno del asistente", () => {
+    const m: MensajeChat[] = [
+      { rol: "asistente", texto: "a0" },
+      { rol: "usuario", texto: "u1" },
+      { rol: "asistente", texto: "a1" },
+      { rol: "usuario", texto: "u2" },
+    ];
+    expect(ventana(m)).toEqual(m.slice(1));
+    expect(ventana([{ rol: "asistente", texto: "solo" }])).toEqual([]);
   });
 });

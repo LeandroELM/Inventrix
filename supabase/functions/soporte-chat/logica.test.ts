@@ -130,3 +130,25 @@ Deno.test("leerRespuesta: JSON inválido, forma inválida o sin texto lanza", ()
   assertThrows(() => leerRespuesta([{ type: "text", text: '{"respuesta":"a"}' }], "end_turn"));
   assertThrows(() => leerRespuesta([{ type: "fallback" }], "end_turn"));
 });
+
+Deno.test("validarEntrada descarta turnos iniciales del asistente", () => {
+  const r = validarEntrada({
+    mensajes: [
+      { rol: "asistente", texto: "a0" },
+      { rol: "usuario", texto: "u1" },
+    ],
+  });
+  assertEquals(r, [{ rol: "usuario", texto: "u1" }]);
+});
+
+Deno.test("aMensajesClaude descarta turnos iniciales del asistente", () => {
+  const m = aMensajesClaude(
+    [
+      { rol: "asistente", texto: "a0" },
+      { rol: "usuario", texto: "u1" },
+    ],
+    "",
+  );
+  assertEquals(m.length, 1);
+  assertEquals(m[0].role, "user");
+});
