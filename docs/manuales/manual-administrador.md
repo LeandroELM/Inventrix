@@ -111,4 +111,4 @@ Cuando una salida lleva un producto a su punto de pedido, recibes una notificaci
 Para recibirlas, acepta el permiso de notificaciones de Android. Si no llegan, revisa que no esté desactivado en los ajustes del teléfono.
 
 ## Contactar soporte
-Si tienes una duda o un problema, ve a Configuración, entra a Soporte y escribe tu pregunta en el chat de ayuda. El asistente responde con base en este manual; solo orienta y nunca modifica el inventario. Si necesitas hablar con una persona, usa el botón "Escribir por WhatsApp" para abrir una conversación con el equipo de soporte con un mensaje ya preparado.
+Si tienes una duda o un problema, toca el botón flotante de soporte (el círculo con "?") que aparece en la esquina superior derecha de todas las pantallas. Se abre un chat de ayuda: escribe tu pregunta o elige una de las sugerencias y envía. El asistente responde con base en este manual; solo orienta y nunca modifica el inventario. Si el asistente no puede resolver tu duda, o hay un problema de conexión, aparece el botón "Contactar soporte por WhatsApp", que abre una conversación con el equipo de soporte con un mensaje ya preparado.
