@@ -85,7 +85,15 @@ describe("eliminarDispositivoActual", () => {
     mockGetItem.mockResolvedValue("tok");
     await eliminarDispositivoActual();
     expect(mockRpc).toHaveBeenCalledWith("eliminar_dispositivo", { p_token: "tok" });
+    expect(mockDeleteItem).toHaveBeenCalledWith("inventrix.push_token");
     mockRpc.mockRejectedValue(new Error("red"));
     await expect(eliminarDispositivoActual()).resolves.toBeUndefined();
+  });
+
+  it("si la RPC resuelve con error conserva el token y no lanza", async () => {
+    mockGetItem.mockResolvedValue("tok");
+    mockRpc.mockResolvedValue({ error: { message: "x" } });
+    await expect(eliminarDispositivoActual()).resolves.toBeUndefined();
+    expect(mockDeleteItem).not.toHaveBeenCalled();
   });
 });

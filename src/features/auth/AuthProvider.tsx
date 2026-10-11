@@ -21,6 +21,7 @@ type ResultadoPerfil =
   | { tipo: "sin_perfil" }
   | { tipo: "error"; error: unknown };
 
+const TIMEOUT_ELIMINAR_DISPOSITIVO_MS = 3000;
 const LOGIN_INVALIDO = "No fue posible iniciar sesión. Verifica tus datos.";
 const Contexto = createContext<AuthContexto | null>(null);
 
@@ -58,7 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fijarPerfil]);
 
   const cerrarSesion = useCallback(async () => {
-    await eliminarDispositivoActual(); // nunca lanza; debe ir antes de perder la sesión
+    // Debe ir antes de perder la sesión, pero acotado: un fetch colgado no debe bloquear el cierre.
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    const limite = new Promise<void>((resolve) => {
+      temporizador = setTimeout(resolve, TIMEOUT_ELIMINAR_DISPOSITIVO_MS);
+    });
+    await Promise.race([eliminarDispositivoActual(), limite]).catch(() => undefined);
+    clearTimeout(temporizador);
     await supabase.auth.signOut();
     volverAnonimo();
   }, [volverAnonimo]);

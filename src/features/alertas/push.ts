@@ -37,7 +37,8 @@ export async function eliminarDispositivoActual(): Promise<void> {
   try {
     const token = await SecureStore.getItemAsync(CLAVE_TOKEN);
     if (!token) return;
-    await supabase.rpc("eliminar_dispositivo", { p_token: token });
+    const { error } = await supabase.rpc("eliminar_dispositivo", { p_token: token });
+    if (error) return; // conservar el token para reintentar en un cierre de sesión posterior
     await SecureStore.deleteItemAsync(CLAVE_TOKEN);
   } catch {
     // No bloquear el cierre de sesión.

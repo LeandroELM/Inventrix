@@ -155,4 +155,21 @@ describe("AuthProvider", () => {
     expect(orden).toEqual(["eliminar", "signOut"]);
     expect(auth.estado).toBe("anonimo");
   });
+
+  it("cerrarSesion no se cuelga si eliminar_dispositivo nunca resuelve", async () => {
+    mockEliminarDispositivo.mockReturnValue(new Promise(() => undefined));
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
+    mockSingle.mockResolvedValue({ data: PERFIL, error: null });
+    await montar();
+    expect(await screen.findByText("estado:autenticado")).toBeTruthy();
+    jest.useFakeTimers();
+    let cierre: Promise<void> | undefined;
+    await act(async () => {
+      cierre = auth.cerrarSesion();
+      await jest.advanceTimersByTimeAsync(3000);
+      await cierre;
+    });
+    jest.useRealTimers();
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
+  });
 });
