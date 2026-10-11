@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
@@ -10,6 +10,9 @@ import { useProductos } from "@/features/productos/hooks";
 import { UNIDADES, formatearCantidad } from "@/features/productos/unidades";
 import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/features/reportes/excel";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
+import { EntradaTexto } from "@/components/EntradaTexto";
+import { useTema } from "@/tema/TemaProvider";
 
 const FILTROS: { titulo: string; estado?: Estado }[] = [
   { titulo: "Todos" },
@@ -19,6 +22,7 @@ const FILTROS: { titulo: string; estado?: Estado }[] = [
 ];
 
 export default function Existencias() {
+  const { colores } = useTema();
   const router = useRouter();
   const { perfil } = useAuth();
   const [busqueda, setBusqueda] = useState("");
@@ -52,7 +56,7 @@ export default function Existencias() {
   return (
     <View style={{ flex: 1, padding: 16, gap: 12 }}>
       <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-        <TextInput
+        <EntradaTexto
           accessibilityLabel="Buscar producto"
           placeholder="Buscar por nombre o código"
           value={busqueda}
@@ -71,15 +75,15 @@ export default function Existencias() {
             onPress={() => setEstado(f.estado)}
             style={{ borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6, opacity: estado === f.estado ? 1 : 0.5 }}
           >
-            <Text>{f.titulo}</Text>
+            <Texto>{f.titulo}</Texto>
           </Pressable>
         ))}
       </View>
       {isLoading ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={colores.interactivo} />
       ) : error ? (
         <View style={{ gap: 8 }}>
-          <Text>{mensajeDeError(error)}</Text>
+          <Texto>{mensajeDeError(error)}</Texto>
           <Boton titulo="Reintentar" onPress={() => void refetch()} />
         </View>
       ) : (
@@ -87,7 +91,7 @@ export default function Existencias() {
           style={{ flex: 1 }}
           data={data}
           keyExtractor={(p) => p.id}
-          ListEmptyComponent={<Text>No hay productos.</Text>}
+          ListEmptyComponent={<Texto>No hay productos.</Texto>}
           renderItem={({ item }) => (
             <Pressable
               accessibilityRole="button"
@@ -95,19 +99,19 @@ export default function Existencias() {
               onPress={() => router.push(`/administracion/producto/${item.id}`)}
               style={{ paddingVertical: 8, borderBottomWidth: 1 }}
             >
-              <Text>{item.nombre}</Text>
-              <Text>
+              <Texto>{item.nombre}</Texto>
+              <Texto>
                 {item.codigo} · {UNIDADES[item.unidad].abreviatura}
-              </Text>
-              <Text>
+              </Texto>
+              <Texto>
                 {formatearCantidad(item.existencias, item.unidad)} ·{" "}
                 {ETIQUETA_ESTADO[estadoInventario(item.existencias, item.punto_pedido)]}
-              </Text>
+              </Texto>
             </Pressable>
           )}
         />
       )}
-      {errorExportar ? <Text>{errorExportar}</Text> : null}
+      {errorExportar ? <Texto>{errorExportar}</Texto> : null}
       {perfil && puede(perfil.rol, "exportar_existencias") ? (
         <Boton
           titulo="Exportar a Excel"

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { CameraView, scanFromURLAsync, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -11,6 +11,7 @@ import { puede } from "@/features/auth/permisos";
 import { buscarPorCodigo } from "@/features/productos/api";
 import { crearFiltroLecturas, normalizarCodigo, type DestinoEscaner } from "@/features/productos/escaner";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
 
 const TIPOS = ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "qr"] as const;
 const DESTINOS: readonly DestinoEscaner[] = ["existencias", "entrada", "salida", "baja", "nuevo"];
@@ -95,16 +96,16 @@ export default function Escaner() {
     }
   }
 
-  if (!permiso) return <Pantalla><Text>Cargando…</Text></Pantalla>;
+  if (!permiso) return <Pantalla><Texto>Cargando…</Texto></Pantalla>;
 
   if (!permiso.granted && !manual) {
     return (
       <Pantalla>
-        <Text>Inventrix necesita acceso a la cámara para escanear los códigos de barras y QR de tus productos.</Text>
+        <Texto>Inventrix necesita acceso a la cámara para escanear los códigos de barras y QR de tus productos.</Texto>
         <Boton titulo="Permitir cámara" onPress={() => void pedirPermiso()} />
         <Boton titulo="Escribir el código manualmente" onPress={() => setManual(true)} />
         <Boton titulo="Leer desde imagen" onPress={() => void leerDesdeImagen()} />
-        {mensaje ? <Text accessibilityRole="alert">{mensaje}</Text> : null}
+        {mensaje ? <Texto accessibilityRole="alert" tono="peligro">{mensaje}</Texto> : null}
         <Boton titulo="Cerrar" onPress={() => router.back()} />
       </Pantalla>
     );
@@ -115,7 +116,7 @@ export default function Escaner() {
       <Pantalla>
         <Campo label="Código" value={texto} onChangeText={setTexto} autoCapitalize="none" autoCorrect={false} />
         <Boton titulo="Buscar" loading={buscando} disabled={!normalizarCodigo(texto)} onPress={() => void procesar(texto)} />
-        {mensaje ? <Text accessibilityRole="alert">{mensaje}</Text> : null}
+        {mensaje ? <Texto accessibilityRole="alert" tono="peligro">{mensaje}</Texto> : null}
         <Boton titulo="Usar la cámara" onPress={() => setManual(false)} />
       </Pantalla>
     );
@@ -131,7 +132,7 @@ export default function Escaner() {
         onBarcodeScanned={buscando ? undefined : alLeer}
       />
       <View style={styles.panel}>
-        {mensaje ? <Text accessibilityRole="alert" style={styles.mensaje}>{mensaje}</Text> : null}
+        {mensaje ? <Texto accessibilityRole="alert" tono="peligro" style={styles.mensaje}>{mensaje}</Texto> : null}
         <Boton titulo={linterna ? "Apagar linterna" : "Encender linterna"} onPress={() => setLinterna((v) => !v)} />
         <Boton titulo="Escribir el código manualmente" onPress={() => setManual(true)} />
         <Boton titulo="Leer desde imagen" onPress={() => void leerDesdeImagen()} />

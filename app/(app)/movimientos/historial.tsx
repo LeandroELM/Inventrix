@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { Campo } from "@/components/Campo";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { useHistorial } from "@/features/movimientos/hooks";
 import type { FilaHistorial } from "@/features/movimientos/api";
 import { formatearCantidad } from "@/features/productos/unidades";
+import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 type Segmento = "todos" | "entrada" | "salida";
 
@@ -32,20 +34,20 @@ function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
       onPress={() => setAbierta((a) => !a)}
       style={{ padding: 12, borderBottomWidth: 1, gap: 4 }}
     >
-      <Text>{fecha.toLocaleDateString("es")}</Text>
-      <Text>{fila.producto}</Text>
-      <Text>
+      <Texto>{fecha.toLocaleDateString("es")}</Texto>
+      <Texto>{fila.producto}</Texto>
+      <Texto>
         {TIPOS[fila.tipo]} {etiquetaMovimiento(fila.tipo, fila.cantidad, fila.unidad)}
-      </Text>
+      </Texto>
       {abierta ? (
         <View style={{ gap: 2 }}>
-          <Text>Usuario: {fila.usuario}</Text>
-          <Text>Fecha y hora: {fecha.toLocaleString("es")}</Text>
-          {fila.motivo ? <Text>Motivo: {MOTIVOS[fila.motivo]}</Text> : null}
-          <Text>
+          <Texto>Usuario: {fila.usuario}</Texto>
+          <Texto>Fecha y hora: {fecha.toLocaleString("es")}</Texto>
+          {fila.motivo ? <Texto>Motivo: {MOTIVOS[fila.motivo]}</Texto> : null}
+          <Texto>
             Existencias: {formatearCantidad(fila.existencias_antes, fila.unidad)} {"\u2192"}{" "}
             {formatearCantidad(fila.existencias_despues, fila.unidad)}
-          </Text>
+          </Texto>
         </View>
       ) : null}
     </Pressable>
@@ -53,6 +55,7 @@ function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
 }
 
 export default function Historial() {
+  const { colores } = useTema();
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
   const consulta = useHistorial({
@@ -74,14 +77,14 @@ export default function Historial() {
             onPress={() => setSegmento(s.valor)}
             style={{ flex: 1, padding: 8, alignItems: "center", borderWidth: segmento === s.valor ? 2 : 1 }}
           >
-            <Text>{s.titulo}</Text>
+            <Texto>{s.titulo}</Texto>
           </Pressable>
         ))}
       </View>
       {consulta.isPending ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={colores.interactivo} />
       ) : consulta.isError ? (
-        <Text>No se pudo cargar el historial.</Text>
+        <Texto>No se pudo cargar el historial.</Texto>
       ) : (
         <FlatList
           data={filas}
@@ -91,8 +94,8 @@ export default function Historial() {
             if (consulta.hasNextPage && !consulta.isFetchingNextPage) void consulta.fetchNextPage();
           }}
           onEndReachedThreshold={0.5}
-          ListEmptyComponent={<Text>Sin movimientos.</Text>}
-          ListFooterComponent={consulta.isFetchingNextPage ? <ActivityIndicator /> : null}
+          ListEmptyComponent={<Texto>Sin movimientos.</Texto>}
+          ListFooterComponent={consulta.isFetchingNextPage ? <ActivityIndicator color={colores.interactivo} /> : null}
         />
       )}
     </View>

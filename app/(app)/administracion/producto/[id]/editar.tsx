@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { SelectorUnidad } from "@/components/SelectorUnidad";
@@ -9,6 +9,8 @@ import { useActualizarProducto, useProducto } from "@/features/productos/hooks";
 import { UNIDADES, type Unidad } from "@/features/productos/unidades";
 import { validarFormularioProducto, type ErroresFormulario } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 const MENSAJE_UNIDAD_ENTERA =
   "No puedes cambiar a una unidad entera mientras el producto tenga existencias con decimales. Ajusta primero las existencias.";
@@ -16,9 +18,10 @@ const MENSAJE_UNIDAD_ENTERA =
 type Producto = NonNullable<ReturnType<typeof useProducto>["data"]>;
 
 function Cargador({ id }: { id: string }) {
+  const { colores } = useTema();
   const { data: p, isLoading, error } = useProducto(id);
-  if (isLoading) return <ActivityIndicator />;
-  if (error || !p) return <Text>{mensajeDeError(error)}</Text>;
+  if (isLoading) return <ActivityIndicator color={colores.interactivo} />;
+  if (error || !p) return <Texto>{mensajeDeError(error)}</Texto>;
   return <Formulario p={p} />;
 }
 
@@ -62,17 +65,17 @@ function Formulario({ p }: { p: Producto }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
-      <Text>Código: {p.codigo}</Text>
+      <Texto>Código: {p.codigo}</Texto>
       <View>
         <Campo label="Nombre" value={nombre} onChangeText={setNombre} />
-        {errores.nombre ? <Text accessibilityRole="alert">{errores.nombre}</Text> : null}
+        {errores.nombre ? <Texto accessibilityRole="alert" tono="peligro">{errores.nombre}</Texto> : null}
       </View>
       <SelectorUnidad valor={unidad} onChange={setUnidad} />
       <View>
         <Campo label="Punto de pedido" value={puntoPedido} onChangeText={setPuntoPedido} keyboardType="decimal-pad" />
-        {errores.puntoPedido ? <Text accessibilityRole="alert">{errores.puntoPedido}</Text> : null}
+        {errores.puntoPedido ? <Texto accessibilityRole="alert" tono="peligro">{errores.puntoPedido}</Texto> : null}
       </View>
-      {errorGeneral ? <Text accessibilityRole="alert">{errorGeneral}</Text> : null}
+      {errorGeneral ? <Texto accessibilityRole="alert" tono="peligro">{errorGeneral}</Texto> : null}
       <Boton titulo="Guardar cambios" loading={actualizar.isPending} onPress={() => void guardar()} />
       <Boton titulo="Cancelar" onPress={() => router.back()} />
     </ScrollView>

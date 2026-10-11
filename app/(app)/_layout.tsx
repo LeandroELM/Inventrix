@@ -1,8 +1,9 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { tabsPara, type NombreTab } from "@/features/auth/navegacion";
+import { Texto } from "@/components/Texto";
 
 const TITULOS: Record<NombreTab, string> = {
   index: "Inicio",
@@ -59,7 +60,7 @@ export default function LayoutApp() {
           justifyContent: "center",
         }}
       >
-        <Text>?</Text>
+        <Texto>?</Texto>
       </Pressable>
     </View>
   );

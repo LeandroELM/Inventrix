@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQuery } from "@tanstack/react-query";
 import { Boton } from "@/components/Boton";
@@ -10,6 +10,8 @@ import { filasDeReporte, obtenerReporte, type TipoReporte } from "@/features/rep
 import { exportarExcel, nombreArchivoReporte } from "@/features/reportes/excel";
 import { rangoPeriodo, type Periodo } from "@/features/reportes/rango";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 const REPORTES: { valor: TipoReporte; texto: string }[] = [
   { valor: "existencias", texto: "Existencias" },
@@ -37,7 +39,7 @@ function Opcion({ texto, activa, onPress }: { texto: string; activa: boolean; on
       onPress={onPress}
       style={{ padding: 8, borderWidth: 1, backgroundColor: activa ? "#ddd" : undefined }}
     >
-      <Text>{texto}</Text>
+      <Texto>{texto}</Texto>
     </Pressable>
   );
 }
@@ -45,6 +47,7 @@ function Opcion({ texto, activa, onPress }: { texto: string; activa: boolean; on
 const fechaCorta = (f: Date) => f.toLocaleDateString("es");
 
 function Reportes() {
+  const { colores } = useTema();
   const [tipo, setTipo] = useState<TipoReporte>("existencias");
   const [periodo, setPeriodo] = useState<Periodo>("7d");
   const [desde, setDesde] = useState<Date>(new Date());
@@ -112,7 +115,7 @@ function Reportes() {
               }}
             />
           ) : null}
-          <Text>Producto: {producto ? producto.nombre : "Todos"}</Text>
+          <Texto>Producto: {producto ? producto.nombre : "Todos"}</Texto>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Boton titulo={eligiendo ? "Cerrar búsqueda" : "Filtrar por producto"} onPress={() => setEligiendo(!eligiendo)} />
             {producto ? <Boton titulo="Quitar filtro" onPress={() => setProducto(null)} /> : null}
@@ -128,34 +131,34 @@ function Reportes() {
         </View>
       ) : null}
 
-      {isLoading ? <ActivityIndicator /> : null}
+      {isLoading ? <ActivityIndicator color={colores.interactivo} /> : null}
       {error ? (
         <View>
-          <Text accessibilityRole="alert">{mensajeDeError(error)}</Text>
+          <Texto accessibilityRole="alert" tono="peligro">{mensajeDeError(error)}</Texto>
           <Boton titulo="Reintentar" onPress={() => refetch()} />
         </View>
       ) : null}
       {data ? (
         <>
-          <Text>Total de registros: {data.length}</Text>
-          {data.length === 0 ? <Text>No hay registros para mostrar.</Text> : null}
+          <Texto>Total de registros: {data.length}</Texto>
+          {data.length === 0 ? <Texto>No hay registros para mostrar.</Texto> : null}
           <ScrollView horizontal>
             <View>
               {columnas.length > 0 ? (
                 <View style={{ flexDirection: "row" }}>
                   {columnas.map((c) => (
-                    <Text key={c} style={{ width: 130, fontWeight: "bold", padding: 4 }}>
+                    <Texto key={c} style={{ width: 130, fontWeight: "bold", padding: 4 }}>
                       {c}
-                    </Text>
+                    </Texto>
                   ))}
                 </View>
               ) : null}
               {data.map((fila, i) => (
                 <View key={i} style={{ flexDirection: "row", borderTopWidth: 1 }}>
                   {columnas.map((c) => (
-                    <Text key={c} style={{ width: 130, padding: 4 }}>
+                    <Texto key={c} style={{ width: 130, padding: 4 }}>
                       {String(fila[c])}
-                    </Text>
+                    </Texto>
                   ))}
                 </View>
               ))}
@@ -163,7 +166,7 @@ function Reportes() {
           </ScrollView>
         </>
       ) : null}
-      {errorExportar ? <Text accessibilityRole="alert">{errorExportar}</Text> : null}
+      {errorExportar ? <Texto accessibilityRole="alert" tono="peligro">{errorExportar}</Texto> : null}
       <Boton titulo="Exportar a Excel" onPress={exportar} disabled={!data || data.length === 0} loading={exportando} />
     </ScrollView>
   );

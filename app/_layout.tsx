@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAbrirDesdeNotificacion } from "@/features/alertas/useAbrirDesdeNotificacion";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
@@ -11,6 +11,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
 import { queryClient } from "@/lib/queryClient";
+import { Texto } from "@/components/Texto";
 
 function Navegacion() {
   const { estado, reintentar } = useAuth();
@@ -30,14 +31,14 @@ function Navegacion() {
   if (estado === "cargando") {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator accessibilityLabel="Cargando" />
+        <ActivityIndicator accessibilityLabel="Cargando" color={colores.interactivo} />
       </View>
     );
   }
   if (estado === "error") {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 16 }}>
-        <Text>No se pudo cargar tu perfil.</Text>
+        <Texto>No se pudo cargar tu perfil.</Texto>
         <Boton titulo="Reintentar" onPress={() => void reintentar()} />
       </View>
     );

@@ -1,7 +1,7 @@
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { SelectorUnidad } from "@/components/SelectorUnidad";
@@ -14,6 +14,7 @@ import {
   type ValoresFormulario,
 } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
 
 const VACIO: ValoresFormulario = { nombre: "", unidad: "unidad", codigo: "", cantidadInicial: "", puntoPedido: "" };
 
@@ -75,7 +76,7 @@ function NuevoProducto() {
   if (paso === "listo") {
     return (
       <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: "center" }}>
-        <Text accessibilityRole="alert">Producto registrado correctamente</Text>
+        <Texto accessibilityRole="alert" tono="exito">Producto registrado correctamente</Texto>
         <Boton titulo="Ver en Existencias" onPress={() => router.replace("/administracion/existencias")} />
         <Boton
           titulo="Registrar otro"
@@ -92,18 +93,18 @@ function NuevoProducto() {
   if (paso === "revision" && datos) {
     return (
       <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: "center" }}>
-        <Text>Revisa la información</Text>
-        <Text>Nombre</Text>
-        <Text>{datos.nombre}</Text>
-        <Text>Código</Text>
-        <Text>{datos.codigo}</Text>
-        <Text>Unidad</Text>
-        <Text>{UNIDADES[datos.unidad].nombre}</Text>
-        <Text>Cantidad inicial</Text>
-        <Text>{formatearCantidad(datos.cantidadInicial, datos.unidad)}</Text>
-        <Text>Punto de pedido</Text>
-        <Text>{formatearCantidad(datos.puntoPedido, datos.unidad)}</Text>
-        {errorGeneral ? <Text accessibilityRole="alert">{errorGeneral}</Text> : null}
+        <Texto>Revisa la información</Texto>
+        <Texto>Nombre</Texto>
+        <Texto>{datos.nombre}</Texto>
+        <Texto>Código</Texto>
+        <Texto>{datos.codigo}</Texto>
+        <Texto>Unidad</Texto>
+        <Texto>{UNIDADES[datos.unidad].nombre}</Texto>
+        <Texto>Cantidad inicial</Texto>
+        <Texto>{formatearCantidad(datos.cantidadInicial, datos.unidad)}</Texto>
+        <Texto>Punto de pedido</Texto>
+        <Texto>{formatearCantidad(datos.puntoPedido, datos.unidad)}</Texto>
+        {errorGeneral ? <Texto accessibilityRole="alert" tono="peligro">{errorGeneral}</Texto> : null}
         <Boton titulo="Editar información" onPress={() => setPaso("formulario")} />
         <Boton titulo="Confirmar registro" loading={registrar.isPending} onPress={() => void confirmar()} />
       </View>
@@ -118,7 +119,7 @@ function NuevoProducto() {
         render={({ field, fieldState }) => (
           <View>
             <Campo label="Nombre" value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} />
-            {fieldState.error ? <Text accessibilityRole="alert">{fieldState.error.message}</Text> : null}
+            {fieldState.error ? <Texto accessibilityRole="alert" tono="peligro">{fieldState.error.message}</Texto> : null}
           </View>
         )}
       />
@@ -135,7 +136,7 @@ function NuevoProducto() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            {fieldState.error ? <Text accessibilityRole="alert">{fieldState.error.message}</Text> : null}
+            {fieldState.error ? <Texto accessibilityRole="alert" tono="peligro">{fieldState.error.message}</Texto> : null}
           </View>
         )}
       />
@@ -157,7 +158,7 @@ function NuevoProducto() {
               onBlur={field.onBlur}
               keyboardType="decimal-pad"
             />
-            {fieldState.error ? <Text accessibilityRole="alert">{fieldState.error.message}</Text> : null}
+            {fieldState.error ? <Texto accessibilityRole="alert" tono="peligro">{fieldState.error.message}</Texto> : null}
           </View>
         )}
       />
@@ -173,7 +174,7 @@ function NuevoProducto() {
               onBlur={field.onBlur}
               keyboardType="decimal-pad"
             />
-            {fieldState.error ? <Text accessibilityRole="alert">{fieldState.error.message}</Text> : null}
+            {fieldState.error ? <Texto accessibilityRole="alert" tono="peligro">{fieldState.error.message}</Texto> : null}
           </View>
         )}
       />

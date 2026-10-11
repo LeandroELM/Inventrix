@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { ScrollView, Switch, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Pantalla } from "@/components/Pantalla";
@@ -11,6 +11,7 @@ import { validarContrasenaNueva } from "@/features/configuracion/contrasena";
 import { mensajeDeError } from "@/lib/errores";
 import { supabase } from "@/lib/supabase";
 import { useTema } from "@/tema/TemaProvider";
+import { Texto } from "@/components/Texto";
 
 const ROLES = { admin: "Administrador", operativo: "Operativo" } as const;
 const ESTADO_PERMISO = {
@@ -56,15 +57,15 @@ function SeccionCuenta() {
 
   return (
     <>
-      <Text accessibilityRole="header">Mi cuenta</Text>
+      <Texto accessibilityRole="header" variante="subtitulo">Mi cuenta</Texto>
       {perfil ? (
         <>
-          <Text>Nombre: {perfil.nombre}</Text>
-          <Text>Usuario: {perfil.usuario}</Text>
-          <Text>Rol: {ROLES[perfil.rol]}</Text>
+          <Texto>Nombre: {perfil.nombre}</Texto>
+          <Texto>Usuario: {perfil.usuario}</Texto>
+          <Texto>Rol: {ROLES[perfil.rol]}</Texto>
         </>
       ) : null}
-      {exito ? <Text>Contraseña actualizada.</Text> : null}
+      {exito ? <Texto>Contraseña actualizada.</Texto> : null}
       {abierto ? (
         <>
           <Campo label="Nueva contraseña" secureTextEntry autoCapitalize="none" value={nueva} onChangeText={setNueva} />
@@ -75,7 +76,7 @@ function SeccionCuenta() {
             value={confirmacion}
             onChangeText={setConfirmacion}
           />
-          {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+          {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
           <Boton titulo="Guardar contraseña" onPress={() => void cambiar()} loading={guardando} />
         </>
       ) : (
@@ -121,12 +122,12 @@ function SeccionNotificaciones() {
 
   return (
     <>
-      <Text accessibilityRole="header">Notificaciones</Text>
-      <Text>Permiso: {permiso}</Text>
-      {resultado === "autorizado" ? <Text>Dispositivo registrado.</Text> : null}
-      {resultado === "denegado" ? <Text>Permiso denegado. Actívalo en los ajustes del teléfono.</Text> : null}
-      {resultado === "no_disponible" ? <Text>Las notificaciones no están disponibles en este dispositivo.</Text> : null}
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+      <Texto accessibilityRole="header" variante="subtitulo">Notificaciones</Texto>
+      <Texto>Permiso: {permiso}</Texto>
+      {resultado === "autorizado" ? <Texto>Dispositivo registrado.</Texto> : null}
+      {resultado === "denegado" ? <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto> : null}
+      {resultado === "no_disponible" ? <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto> : null}
+      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
       <Boton titulo="Reintentar registro" onPress={() => void reintentar()} />
     </>
   );
@@ -136,7 +137,7 @@ function FilaModoOscuro() {
   const { esquema, alternarEsquema } = useTema();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-      <Text>Modo oscuro</Text>
+      <Texto>Modo oscuro</Texto>
       <Switch accessibilityLabel="Modo oscuro" value={esquema === "oscuro"} onValueChange={alternarEsquema} />
     </View>
   );
@@ -148,11 +149,11 @@ export default function Configuracion() {
   return (
     <Pantalla>
       <ScrollView contentContainerStyle={{ gap: 12 }}>
-        <Text accessibilityRole="header">Configuración</Text>
+        <Texto accessibilityRole="header" variante="subtitulo">Configuración</Texto>
         <SeccionCuenta />
         {perfil?.rol === "admin" ? <SeccionNotificaciones /> : null}
         <FilaModoOscuro />
-        <Text accessibilityRole="header">Soporte técnico</Text>
+        <Texto accessibilityRole="header" variante="subtitulo">Soporte técnico</Texto>
         <Boton titulo="Abrir soporte" onPress={() => router.push("/soporte")} />
         <Boton titulo="Cerrar sesión" onPress={() => void cerrarSesion()} />
       </ScrollView>

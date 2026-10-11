@@ -1,9 +1,10 @@
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAlertas, useMarcarLeidas } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
 
 function dos(n: number): string {
   return String(n).padStart(2, "0");
@@ -36,16 +37,16 @@ function ListaAlertas() {
         loading={marcar.isPending}
         onPress={() => marcar.mutate()}
       />
-      {marcar.isError && <Text accessibilityRole="alert">{mensajeDeError(marcar.error)}</Text>}
-      {isLoading && <Text>Cargando…</Text>}
-      {isError && <Text accessibilityRole="alert">No se pudieron cargar las alertas.</Text>}
-      {data?.length === 0 && <Text>No hay alertas.</Text>}
+      {marcar.isError && <Texto accessibilityRole="alert" tono="peligro">{mensajeDeError(marcar.error)}</Texto>}
+      {isLoading && <Texto>Cargando…</Texto>}
+      {isError && <Texto accessibilityRole="alert" tono="peligro">No se pudieron cargar las alertas.</Texto>}
+      {data?.length === 0 && <Texto>No hay alertas.</Texto>}
       {data?.map((a) => (
         <View key={a.id} style={{ borderWidth: 1, padding: 12, gap: 4 }}>
-          <Text>{a.producto}</Text>
-          <Text>{`Existencias: ${formatearCantidad(a.existencias, a.unidad)} · Punto de pedido: ${formatearCantidad(a.punto_pedido, a.unidad)}`}</Text>
-          <Text>{fechaLegible(a.created_at)}</Text>
-          <Text>{a.leida ? "Leída" : "No leída"}</Text>
+          <Texto>{a.producto}</Texto>
+          <Texto>{`Existencias: ${formatearCantidad(a.existencias, a.unidad)} · Punto de pedido: ${formatearCantidad(a.punto_pedido, a.unidad)}`}</Texto>
+          <Texto>{fechaLegible(a.created_at)}</Texto>
+          <Texto>{a.leida ? "Leída" : "No leída"}</Texto>
         </View>
       ))}
     </ScrollView>

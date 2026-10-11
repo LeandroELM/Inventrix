@@ -1,8 +1,8 @@
 import { Link, type Href } from "expo-router";
-import { Text } from "react-native";
 import { Pantalla } from "@/components/Pantalla";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { puede, type Accion } from "@/features/auth/permisos";
+import { Texto } from "@/components/Texto";
 
 const OPCIONES: { titulo: string; ruta: Href; accion: Accion }[] = [
   { titulo: "Existencias", ruta: "/administracion/existencias", accion: "ver_existencias" },
@@ -18,7 +18,7 @@ export default function Administracion() {
     <Pantalla>
       {OPCIONES.filter((o) => puede(perfil.rol, o.accion)).map((o) => (
         <Link key={o.titulo} href={o.ruta} accessibilityRole="link">
-          <Text>{o.titulo}</Text>
+          <Texto>{o.titulo}</Texto>
         </Link>
       ))}
     </Pantalla>

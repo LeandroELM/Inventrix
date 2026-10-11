@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
-import { KeyboardAvoidingView, Linking, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Pressable, ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { enviarPregunta, MAX_CARACTERES, type MensajeChat } from "@/features/soporte/api";
 import { enlaceWhatsApp } from "@/features/soporte/whatsapp";
+import { Texto } from "@/components/Texto";
+import { EntradaTexto } from "@/components/EntradaTexto";
 
 const SALUDO = "¡Hola! Soy el asistente virtual del sistema de inventarios. ¿En qué puedo ayudarte?";
 
@@ -55,12 +57,12 @@ export default function Soporte() {
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
         <View style={{ borderWidth: 1, padding: 12, alignSelf: "flex-start", maxWidth: "85%" }}>
-          <Text>{SALUDO}</Text>
+          <Texto>{SALUDO}</Texto>
         </View>
         {mensajes.length === 0 &&
           sugerencias.map((s) => (
             <Pressable key={s} accessibilityRole="button" accessibilityLabel={s} onPress={() => void enviar(s)} style={{ borderWidth: 1, padding: 10 }}>
-              <Text>{s}</Text>
+              <Texto>{s}</Texto>
             </Pressable>
           ))}
         {mensajes.map((m, i) => (
@@ -68,20 +70,20 @@ export default function Soporte() {
             key={i}
             style={{ borderWidth: 1, padding: 12, maxWidth: "85%", alignSelf: m.rol === "usuario" ? "flex-end" : "flex-start" }}
           >
-            <Text>{m.texto}</Text>
+            <Texto>{m.texto}</Texto>
           </View>
         ))}
-        {escribiendo && <Text>escribiendo…</Text>}
+        {escribiendo && <Texto>escribiendo…</Texto>}
         {mostrarWhatsApp &&
           (hayNumero ? (
             <Boton titulo="Contactar soporte por WhatsApp" onPress={() => void abrirWhatsApp()} />
           ) : (
-            <Text>El contacto por WhatsApp no está disponible por ahora.</Text>
+            <Texto>El contacto por WhatsApp no está disponible por ahora.</Texto>
           ))}
-        {errorWhatsApp && <Text accessibilityRole="alert">{errorWhatsApp}</Text>}
+        {errorWhatsApp && <Texto accessibilityRole="alert" tono="peligro">{errorWhatsApp}</Texto>}
       </ScrollView>
       <View style={{ padding: 12, gap: 8, borderTopWidth: 1 }}>
-        <TextInput
+        <EntradaTexto
           accessibilityLabel="Escribe tu pregunta"
           placeholder="Escribe tu pregunta"
           value={texto}
