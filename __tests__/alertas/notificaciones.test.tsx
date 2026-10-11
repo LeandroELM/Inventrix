@@ -45,7 +45,9 @@ describe("Notificaciones", () => {
 
   it("marca todas como leídas con el botón", async () => {
     await renderizar();
-    await fireEvent.press(await screen.findByRole("button", { name: "Marcar todas como leídas" }));
+    // El botón está deshabilitado hasta que cargan las alertas no leídas.
+    await screen.findByText("Harina");
+    await fireEvent.press(screen.getByRole("button", { name: "Marcar todas como leídas" }));
     await waitFor(() => expect(mockMarcar).toHaveBeenCalledTimes(1));
   });
 
