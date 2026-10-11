@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Linking } from "react-native";
 import Soporte from "../../app/soporte";
 import { PREGUNTAS_RAPIDAS } from "@/features/soporte/preguntas";
@@ -14,6 +15,14 @@ let mockRol = "operativo";
 jest.mock("@/features/auth/AuthProvider", () => ({
   useAuth: () => ({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol: mockRol } }),
 }));
+
+const METRICAS = {
+  frame: { x: 0, y: 0, width: 360, height: 800 },
+  insets: { top: 24, left: 0, right: 0, bottom: 0 },
+};
+function Proveedor({ children }: { children: React.ReactNode }) {
+  return <SafeAreaProvider initialMetrics={METRICAS}>{children}</SafeAreaProvider>;
+}
 
 const SALUDO = "¡Hola, Ana! Soy Trix. ¿En qué te ayudo?";
 const BOTON_WA = { name: "Contactar soporte por WhatsApp" };
@@ -40,14 +49,22 @@ describe("Soporte", () => {
   });
 
   it("saluda por nombre como Trix", async () => {
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     expect(screen.getByText(SALUDO)).toBeTruthy();
   });
 
   it("muestra las cuatro preguntas rápidas para ambos roles", async () => {
     for (const rol of ["admin", "operativo"]) {
       mockRol = rol;
-      await render(<Soporte />);
+      await render(
+        <Proveedor>
+          <Soporte />
+        </Proveedor>,
+      );
       expect(PREGUNTAS_RAPIDAS).toHaveLength(4);
       for (const q of PREGUNTAS_RAPIDAS) expect(screen.getByText(q)).toBeTruthy();
       await screen.unmount();
@@ -56,7 +73,11 @@ describe("Soporte", () => {
 
   it("una pregunta rápida se envía al chatbot", async () => {
     mockEnviar.mockResolvedValue({ respuesta: "Es el mínimo.", resuelto: true });
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await fireEvent.press(screen.getByText("¿Qué es el punto de pedido?"));
     expect(mockEnviar).toHaveBeenCalledWith([
       { rol: "usuario", texto: "¿Qué es el punto de pedido?" },
@@ -65,7 +86,11 @@ describe("Soporte", () => {
   });
 
   it("el botón de WhatsApp siempre está disponible", async () => {
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await fireEvent.press(screen.getByRole("button", BOTON_WA));
     await waitFor(() => expect(Linking.openURL).toHaveBeenCalledTimes(1));
     const url = (Linking.openURL as jest.Mock).mock.calls[0][0] as string;
@@ -73,14 +98,22 @@ describe("Soporte", () => {
   });
 
   it("tocar fuera cierra el panel", async () => {
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await fireEvent.press(screen.getByLabelText("Cerrar"));
     await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
   });
 
   it("envía la pregunta y muestra la respuesta", async () => {
     mockEnviar.mockResolvedValue({ respuesta: "Ve a Movimientos.", resuelto: true });
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await preguntar("¿Cómo registro una salida?");
     expect(await screen.findByText("Ve a Movimientos.")).toBeTruthy();
     expect(screen.getByText("¿Cómo registro una salida?")).toBeTruthy();
@@ -91,7 +124,11 @@ describe("Soporte", () => {
 
   it("abre WhatsApp con la última pregunta tras una respuesta no resuelta", async () => {
     mockEnviar.mockResolvedValue({ respuesta: "No encontré eso.", resuelto: false });
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await preguntar("Algo raro");
     await screen.findByText("No encontré eso.");
     await fireEvent.press(screen.getByRole("button", BOTON_WA));
@@ -102,7 +139,11 @@ describe("Soporte", () => {
 
   it("si WhatsApp no abre muestra un error", async () => {
     (Linking.openURL as jest.Mock).mockRejectedValue(new Error("x"));
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await fireEvent.press(screen.getByRole("button", BOTON_WA));
     expect(await screen.findByText("No se pudo abrir WhatsApp.")).toBeTruthy();
   });
@@ -110,7 +151,11 @@ describe("Soporte", () => {
   it("sin número configurado no se rompe y no muestra el botón", async () => {
     process.env.EXPO_PUBLIC_SOPORTE_WHATSAPP = "";
     mockEnviar.mockResolvedValue({ respuesta: "No encontré eso.", resuelto: false });
-    await render(<Soporte />);
+    await render(
+      <Proveedor>
+        <Soporte />
+      </Proveedor>,
+    );
     await preguntar("Algo raro");
     expect(await screen.findByText("No encontré eso.")).toBeTruthy();
     expect(screen.queryByRole("button", BOTON_WA)).toBeNull();

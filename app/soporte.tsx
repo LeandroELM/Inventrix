@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { KeyboardAvoidingView, Linking, Pressable, ScrollView, View } from "react-native";
+import { Linking, Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Presionable } from "@/animacion/Presionable";
 import { HojaInferior } from "@/components/HojaInferior";
@@ -22,6 +23,7 @@ export default function Soporte() {
   const { perfil } = useAuth();
   const { colores } = useTema();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [mensajes, setMensajes] = useState<MensajeChat[]>([]);
   const [texto, setTexto] = useState("");
   const [escribiendo, setEscribiendo] = useState(false);
@@ -79,14 +81,16 @@ export default function Soporte() {
   } as const;
 
   return (
-    <HojaInferior onCerrar={() => router.back()}>
-      <KeyboardAvoidingView style={{ flex: 1 }}>
+    <HojaInferior
+      onCerrar={() => router.back()}
+      encabezado={(cerrar) => (
         <View
           style={{
             backgroundColor: colores.primario,
-            paddingTop: 20,
-            paddingBottom: 14,
-            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 10,
+            paddingLeft: 16,
+            paddingRight: 8,
             flexDirection: "row",
             alignItems: "center",
             gap: 10,
@@ -115,13 +119,15 @@ export default function Soporte() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Cerrar asistente"
-            onPress={() => router.back()}
-            hitSlop={12}
+            onPress={cerrar}
             style={{ minWidth: 48, minHeight: 48, alignItems: "center", justifyContent: "center" }}
           >
             <Icono nombre="cerrar" tamano={18} color={colores.sobrePrimario} />
           </Pressable>
         </View>
+      )}
+    >
+      <View style={{ flex: 1 }}>
         <ScrollView
           style={{ flex: 1, backgroundColor: colores.fondo }}
           contentContainerStyle={{ padding: 14, gap: 10 }}
@@ -165,11 +171,6 @@ export default function Soporte() {
           {escribiendo && (
             <Texto variante="pequeno" tono="secundario">
               escribiendo…
-            </Texto>
-          )}
-          {errorWhatsApp && (
-            <Texto accessibilityRole="alert" tono="peligro">
-              {errorWhatsApp}
             </Texto>
           )}
         </ScrollView>
@@ -217,10 +218,16 @@ export default function Soporte() {
           style={{
             paddingTop: 6,
             paddingHorizontal: 14,
-            paddingBottom: 18,
+            paddingBottom: Math.max(18, insets.bottom + 8),
             backgroundColor: colores.superficie,
+            gap: 6,
           }}
         >
+          {errorWhatsApp && (
+            <Texto accessibilityRole="alert" tono="peligro">
+              {errorWhatsApp}
+            </Texto>
+          )}
           {hayNumero ? (
             <Presionable
               accessibilityRole="button"
@@ -249,7 +256,7 @@ export default function Soporte() {
             </Texto>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </HojaInferior>
   );
 }
