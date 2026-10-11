@@ -1,9 +1,19 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { useProductos } from "@/features/productos/hooks";
 
-export function BuscadorProducto({ onElegir }: { onElegir: (id: string, nombre: string) => void }) {
+export function BuscadorProducto({
+  onElegir,
+  escanearDestino,
+}: {
+  onElegir: (id: string, nombre: string) => void;
+  // Si se indica, muestra el botón Escanear hacia /escaner?destino=...
+  escanearDestino?: string;
+}) {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   useEffect(() => {
@@ -14,6 +24,7 @@ export function BuscadorProducto({ onElegir }: { onElegir: (id: string, nombre: 
   return (
     <View style={{ gap: 8 }}>
       <Campo label="Buscar producto" value={busqueda} onChangeText={setBusqueda} placeholder="Nombre o código" />
+      {escanearDestino ? <Boton titulo="Escanear" onPress={() => router.push(`/escaner?destino=${escanearDestino}`)} /> : null}
       {isLoading ? <ActivityIndicator /> : null}
       {(data ?? []).slice(0, 20).map((p) => (
         <Pressable

@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
-import { Campo } from "@/components/Campo";
 import { Cantidad } from "@/components/Cantidad";
 import type { MotivoSalida } from "@/features/movimientos/api";
 import { generaAlerta, proyectar, validarSalida } from "@/features/movimientos/calculo";
 import { useRegistrarMovimiento } from "@/features/movimientos/hooks";
-import { useProducto, useProductos } from "@/features/productos/hooks";
+import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
+import { useProducto } from "@/features/productos/hooks";
 import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
 import { validarCantidad } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
@@ -30,36 +30,6 @@ type Resultado = {
   despues: number;
   alerta: boolean;
 };
-
-function Buscador({ tipo, onElegir }: { tipo: "entrada" | "salida"; onElegir: (id: string) => void }) {
-  const router = useRouter();
-  const [busqueda, setBusqueda] = useState("");
-  const [texto, setTexto] = useState("");
-  useEffect(() => {
-    const t = setTimeout(() => setTexto(busqueda), 300);
-    return () => clearTimeout(t);
-  }, [busqueda]);
-  const { data, isLoading } = useProductos({ texto });
-  return (
-    <View style={{ gap: 8 }}>
-      <Campo label="Buscar producto" value={busqueda} onChangeText={setBusqueda} placeholder="Nombre o código" />
-      <Boton titulo="Escanear" onPress={() => router.push(`/escaner?destino=${tipo}`)} />
-      {isLoading ? <ActivityIndicator /> : null}
-      {(data ?? []).slice(0, 20).map((p) => (
-        <Pressable
-          key={p.id}
-          accessibilityRole="button"
-          accessibilityLabel={p.nombre}
-          onPress={() => onElegir(p.id)}
-          style={{ paddingVertical: 8, borderBottomWidth: 1 }}
-        >
-          <Text>{p.nombre}</Text>
-          <Text>{p.codigo}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   const router = useRouter();
@@ -105,7 +75,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   if (!id) {
     return (
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
-        <Buscador tipo={tipo} onElegir={setElegido} />
+        <BuscadorProducto escanearDestino={tipo} onElegir={setElegido} />
       </ScrollView>
     );
   }

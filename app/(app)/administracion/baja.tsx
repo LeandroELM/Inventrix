@@ -1,45 +1,16 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { RequiereRol } from "@/features/auth/RequiereRol";
-import { useDarBajaProducto, useProducto, useProductos } from "@/features/productos/hooks";
+import { useDarBajaProducto, useProducto } from "@/features/productos/hooks";
+import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 
 const MOTIVOS = ["Descontinuado", "Registro duplicado", "Otro"] as const;
 type Motivo = (typeof MOTIVOS)[number];
-
-function Buscador({ onElegir }: { onElegir: (id: string) => void }) {
-  const router = useRouter();
-  const [busqueda, setBusqueda] = useState("");
-  const [texto, setTexto] = useState("");
-  useEffect(() => {
-    const t = setTimeout(() => setTexto(busqueda), 300);
-    return () => clearTimeout(t);
-  }, [busqueda]);
-  const { data, isLoading } = useProductos({ texto });
-  return (
-    <View style={{ gap: 8 }}>
-      <Campo label="Buscar producto" value={busqueda} onChangeText={setBusqueda} placeholder="Nombre o código" />
-      <Boton titulo="Escanear" onPress={() => router.push("/escaner?destino=baja")} />
-      {isLoading ? <ActivityIndicator /> : null}
-      {(data ?? []).slice(0, 20).map((p) => (
-        <Pressable
-          key={p.id}
-          accessibilityRole="button"
-          accessibilityLabel={p.nombre}
-          onPress={() => onElegir(p.id)}
-          style={{ paddingVertical: 8, borderBottomWidth: 1 }}
-        >
-          <Text>{p.nombre}</Text>
-          <Text>{p.codigo}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 function Baja() {
   const router = useRouter();
@@ -67,7 +38,7 @@ function Baja() {
   if (!id) {
     return (
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Buscador onElegir={setId} />
+        <BuscadorProducto escanearDestino="baja" onElegir={setId} />
       </ScrollView>
     );
   }
