@@ -21,6 +21,9 @@ export type Colores = {
   peligro: string;
   peligroSuave: string;
   textoPeligro: string;
+  advertencia: string;
+  advertenciaSuave: string;
+  textoAdvertencia: string;
   linea: string;
   borde: string;
   inactivo: string;
@@ -50,6 +53,9 @@ export const PALETAS: Record<Esquema, Colores> = {
     peligro: "#D92D3A",
     peligroSuave: "#FDECEE",
     textoPeligro: "#B4232F",
+    advertencia: "#E9A23B",
+    advertenciaSuave: "#FBE2B4",
+    textoAdvertencia: "#6B4300",
     linea: "#E5EBF2",
     borde: "#7B8BA1",
     inactivo: "#CBD5E1",
@@ -77,6 +83,9 @@ export const PALETAS: Record<Esquema, Colores> = {
     peligro: "#F05A66",
     peligroSuave: "rgba(240,90,102,0.15)",
     textoPeligro: "#FF8A93",
+    advertencia: "#E9A23B",
+    advertenciaSuave: "#4A3412",
+    textoAdvertencia: "#F6CE84",
     linea: "#1F3150",
     borde: "#5B7090",
     inactivo: "#334561",

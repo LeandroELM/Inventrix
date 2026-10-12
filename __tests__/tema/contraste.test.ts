@@ -20,6 +20,9 @@ describe.each<Esquema>(["claro", "oscuro"])("paleta %s", (esquema) => {
   test("textoPeligro sobre peligroSuave ≥ 4.5", () => {
     expect(contraste(c.textoPeligro, c.peligroSuave, c.superficie)).toBeGreaterThanOrEqual(4.5);
   });
+  test("textoAdvertencia sobre advertenciaSuave ≥ 4.5", () => {
+    expect(contraste(c.textoAdvertencia, c.advertenciaSuave, c.superficie)).toBeGreaterThanOrEqual(4.5);
+  });
   test.each([["borde", "superficie"], ["exito", "superficie"]] as const)("%s sobre %s ≥ 3", (a, b) => {
     expect(contraste(c[a], c[b])).toBeGreaterThanOrEqual(3);
   });

@@ -42,11 +42,48 @@ describe("Encabezado", () => {
     expect(screen.getByRole("header", { name: "Reportes" })).toBeTruthy();
   });
 
-  it("inicio muestra saludo, rol y alertas", async () => {
-    await montar(<Encabezado variante="inicio" saludo="Hola, Ana 👋" rol="Administrador" alertas={3} />);
-    expect(screen.getByText("Hola, Ana 👋")).toBeTruthy();
-    expect(screen.getByText("Administrador")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Notificaciones, 3 sin leer" })).toBeTruthy();
+  it("inicio muestra saludo, iniciales, rol en mayúsculas y alertas", async () => {
+    await montar(
+      <Encabezado variante="inicio" nombre="Ana López" rol="Administrador" alertas={2} onAlertas={jest.fn()} />,
+    );
+    expect(screen.getByText("Hola, Ana López")).toBeTruthy();
+    expect(screen.getByText("ADMINISTRADOR")).toBeTruthy();
+    expect(screen.getByText("AL", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Notificaciones, 2 sin leer" })).toBeTruthy();
+    expect(screen.getByTestId("punto-alerta")).toBeTruthy();
+  });
+
+  it("inicio sin onAlertas no muestra la campana", async () => {
+    await montar(<Encabezado variante="inicio" nombre="Ana López" rol="Administrador" alertas={2} />);
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("inicio no fuerza la barra de estado clara", async () => {
+    await montar(<Encabezado variante="inicio" nombre="Ana López" rol="Operativo" />);
+    expect(screen.queryByTestId("barra-estado")).toBeNull();
+  });
+
+  it("pantalla muestra el subtítulo", async () => {
+    await montar(<Encabezado variante="pantalla" titulo="Existencias" subtitulo="120 productos activos" />);
+    expect(screen.getByText("120 productos activos")).toBeTruthy();
+  });
+
+  it("acción de texto deshabilitada no llama onPress", async () => {
+    const onPress = jest.fn();
+    await montar(
+      <Encabezado variante="pantalla" titulo="Notificaciones" accion={{ texto: "Marcar leídas", onPress, deshabilitado: true }} />,
+    );
+    const boton = screen.getByRole("button", { name: "Marcar leídas" });
+    expect(boton.props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(boton);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("acción de texto habilitada llama onPress", async () => {
+    const onPress = jest.fn();
+    await montar(<Encabezado variante="pantalla" titulo="Notificaciones" accion={{ texto: "Marcar leídas", onPress }} />);
+    await fireEvent.press(screen.getByRole("button", { name: "Marcar leídas" }));
+    expect(onPress).toHaveBeenCalled();
   });
 
   it("pantalla con atrás llama onAtras", async () => {
