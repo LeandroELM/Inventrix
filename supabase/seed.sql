@@ -6,6 +6,8 @@ declare
   v_admin uuid := '00000000-0000-4000-a000-000000000001';
   v_oper  uuid := '00000000-0000-4000-a000-000000000002';
   v_u record;
+  v_m record;
+  v_mov public.movimientos;
 begin
   for v_u in
     select * from (values
@@ -52,6 +54,26 @@ begin
     ('Jabón de baño',    'JAB-001', 'caja',      0,  2),
     ('Azúcar',           'AZU-001', 'libra',    12, 20)
   ) as p(nombre, codigo, unidad, cant, punto);
+
+  -- Movimientos de ejemplo para el dashboard, repartidos en los ultimos 6 dias.
+  for v_m in
+    select * from (values
+      ('ARR-001', 'entrada', 20, null,        6),
+      ('AZU-001', 'entrada', 10, null,        5),
+      ('FRI-001', 'salida',   8, 'venta',     5),
+      ('LEC-001', 'salida',   6, 'venta',     4),
+      ('CAF-001', 'salida',   3, 'venta',     3),
+      ('ARR-001', 'salida',   2, 'venta',     2),
+      ('LEC-001', 'salida',   2, 'caducidad', 1),
+      ('ACE-001', 'salida',   1, 'dano',      0)
+    ) as t(codigo, tipo, cant, motivo, dias)
+  loop
+    select * into v_mov from public.registrar_movimiento(
+      (select id from public.productos where codigo = v_m.codigo),
+      v_m.tipo::public.tipo_movimiento, v_m.cant, v_m.motivo::public.motivo_salida);
+    update public.movimientos set created_at = now() - make_interval(days => v_m.dias)
+      where id = v_mov.id;
+  end loop;
 
   perform set_config('request.jwt.claims', '', true);
 end $$;
