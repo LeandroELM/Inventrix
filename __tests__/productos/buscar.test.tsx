@@ -1,0 +1,133 @@
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import Buscar from "../../app/(app)/buscar";
+import { TemaProvider } from "@/tema/TemaProvider";
+import { estadoInventario } from "@/features/productos/estado";
+
+const mockPush = jest.fn();
+const mockUseProductos = jest.fn();
+const mockUseAuth = jest.fn();
+const mockRefetch = jest.fn();
+
+jest.mock("@/lib/supabase", () => ({ supabase: {} }));
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+  useIsFocused: () => true,
+}));
+jest.mock("@/features/productos/hooks", () => ({ useProductos: (...a: unknown[]) => mockUseProductos(...a) }));
+jest.mock("@/features/productos/api", () => ({ listarTodosProductos: jest.fn() }));
+jest.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => mockUseAuth() }));
+jest.mock("@/features/configuracion/apariencia", () => ({
+  leerApariencia: () => Promise.resolve("claro"),
+  guardarApariencia: () => Promise.resolve(),
+}));
+jest.mock("react-native-reanimated", () => {
+  const mock = require("react-native-reanimated/mock");
+  return { ...mock, useReducedMotion: () => true };
+});
+
+const prod = (id: string, nombre: string, existencias: number) => ({
+  id,
+  nombre,
+  codigo: `C-${id}`,
+  unidad: "kilogramo" as const,
+  existencias,
+  punto_pedido: 5,
+  activo: true,
+});
+const TODOS = [prod("a", "Harina", 20), prod("b", "Aceite", 5), prod("c", "Sal", 0)];
+
+type Estado = "disponible" | "bajo" | "sin" | undefined;
+function simular(opciones: { lista?: ReturnType<typeof prod>[]; isError?: boolean; isLoading?: boolean } = {}) {
+  mockUseProductos.mockImplementation(({ estado }: { estado: Estado }) => {
+    const lista = opciones.lista ?? TODOS;
+    return {
+      data: opciones.isError || opciones.isLoading ? undefined : lista.filter((p) => !estado || estadoInventario(p.existencias, p.punto_pedido) === estado),
+      isLoading: opciones.isLoading ?? false,
+      error: opciones.isError ? new Error("falla") : null,
+      refetch: mockRefetch,
+    };
+  });
+}
+
+async function montar(rol: "admin" | "operativo" = "admin") {
+  mockUseAuth.mockReturnValue({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol } });
+  await render(
+    <SafeAreaProvider
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+    >
+      <TemaProvider>
+        <Buscar />
+      </TemaProvider>
+    </SafeAreaProvider>,
+  );
+}
+
+describe("Buscar / Existencias", () => {
+  beforeEach(() => {
+    mockPush.mockReset();
+    mockRefetch.mockReset();
+  });
+
+  it("muestra titulo, subtitulo y los tres productos", async () => {
+    simular();
+    await montar();
+    expect(screen.getByText("Existencias")).toBeTruthy();
+    expect(screen.getByText("3 productos activos")).toBeTruthy();
+    expect(screen.getByText("Harina")).toBeTruthy();
+    expect(screen.getByText("Aceite")).toBeTruthy();
+    expect(screen.getByText("Sal")).toBeTruthy();
+  });
+
+  it("el chip Bajo deja solo el producto bajo", async () => {
+    simular();
+    await montar();
+    await fireEvent.press(screen.getByLabelText("Bajo"));
+    expect(screen.getByText("Aceite")).toBeTruthy();
+    expect(screen.queryByText("Harina")).toBeNull();
+    expect(screen.queryByText("Sal")).toBeNull();
+  });
+
+  it("sin coincidencias de busqueda muestra el aviso", async () => {
+    simular({ lista: [] });
+    await montar();
+    await fireEvent.changeText(screen.getByLabelText("Buscar producto"), "zzz");
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 400));
+    });
+    expect(screen.getByText("No hay productos que coincidan.")).toBeTruthy();
+  });
+
+  it("lista vacia sin busqueda muestra que aun no hay productos", async () => {
+    simular({ lista: [] });
+    await montar();
+    expect(screen.getByText("Aún no hay productos registrados.")).toBeTruthy();
+  });
+
+  it("error muestra Reintentar", async () => {
+    simular({ isError: true });
+    await montar();
+    await fireEvent.press(screen.getByText("Reintentar"));
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it("tocar una fila navega a la ficha", async () => {
+    simular();
+    await montar();
+    await fireEvent.press(screen.getByLabelText("Aceite, 5 kg, Bajo inventario"));
+    expect(mockPush).toHaveBeenCalledWith("/administracion/producto/b");
+  });
+
+  it("el boton de escanear tiene etiqueta y abre el escaner", async () => {
+    simular();
+    await montar();
+    await fireEvent.press(screen.getByLabelText("Escanear código de barras"));
+    expect(mockPush).toHaveBeenCalledWith("/escaner?destino=existencias");
+  });
+
+  it("Exportar a Excel sigue visible para el operativo", async () => {
+    simular();
+    await montar("operativo");
+    expect(screen.getByText("Exportar a Excel")).toBeTruthy();
+  });
+});
