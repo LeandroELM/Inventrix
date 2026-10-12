@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { Campo } from "@/components/Campo";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { useHistorial } from "@/features/movimientos/hooks";
+import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
 import type { FilaHistorial } from "@/features/movimientos/api";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { Texto } from "@/components/Texto";
@@ -16,12 +17,7 @@ const SEGMENTOS: { valor: Segmento; titulo: string }[] = [
   { valor: "salida", titulo: "Salidas" },
 ];
 
-const TIPOS = { entrada: "Entrada", salida: "Salida", inicial: "Inicial" } as const;
-const MOTIVOS = {
-  venta: "Venta",
-  consumo_interno: "Consumo interno",
-  retiro_autorizado: "Retiro autorizado",
-} as const;
+const TIPOS = { entrada: "Entrada", salida: "Salida", inicial: "Inicial", baja: "Baja" } as const;
 
 function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
   const [abierta, setAbierta] = useState(false);
@@ -43,7 +39,7 @@ function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
         <View style={{ gap: 2 }}>
           <Texto>Usuario: {fila.usuario}</Texto>
           <Texto>Fecha y hora: {fecha.toLocaleString("es")}</Texto>
-          {fila.motivo ? <Texto>Motivo: {MOTIVOS[fila.motivo]}</Texto> : null}
+          {fila.motivo ? <Texto>Motivo: {ETIQUETAS_MOTIVO_SALIDA[fila.motivo]}</Texto> : null}
           <Texto>
             Existencias: {formatearCantidad(fila.existencias_antes, fila.unidad)} {"\u2192"}{" "}
             {formatearCantidad(fila.existencias_despues, fila.unidad)}

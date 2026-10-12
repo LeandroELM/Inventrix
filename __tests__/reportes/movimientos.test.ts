@@ -8,7 +8,7 @@ const fila = {
   unidad: "caja" as const,
   tipo: "salida" as const,
   cantidad: 4,
-  motivo: "consumo_interno" as const,
+  motivo: "caducidad" as const,
   usuario: "Ana",
   existencias_antes: 10,
   existencias_despues: 6,
@@ -22,7 +22,7 @@ describe("filasMovimientos", () => {
       Código: "750",
       Tipo: "Salida",
       Cantidad: "4 cajas",
-      Motivo: "Consumo interno",
+      Motivo: "Caducidad",
       Usuario: "Ana",
       "Existencias antes": "10 cajas",
       "Existencias después": "6 cajas",
@@ -38,6 +38,18 @@ describe("filasMovimientos", () => {
       ["Entrada", "—"],
       ["Inicial", "—"],
     ]);
+  });
+});
+
+describe("filasMovimientos con bajas y nuevos motivos", () => {
+  it("exporta la baja como Baja y sin motivo", () => {
+    const r = filasMovimientos([{ ...fila, tipo: "baja", motivo: null }])[0];
+    expect(r.Tipo).toBe("Baja");
+    expect(r.Motivo).toBe("");
+  });
+
+  it("traduce Daño", () => {
+    expect(filasMovimientos([{ ...fila, motivo: "dano" }])[0].Motivo).toBe("Daño");
   });
 });
 

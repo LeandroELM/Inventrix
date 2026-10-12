@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { traerTodo } from "@/lib/paginar";
 import { listarTodosProductos } from "@/features/productos/api";
 import { listarTodoAPedir } from "@/features/alertas/api";
+import { aDashboard, type Dashboard } from "@/features/reportes/dashboard";
 import { filasAPedir, filasExistencias, filasMovimientos, type FilaMovimiento } from "@/features/reportes/excel";
 
 export type TipoReporte = "existencias" | "a_pedir" | "entradas" | "salidas" | "historial";
@@ -35,4 +36,11 @@ export function filasDeReporte(tipo: TipoReporte, datos: object[], ahora: Date):
   if (tipo === "existencias") return filasExistencias(datos as Parameters<typeof filasExistencias>[0], ahora);
   if (tipo === "a_pedir") return filasAPedir(datos as Parameters<typeof filasAPedir>[0]);
   return filasMovimientos(datos as FilaMovimiento[]);
+}
+
+// Indicadores y serie diaria del dashboard para el rango [desde, hasta] (YYYY-MM-DD).
+export async function obtenerDashboard(desde: string, hasta: string): Promise<Dashboard> {
+  const { data, error } = await supabase.rpc("dashboard_reportes", { p_desde: desde, p_hasta: hasta });
+  if (error) throw error;
+  return aDashboard(data);
 }

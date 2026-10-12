@@ -4,6 +4,7 @@ import { limpiarTexto } from "@/features/productos/api";
 
 export type Movimiento = Database["public"]["Tables"]["movimientos"]["Row"];
 export type MotivoSalida = Database["public"]["Enums"]["motivo_salida"];
+export type TipoMovimiento = Database["public"]["Enums"]["tipo_movimiento"];
 
 export type DatosMovimiento = {
   productoId: string;
@@ -32,7 +33,7 @@ export type FilaHistorial = {
   producto: string;
   codigo: string | null;
   unidad: Database["public"]["Enums"]["unidad_medida"];
-  tipo: Database["public"]["Enums"]["tipo_movimiento"];
+  tipo: TipoMovimiento;
   cantidad: number;
   motivo: MotivoSalida | null;
   existencias_antes: number;
@@ -49,9 +50,9 @@ export type FiltroHistorial = {
 
 export async function listarHistorial(filtro: FiltroHistorial & { pagina: number }): Promise<FilaHistorial[]> {
   let consulta = supabase.from("historial_movimientos").select("*");
-  // Los movimientos "inicial" cuentan como entradas.
+  // "inicial" cuenta como entrada y "baja" como salida.
   if (filtro.tipo === "entrada") consulta = consulta.in("tipo", ["entrada", "inicial"]);
-  else if (filtro.tipo === "salida") consulta = consulta.eq("tipo", "salida");
+  else if (filtro.tipo === "salida") consulta = consulta.in("tipo", ["salida", "baja"]);
   if (filtro.productoId) consulta = consulta.eq("producto_id", filtro.productoId);
   const texto = filtro.texto ? limpiarTexto(filtro.texto) : "";
   if (texto) consulta = consulta.or(`producto.ilike.%${texto}%,codigo.ilike.%${texto}%`);

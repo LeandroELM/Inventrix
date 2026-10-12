@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 import { traerTodo } from "@/lib/paginar";
+import type { MotivoBaja } from "@/features/productos/motivosBaja";
 import { estadoInventario, type Estado, type Producto } from "@/features/productos/estado";
 
 export type FiltroProductos = { texto?: string; estado?: Estado };
@@ -89,8 +90,12 @@ export async function actualizarProducto(
   return data;
 }
 
-export async function darBajaProducto(id: string, motivo: string): Promise<Producto> {
-  const { data, error } = await supabase.rpc("dar_baja_producto", { p_id: id, p_motivo: motivo });
+export async function darBajaProducto(id: string, motivo: MotivoBaja, detalle?: string): Promise<Producto> {
+  const { data, error } = await supabase.rpc("dar_baja_producto", {
+    p_id: id,
+    p_motivo: motivo,
+    ...(detalle !== undefined ? { p_detalle: detalle } : {}),
+  });
   if (error) throw error;
   return data;
 }

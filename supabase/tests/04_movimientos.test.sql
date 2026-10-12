@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(30);
+select plan(36);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -61,10 +61,19 @@ select is((select existencias_despues from public.registrar_movimiento(:'det', '
 select is((select count(*)::int from public.alertas
            where producto_id = :'det' and existencias = 10 and punto_pedido = 10 and not leida),
           1, 'una alerta al llegar al punto de pedido');
-select lives_ok(format('select public.registrar_movimiento(%L, %L, 1, %L)', :'det', 'salida', 'consumo_interno'),
-                'salida 1 mas');
+select lives_ok(format('select public.registrar_movimiento(%L, %L, 1, %L)', :'det', 'salida', 'otros'),
+                'salida 1 mas con motivo otros');
 select is((select count(*)::int from public.alertas where producto_id = :'det'),
           1, 'la alerta no se duplica bajo el punto de pedido');
+
+-- Motivos nuevos
+select lives_ok(format('select public.registrar_movimiento(%L, %L, 1, %L)', :'det', 'salida', 'caducidad'), 'salida por caducidad');
+select is((select activo from public.productos where id = :'det'), true, 'caducidad deja el producto activo');
+select lives_ok(format('select public.registrar_movimiento(%L, %L, 1, %L)', :'det', 'salida', 'dano'), 'salida por dano');
+select throws_ok(format('select public.registrar_movimiento(%L, %L, 1)', :'det', 'baja'),
+                 'P0001', 'DATOS_INVALIDOS', 'tipo baja no permitido');
+select is((select count(*)::int from public.movimientos where producto_id = :'det' and motivo in ('caducidad', 'dano', 'otros')),
+          3, 'motivos caducidad, dano y otros guardados');
 
 -- Bloqueo de fila contra salidas concurrentes
 select ok(pg_get_functiondef('public.registrar_movimiento(uuid,public.tipo_movimiento,numeric,public.motivo_salida)'::regprocedure)
@@ -111,6 +120,9 @@ select throws_ok(format('select public.registrar_movimiento(%L, %L, 1)', :'det',
 reset role;
 select ok(not has_function_privilege('anon', 'public.registrar_movimiento(uuid,public.tipo_movimiento,numeric,public.motivo_salida)', 'EXECUTE'),
           'anon sin EXECUTE en registrar_movimiento');
+select ok(not has_function_privilege('anon', 'public.registrar_movimiento(uuid,public.tipo_movimiento,numeric,public.motivo_salida)', 'EXECUTE')
+          and has_function_privilege('authenticated', 'public.registrar_movimiento(uuid,public.tipo_movimiento,numeric,public.motivo_salida)', 'EXECUTE'),
+          'registrar_movimiento recreada conserva permisos');
 select ok(not has_function_privilege('anon', 'public.marcar_alertas_leidas()', 'EXECUTE'),
           'anon sin EXECUTE en marcar_alertas_leidas');
 

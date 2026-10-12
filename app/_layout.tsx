@@ -54,6 +54,9 @@ function Navegacion() {
         contentStyle: { backgroundColor: colores.fondo },
       }}
     >
+      {/* Primero: sin URL inicial, el Stack arranca en la primera pantalla declarada. */}
+      <Stack.Screen name="(app)" />
+      <Stack.Screen name="login" />
       <Stack.Screen
         name="escaner"
         options={{ presentation: "modal", animation: "slide_from_bottom" }}

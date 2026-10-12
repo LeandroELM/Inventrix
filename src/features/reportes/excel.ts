@@ -1,4 +1,6 @@
 import { UNIDADES, formatearCantidad, type Unidad } from "@/features/productos/unidades";
+import type { MotivoSalida, TipoMovimiento } from "@/features/movimientos/api";
+import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
 import type { Producto } from "@/features/productos/estado";
 
 const MIME_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -33,16 +35,15 @@ export type FilaMovimiento = {
   producto: string;
   codigo: string;
   unidad: Unidad;
-  tipo: "inicial" | "entrada" | "salida";
+  tipo: TipoMovimiento;
   cantidad: number;
-  motivo: "venta" | "consumo_interno" | "retiro_autorizado" | null;
+  motivo: MotivoSalida | null;
   usuario: string;
   existencias_antes: number;
   existencias_despues: number;
 };
 
-const TIPOS = { inicial: "Inicial", entrada: "Entrada", salida: "Salida" } as const;
-const MOTIVOS = { venta: "Venta", consumo_interno: "Consumo interno", retiro_autorizado: "Retiro autorizado" } as const;
+const TIPOS = { inicial: "Inicial", entrada: "Entrada", salida: "Salida", baja: "Baja" } as const;
 
 export function filasMovimientos(filas: FilaMovimiento[]) {
   return filas.map((m) => ({
@@ -51,7 +52,7 @@ export function filasMovimientos(filas: FilaMovimiento[]) {
     Código: m.codigo,
     Tipo: TIPOS[m.tipo],
     Cantidad: formatearCantidad(m.cantidad, m.unidad),
-    Motivo: m.motivo ? MOTIVOS[m.motivo] : "—",
+    Motivo: m.motivo ? ETIQUETAS_MOTIVO_SALIDA[m.motivo] : m.tipo === "baja" ? "" : "—",
     Usuario: m.usuario,
     "Existencias antes": formatearCantidad(m.existencias_antes, m.unidad),
     "Existencias después": formatearCantidad(m.existencias_despues, m.unidad),

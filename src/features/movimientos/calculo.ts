@@ -1,3 +1,4 @@
+import type { TipoMovimiento } from "@/features/movimientos/api";
 import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
 
 export function proyectar(existencias: number, cantidad: number, tipo: "entrada" | "salida"): number {
@@ -14,6 +15,6 @@ export function generaAlerta(existencias: number, cantidad: number, puntoPedido:
   return existencias > puntoPedido && existencias - cantidad <= puntoPedido;
 }
 
-export function etiquetaMovimiento(tipo: "entrada" | "salida" | "inicial", cantidad: number, unidad: Unidad): string {
-  return `${tipo === "salida" ? "−" : "+"}${formatearCantidad(cantidad, unidad)}`;
+export function etiquetaMovimiento(tipo: TipoMovimiento, cantidad: number, unidad: Unidad): string {
+  return `${tipo === "salida" || tipo === "baja" ? "−" : "+"}${formatearCantidad(cantidad, unidad)}`;
 }
