@@ -1,3 +1,4 @@
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { Campo } from "@/components/Campo";
@@ -54,15 +55,36 @@ export default function Movimientos() {
   const { colores } = useTema();
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
+  const router = useRouter();
+  const { productoId: productoParam } = useLocalSearchParams<{ productoId?: string }>();
+  const [quitado, setQuitado] = useState<string | null>(null);
+  const productoId = productoParam && productoParam !== quitado ? productoParam : undefined;
+  // Al limpiarse el parámetro, un nuevo filtro por el mismo producto vuelve a aplicarse.
+  if (!productoParam && quitado) setQuitado(null);
   const consulta = useHistorial({
     texto,
+    productoId,
     tipo: segmento === "todos" ? undefined : segmento,
   });
   const filas = consulta.data?.pages.flat() ?? [];
+  const nombreProducto = filas[0]?.producto ?? "este producto";
+
+  function quitarFiltro() {
+    setQuitado(productoParam ?? null);
+    router.setParams({ productoId: undefined });
+  }
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12 }}>
       <Campo label="Buscar" value={texto} onChangeText={setTexto} placeholder="Producto o código" />
+      {productoId ? (
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <Texto style={{ flex: 1 }}>{`Mostrando: ${nombreProducto}`}</Texto>
+          <Pressable accessibilityRole="button" accessibilityLabel="Quitar filtro" onPress={quitarFiltro} style={{ minHeight: 48, justifyContent: "center" }}>
+            <Texto tono="interactivo">Quitar filtro</Texto>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={{ flexDirection: "row", gap: 8 }}>
         {SEGMENTOS.map((s) => (
           <Pressable

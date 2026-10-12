@@ -1,36 +1,47 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Skeleton } from "@/animacion/Skeleton";
+import { AnilloExistencias } from "@/components/AnilloExistencias";
 import { Boton } from "@/components/Boton";
+import { Encabezado } from "@/components/Encabezado";
+import { Etiqueta } from "@/components/Etiqueta";
+import { FilaMovimiento } from "@/components/FilaMovimiento";
+import { Icono } from "@/components/Icono";
+import { Presionable } from "@/animacion/Presionable";
+import { Tarjeta } from "@/components/Tarjeta";
+import { Texto } from "@/components/Texto";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
-import { ETIQUETA_ESTADO, estadoInventario } from "@/features/productos/estado";
+import { ETIQUETAS_MOTIVO_BAJA } from "@/features/productos/motivosBaja";
 import { useProducto, useUltimosMovimientos } from "@/features/productos/hooks";
-import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
-import { Texto } from "@/components/Texto";
+import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
-const ETIQUETA_TIPO = { inicial: "Inicial", entrada: "Entrada", salida: "Salida", baja: "Baja" } as const;
-
 function Movimientos({ id }: { id: string }) {
-  const { colores } = useTema();
   const { data, isLoading, error } = useUltimosMovimientos(id);
-  if (isLoading) return <ActivityIndicator color={colores.interactivo} />;
-  if (error) return <Texto>{mensajeDeError(error)}</Texto>;
-  if (!data || data.length === 0) return <Texto>Sin movimientos.</Texto>;
+  if (!data) {
+    if (isLoading) return <Skeleton.Fila />;
+    if (error) return <Texto tono="peligro">{mensajeDeError(error)}</Texto>;
+    return null;
+  }
+  if (data.length === 0) return <Texto tono="secundario">Sin movimientos.</Texto>;
   return (
-    <View style={{ gap: 6 }}>
-      {data.map((m) => (
-        <View key={m.id} style={{ borderBottomWidth: 1, paddingBottom: 4 }}>
-          <Texto>
-            {m.tipo ? ETIQUETA_TIPO[m.tipo] : ""} ·{" "}
-            {m.unidad && m.cantidad !== null ? formatearCantidad(m.cantidad, m.unidad) : ""}
-          </Texto>
-          <Texto>
-            {m.created_at ? new Date(m.created_at).toLocaleString("es") : ""} · {m.usuario}
-          </Texto>
-        </View>
-      ))}
+    <View>
+      {data.map((m) =>
+        m.tipo && m.unidad && m.cantidad !== null && m.created_at ? (
+          <FilaMovimiento
+            key={m.id}
+            producto={m.producto ?? ""}
+            tipo={m.tipo}
+            motivo={m.motivo}
+            fecha={m.created_at}
+            cantidad={m.cantidad}
+            unidad={m.unidad}
+            usuario={m.usuario ?? undefined}
+          />
+        ) : null,
+      )}
     </View>
   );
 }
@@ -41,45 +52,105 @@ export default function Ficha() {
   const router = useRouter();
   const { perfil } = useAuth();
   const { data: p, isLoading, error, refetch } = useProducto(id);
+  const puedeEditar = !!perfil && puede(perfil.rol, "editar_producto");
 
-  if (isLoading) return <ActivityIndicator color={colores.interactivo} />;
-  if (error || !p) {
+  // Si una recarga falla pero ya hay datos, se siguen mostrando.
+  if (!p) {
     return (
-      <View style={{ padding: 16, gap: 8 }}>
-        <Texto>{mensajeDeError(error)}</Texto>
-        <Boton titulo="Reintentar" onPress={() => void refetch()} />
+      <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+        <Encabezado variante="pantalla" titulo="Producto" onAtras={() => router.back()} />
+        <View style={{ padding: ESPACIO.l, gap: ESPACIO.m }}>
+          {isLoading ? (
+            <>
+              <Skeleton.Fila />
+              <Skeleton.Fila />
+            </>
+          ) : (
+            <>
+              <Texto>{mensajeDeError(error)}</Texto>
+              <Boton titulo="Reintentar" onPress={() => void refetch()} />
+            </>
+          )}
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }}>
-      <Texto accessibilityRole="header" variante="subtitulo">{p.nombre}</Texto>
-      {!p.activo ? <Texto>Producto dado de baja</Texto> : null}
-      <Texto>Código: {p.codigo}</Texto>
-      <Texto>Existencias: {formatearCantidad(p.existencias, p.unidad)}</Texto>
-      <Texto>Punto de pedido: {formatearCantidad(p.punto_pedido, p.unidad)}</Texto>
-      <Texto>Estado: {ETIQUETA_ESTADO[estadoInventario(p.existencias, p.punto_pedido)]}</Texto>
-      {p.activo ? (
-        <>
-          <Boton
-            titulo="Entrada"
-            onPress={() => router.push({ pathname: "/movimientos/entrada", params: { productoId: p.id } })}
-          />
-          <Boton
-            titulo="Salida"
-            onPress={() => router.push({ pathname: "/movimientos/salida", params: { productoId: p.id } })}
-          />
-          {perfil && puede(perfil.rol, "editar_producto") ? (
-            <Boton
-              titulo="Editar"
-              onPress={() => router.push({ pathname: "/administracion/producto/[id]/editar", params: { id: p.id } })}
-            />
-          ) : null}
-        </>
-      ) : null}
-      <Texto accessibilityRole="header" variante="subtitulo">Últimos movimientos</Texto>
-      <Movimientos id={p.id} />
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+      <Encabezado
+        variante="pantalla"
+        titulo={p.nombre}
+        subtitulo={p.codigo ? `Código: ${p.codigo}` : "Sin código"}
+        onAtras={() => router.back()}
+        accion={
+          p.activo && puedeEditar
+            ? {
+                icono: "lapiz",
+                etiqueta: "Editar producto",
+                onPress: () => router.push({ pathname: "/administracion/producto/[id]/editar", params: { id: p.id } }),
+              }
+            : undefined
+        }
+      />
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}>
+        <AnilloExistencias existencias={p.existencias} puntoPedido={p.punto_pedido} unidad={p.unidad} />
+        {!p.activo ? (
+          <Tarjeta>
+            <View style={{ gap: ESPACIO.s }}>
+              <Etiqueta tipo="inactivo" texto="Dado de baja" />
+              {p.motivo_baja ? <Texto>{`Motivo: ${ETIQUETAS_MOTIVO_BAJA[p.motivo_baja]}`}</Texto> : null}
+              {p.detalle_baja ? <Texto>{`Detalle: ${p.detalle_baja}`}</Texto> : null}
+            </View>
+          </Tarjeta>
+        ) : (
+          <>
+            <View style={{ flexDirection: "row", gap: ESPACIO.m }}>
+              <View style={{ flex: 1 }}>
+                <Boton
+                  titulo="Entrada"
+                  icono="entrada"
+                  onPress={() => router.push({ pathname: "/movimientos/entrada", params: { productoId: p.id } })}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Boton
+                  titulo="Salida"
+                  icono="salida"
+                  variante="secundario"
+                  onPress={() => router.push({ pathname: "/movimientos/salida", params: { productoId: p.id } })}
+                />
+              </View>
+            </View>
+            {!puedeEditar ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.s }}>
+                <Icono nombre="candado" tamano={18} color={colores.textoSecundario} />
+                <Texto tono="secundario" style={{ flex: 1 }}>
+                  La edición de datos maestros es exclusiva del Administrador.
+                </Texto>
+              </View>
+            ) : null}
+          </>
+        )}
+        <View style={{ gap: ESPACIO.s }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Texto accessibilityRole="header" variante="subtitulo">
+              Movimientos del producto
+            </Texto>
+            <Presionable
+              accessibilityRole="button"
+              accessibilityLabel="Ver todo"
+              onPress={() => router.push(`/movimientos?productoId=${p.id}`)}
+              style={{ minHeight: 48, justifyContent: "center" }}
+            >
+              <Texto tono="interactivo" variante="etiqueta">
+                Ver todo
+              </Texto>
+            </Presionable>
+          </View>
+          <Movimientos id={p.id} />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
