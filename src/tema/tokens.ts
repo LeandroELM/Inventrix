@@ -117,3 +117,6 @@ export function sombra(nivel: "suave" | "elevada", esquema: Esquema): ViewStyle 
     elevation: elevada ? 8 : 2,
   };
 }
+
+/** Tinta fija para texto e iconos sobre rellenos de color medio (marcaAcento, advertencia): contraste >= 4.5 en ambos esquemas. */
+export const TINTA_OSCURA = "#0A1424";
