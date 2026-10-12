@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { RequiereRol } from "@/features/auth/RequiereRol";
@@ -8,11 +8,15 @@ import { useDarBajaProducto, useProducto } from "@/features/productos/hooks";
 import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
+import { RADIO } from "@/tema/tokens";
+import { useTema } from "@/tema/TemaProvider";
 
 const MOTIVOS = ["Descontinuado", "Registro duplicado", "Otro"] as const;
 type Motivo = (typeof MOTIVOS)[number];
 
 function Baja() {
+  const { colores } = useTema();
   const router = useRouter();
   const { productoId } = useLocalSearchParams<{ productoId?: string }>();
   // undefined: usa el producto recibido por parámetro; null: el usuario pidió elegir otro.
@@ -29,8 +33,8 @@ function Baja() {
   if (hecho) {
     return (
       <View style={{ padding: 16, gap: 12 }}>
-        <Text accessibilityRole="alert">Producto dado de baja correctamente</Text>
-        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/administracion/existencias")} />
+        <Texto accessibilityRole="alert" tono="exito">Producto dado de baja correctamente</Texto>
+        <Boton titulo="Ver en Existencias" onPress={() => router.replace("/buscar")} />
       </View>
     );
   }
@@ -42,7 +46,7 @@ function Baja() {
       </ScrollView>
     );
   }
-  if (isLoading || !p) return <ActivityIndicator />;
+  if (isLoading || !p) return <ActivityIndicator color={colores.interactivo} />;
 
   const motivoTexto = motivo === "Otro" ? `Otro: ${detalle.trim()}` : (motivo ?? "");
   const motivoValido = motivo !== null && (motivo !== "Otro" || detalle.trim() !== "");
@@ -62,9 +66,9 @@ function Baja() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
-      <Text accessibilityRole="header">{p.nombre}</Text>
-      <Text>Código: {p.codigo}</Text>
-      <Text>Existencias: {formatearCantidad(p.existencias, p.unidad)}</Text>
+      <Texto accessibilityRole="header" variante="subtitulo">{p.nombre}</Texto>
+      <Texto>Código: {p.codigo}</Texto>
+      <Texto>Existencias: {formatearCantidad(p.existencias, p.unidad)}</Texto>
       <Boton
         titulo="Elegir otro producto"
         onPress={() => {
@@ -73,12 +77,12 @@ function Baja() {
         }}
       />
       {!p.activo ? (
-        <Text accessibilityRole="alert">El producto ya está dado de baja.</Text>
+        <Texto accessibilityRole="alert" tono="peligro">El producto ya está dado de baja.</Texto>
       ) : p.existencias > 0 ? (
         <View style={{ gap: 8 }}>
-          <Text accessibilityRole="alert">
+          <Texto accessibilityRole="alert" tono="peligro">
             Primero regulariza las existencias (registra una salida con motivo Retiro autorizado).
-          </Text>
+          </Texto>
           <Boton
             titulo="Regularizar"
             onPress={() =>
@@ -88,7 +92,7 @@ function Baja() {
         </View>
       ) : (
         <View style={{ gap: 8 }}>
-          <Text>Motivo de la baja</Text>
+          <Texto>Motivo de la baja</Texto>
           {MOTIVOS.map((m) => (
             <Pressable
               key={m}
@@ -96,20 +100,20 @@ function Baja() {
               accessibilityLabel={m}
               accessibilityState={{ selected: motivo === m }}
               onPress={() => setMotivo(m)}
-              style={{ borderWidth: 1, padding: 8, opacity: motivo === m ? 1 : 0.5 }}
+              style={{ borderWidth: 1, borderColor: colores.borde, padding: 8, opacity: motivo === m ? 1 : 0.5 }}
             >
-              <Text>{m}</Text>
+              <Texto>{m}</Texto>
             </Pressable>
           ))}
           {motivo === "Otro" ? <Campo label="Detalle del motivo" value={detalle} onChangeText={setDetalle} /> : null}
-          {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+          {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
           <Boton titulo="Dar de baja" disabled={!motivoValido} onPress={() => setConfirmando(true)} />
         </View>
       )}
       <Modal visible={confirmando} transparent animationType="fade" onRequestClose={() => setConfirmando(false)}>
-        <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={{ backgroundColor: "#fff", padding: 16, gap: 12 }}>
-            <Text>{`¿Dar de baja "${p.nombre}"? Dejará de aparecer en Existencias.`}</Text>
+        <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: colores.velo }}>
+          <View style={{ backgroundColor: colores.superficie, borderRadius: RADIO.tarjeta, padding: 16, gap: 12 }}>
+            <Texto>{`¿Dar de baja "${p.nombre}"? Dejará de aparecer en Existencias.`}</Texto>
             <Boton titulo="Confirmar baja" loading={baja.isPending} onPress={() => void confirmar()} />
             <Boton titulo="Cancelar" onPress={() => setConfirmando(false)} />
           </View>

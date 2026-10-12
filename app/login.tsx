@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Text } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Pantalla } from "@/components/Pantalla";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
 
 export default function Login() {
   const { iniciarSesion } = useAuth();
@@ -30,7 +30,7 @@ export default function Login() {
 
   return (
     <Pantalla>
-      <Text>Inventrix</Text>
+      <Texto>Inventrix</Texto>
       <Campo label="Usuario" value={usuario} onChangeText={setUsuario} autoCapitalize="none" autoCorrect={false} />
       <Campo
         label="Contraseña"
@@ -41,7 +41,7 @@ export default function Login() {
         autoCorrect={false}
       />
       <Boton titulo={visible ? "Ocultar contraseña" : "Mostrar contraseña"} onPress={() => setVisible((v) => !v)} />
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
       <Boton titulo="Iniciar sesión" onPress={enviar} disabled={incompleto} loading={cargando} />
     </Pantalla>
   );

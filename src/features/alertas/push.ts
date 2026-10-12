@@ -1,8 +1,8 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
+import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { supabase } from "@/lib/supabase";
 
 export type ResultadoPush = "autorizado" | "denegado" | "no_disponible";
@@ -12,7 +12,8 @@ const CLAVE_TOKEN = "inventrix.push_token";
 /** Pide permiso, crea el canal `alertas`, obtiene el token Expo y lo registra vía RPC. */
 export async function registrarPush(): Promise<ResultadoPush> {
   const projectId: unknown = Constants.expoConfig?.extra?.eas?.projectId;
-  if (!Device.isDevice || typeof projectId !== "string" || !projectId) return "no_disponible";
+  const Notifications = cargarNotificaciones();
+  if (!Notifications || !Device.isDevice || typeof projectId !== "string" || !projectId) return "no_disponible";
 
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("alertas", {

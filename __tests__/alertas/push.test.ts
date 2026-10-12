@@ -8,12 +8,16 @@ const mockGetToken = jest.fn();
 const mockPermisos = jest.fn();
 const mockPedirPermisos = jest.fn();
 const mockCanal = jest.fn();
-const mockConstants: { expoConfig: { extra?: { eas?: { projectId?: string } } } } = { expoConfig: {} };
+const mockConstants: { expoConfig: { extra?: { eas?: { projectId?: string } } }; executionEnvironment: string } = {
+  expoConfig: {},
+  executionEnvironment: "standalone",
+};
 const mockDevice = { isDevice: true };
 
 jest.mock("@/lib/supabase", () => ({ supabase: { rpc: (...a: unknown[]) => mockRpc(...a) } }));
 jest.mock("expo-constants", () => ({
   __esModule: true,
+  ExecutionEnvironment: { StoreClient: "storeClient" },
   get default() {
     return mockConstants;
   },
@@ -39,6 +43,7 @@ jest.mock("expo-notifications", () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   mockDevice.isDevice = true;
+  mockConstants.executionEnvironment = "standalone";
   mockConstants.expoConfig = { extra: { eas: { projectId: "pid" } } };
   mockPermisos.mockResolvedValue({ status: "granted" });
   mockGetToken.mockResolvedValue({ data: "ExponentPushToken[x]" });
@@ -46,6 +51,13 @@ beforeEach(() => {
 });
 
 describe("registrarPush", () => {
+  it("en Expo Go -> no_disponible sin cargar expo-notifications", async () => {
+    mockConstants.executionEnvironment = "storeClient";
+    await expect(registrarPush()).resolves.toBe("no_disponible");
+    expect(mockPermisos).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
   it("sin projectId -> no_disponible sin lanzar ni tocar permisos", async () => {
     mockConstants.expoConfig = {};
     await expect(registrarPush()).resolves.toBe("no_disponible");

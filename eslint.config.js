@@ -9,4 +9,21 @@ module.exports = defineConfig([
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  {
+    files: ["app/**", "src/features/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react-native",
+              importNames: ["Text", "TextInput"],
+              message: "Usa Texto o EntradaTexto de @/components.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

@@ -1,24 +1,19 @@
 import { useRouter } from "expo-router";
-import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, Text } from "react-native";
+import { ScrollView, Switch, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Pantalla } from "@/components/Pantalla";
+import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { registrarPush, type ResultadoPush } from "@/features/alertas/push";
 import { useAuth } from "@/features/auth/AuthProvider";
-import {
-  APARIENCIAS,
-  guardarApariencia,
-  leerApariencia,
-  type Apariencia,
-} from "@/features/configuracion/apariencia";
 import { validarContrasenaNueva } from "@/features/configuracion/contrasena";
 import { mensajeDeError } from "@/lib/errores";
 import { supabase } from "@/lib/supabase";
+import { useTema } from "@/tema/TemaProvider";
+import { Texto } from "@/components/Texto";
 
 const ROLES = { admin: "Administrador", operativo: "Operativo" } as const;
-const ETIQUETAS_APARIENCIA: Record<Apariencia, string> = { claro: "Claro", oscuro: "Oscuro", sistema: "Sistema" };
 const ESTADO_PERMISO = {
   granted: "Permitido",
   denied: "Denegado",
@@ -62,15 +57,15 @@ function SeccionCuenta() {
 
   return (
     <>
-      <Text accessibilityRole="header">Mi cuenta</Text>
+      <Texto accessibilityRole="header" variante="subtitulo">Mi cuenta</Texto>
       {perfil ? (
         <>
-          <Text>Nombre: {perfil.nombre}</Text>
-          <Text>Usuario: {perfil.usuario}</Text>
-          <Text>Rol: {ROLES[perfil.rol]}</Text>
+          <Texto>Nombre: {perfil.nombre}</Texto>
+          <Texto>Usuario: {perfil.usuario}</Texto>
+          <Texto>Rol: {ROLES[perfil.rol]}</Texto>
         </>
       ) : null}
-      {exito ? <Text>Contraseña actualizada.</Text> : null}
+      {exito ? <Texto>Contraseña actualizada.</Texto> : null}
       {abierto ? (
         <>
           <Campo label="Nueva contraseña" secureTextEntry autoCapitalize="none" value={nueva} onChangeText={setNueva} />
@@ -81,7 +76,7 @@ function SeccionCuenta() {
             value={confirmacion}
             onChangeText={setConfirmacion}
           />
-          {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+          {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
           <Boton titulo="Guardar contraseña" onPress={() => void cambiar()} loading={guardando} />
         </>
       ) : (
@@ -97,6 +92,11 @@ function SeccionNotificaciones() {
   const [error, setError] = useState<string | null>(null);
 
   const consultar = useCallback(async () => {
+    const Notifications = cargarNotificaciones();
+    if (!Notifications) {
+      setPermiso("No disponible");
+      return;
+    }
     try {
       const { status } = await Notifications.getPermissionsAsync();
       setPermiso(ESTADO_PERMISO[status]);
@@ -122,50 +122,24 @@ function SeccionNotificaciones() {
 
   return (
     <>
-      <Text accessibilityRole="header">Notificaciones</Text>
-      <Text>Permiso: {permiso}</Text>
-      {resultado === "autorizado" ? <Text>Dispositivo registrado.</Text> : null}
-      {resultado === "denegado" ? <Text>Permiso denegado. Actívalo en los ajustes del teléfono.</Text> : null}
-      {resultado === "no_disponible" ? <Text>Las notificaciones no están disponibles en este dispositivo.</Text> : null}
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+      <Texto accessibilityRole="header" variante="subtitulo">Notificaciones</Texto>
+      <Texto>Permiso: {permiso}</Texto>
+      {resultado === "autorizado" ? <Texto>Dispositivo registrado.</Texto> : null}
+      {resultado === "denegado" ? <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto> : null}
+      {resultado === "no_disponible" ? <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto> : null}
+      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
       <Boton titulo="Reintentar registro" onPress={() => void reintentar()} />
     </>
   );
 }
 
-function SeccionApariencia() {
-  const [actual, setActual] = useState<Apariencia>("sistema");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let vigente = true;
-    void leerApariencia().then((v) => {
-      if (vigente) setActual(v);
-    });
-    return () => {
-      vigente = false;
-    };
-  }, []);
-
-  async function elegir(valor: Apariencia) {
-    setError(null);
-    try {
-      await guardarApariencia(valor);
-      setActual(valor);
-    } catch {
-      setError("No se pudo guardar la preferencia.");
-    }
-  }
-
+function FilaModoOscuro() {
+  const { esquema, alternarEsquema } = useTema();
   return (
-    <>
-      <Text accessibilityRole="header">Apariencia</Text>
-      <Text>Actual: {ETIQUETAS_APARIENCIA[actual]}</Text>
-      {APARIENCIAS.map((a) => (
-        <Boton key={a} titulo={ETIQUETAS_APARIENCIA[a]} onPress={() => void elegir(a)} disabled={a === actual} />
-      ))}
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
-    </>
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Texto>Modo oscuro</Texto>
+      <Switch accessibilityLabel="Modo oscuro" value={esquema === "oscuro"} onValueChange={alternarEsquema} />
+    </View>
   );
 }
 
@@ -173,13 +147,13 @@ export default function Configuracion() {
   const { perfil, cerrarSesion } = useAuth();
   const router = useRouter();
   return (
-    <Pantalla>
+    <Pantalla bordeSuperior>
       <ScrollView contentContainerStyle={{ gap: 12 }}>
-        <Text accessibilityRole="header">Configuración</Text>
+        <Texto accessibilityRole="header" variante="subtitulo">Configuración</Texto>
         <SeccionCuenta />
         {perfil?.rol === "admin" ? <SeccionNotificaciones /> : null}
-        <SeccionApariencia />
-        <Text accessibilityRole="header">Soporte técnico</Text>
+        <FilaModoOscuro />
+        <Texto accessibilityRole="header" variante="subtitulo">Soporte técnico</Texto>
         <Boton titulo="Abrir soporte" onPress={() => router.push("/soporte")} />
         <Boton titulo="Cerrar sesión" onPress={() => void cerrarSesion()} />
       </ScrollView>

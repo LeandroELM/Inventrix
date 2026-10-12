@@ -1,12 +1,50 @@
-import { Text, TextInput, View, type TextInputProps } from "react-native";
+import { useState } from "react";
+import { View, type TextInputProps } from "react-native";
+import { EntradaTexto } from "@/components/EntradaTexto";
+import { Texto } from "@/components/Texto";
+import { RADIO } from "@/tema/tokens";
+import { useTema } from "@/tema/TemaProvider";
 
-type Props = Omit<TextInputProps, "accessibilityLabel"> & { label: string };
+type Props = Omit<TextInputProps, "accessibilityLabel"> & { label: string; error?: string };
 
-export function Campo({ label, ...resto }: Props) {
+export function Campo({ label, error, onFocus, onBlur, style, ...resto }: Props) {
+  const { colores } = useTema();
+  const [enfoque, setEnfoque] = useState(false);
+  const borde = error ? colores.peligro : enfoque ? colores.interactivo : colores.borde;
   return (
     <View style={{ gap: 4 }}>
-      <Text>{label}</Text>
-      <TextInput accessibilityLabel={label} style={{ borderWidth: 1, padding: 8 }} {...resto} />
+      <Texto variante="etiqueta" tono="secundario">
+        {label}
+      </Texto>
+      <EntradaTexto
+        accessibilityLabel={label}
+        invalido={Boolean(error)}
+        {...resto}
+        onFocus={(e) => {
+          setEnfoque(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setEnfoque(false);
+          onBlur?.(e);
+        }}
+        style={[
+          {
+            minHeight: 48,
+            borderRadius: RADIO.campo,
+            borderWidth: 1.5,
+            borderColor: borde,
+            backgroundColor: colores.superficie,
+            paddingHorizontal: 12,
+          },
+          style,
+        ]}
+      />
+      {error ? (
+        <Texto accessibilityRole="alert" variante="pequeno" tono="peligro">
+          {error}
+        </Texto>
+      ) : null}
     </View>
   );
 }

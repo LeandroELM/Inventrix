@@ -1,8 +1,10 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAPedir } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
+import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 export default function Pedir() {
   return (
@@ -13,20 +15,21 @@ export default function Pedir() {
 }
 
 function ListaAPedir() {
+  const { colores } = useTema();
   const router = useRouter();
   const { data, isLoading, isError } = useAPedir();
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Text>Estos productos alcanzaron su punto de pedido.</Text>
-      {isLoading && <Text>Cargando…</Text>}
-      {isError && <Text accessibilityRole="alert">No se pudo cargar la lista.</Text>}
-      {data?.length === 0 && <Text>No hay productos en punto de pedido.</Text>}
+      <Texto>Estos productos alcanzaron su punto de pedido.</Texto>
+      {isLoading && <Texto>Cargando…</Texto>}
+      {isError && <Texto accessibilityRole="alert" tono="peligro">No se pudo cargar la lista.</Texto>}
+      {data?.length === 0 && <Texto>No hay productos en punto de pedido.</Texto>}
       {data && data.length > 0 && (
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <Text style={{ flex: 2 }}>Producto</Text>
-          <Text style={{ flex: 1 }}>Existencias</Text>
-          <Text style={{ flex: 1 }}>Punto de pedido</Text>
+          <Texto style={{ flex: 2 }}>Producto</Texto>
+          <Texto style={{ flex: 1 }}>Existencias</Texto>
+          <Texto style={{ flex: 1 }}>Punto de pedido</Texto>
         </View>
       )}
       {data?.map((p) => (
@@ -35,14 +38,14 @@ function ListaAPedir() {
           accessibilityRole="button"
           accessibilityLabel={p.nombre}
           onPress={() => router.push({ pathname: "/administracion/producto/[id]", params: { id: p.id } })}
-          style={{ flexDirection: "row", gap: 8, borderWidth: 1, padding: 8 }}
+          style={{ flexDirection: "row", gap: 8, borderWidth: 1, borderColor: colores.linea, padding: 8 }}
         >
-          <Text style={{ flex: 2 }}>{p.nombre}</Text>
-          <Text style={{ flex: 1 }}>{formatearCantidad(p.existencias, p.unidad)}</Text>
-          <Text style={{ flex: 1 }}>{formatearCantidad(p.punto_pedido, p.unidad)}</Text>
+          <Texto style={{ flex: 2 }}>{p.nombre}</Texto>
+          <Texto style={{ flex: 1 }}>{formatearCantidad(p.existencias, p.unidad)}</Texto>
+          <Texto style={{ flex: 1 }}>{formatearCantidad(p.punto_pedido, p.unidad)}</Texto>
         </Pressable>
       ))}
-      <Text>Esta versión no genera órdenes de compra.</Text>
+      <Texto>Esta versión no genera órdenes de compra.</Texto>
     </ScrollView>
   );
 }

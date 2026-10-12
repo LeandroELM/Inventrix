@@ -1,5 +1,5 @@
 import { Link, useRouter } from "expo-router";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { textoResumen } from "@/features/inicio/api";
@@ -7,6 +7,9 @@ import { useAlertasNoLeidas } from "@/features/alertas/hooks";
 import { useInicio } from "@/features/inicio/hooks";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { formatearCantidad } from "@/features/productos/unidades";
+import { Texto } from "@/components/Texto";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTema } from "@/tema/TemaProvider";
 
 export default function Inicio() {
   const { perfil } = useAuth();
@@ -16,43 +19,46 @@ export default function Inicio() {
 
 function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativo" }) {
   const router = useRouter();
+  const { colores } = useTema();
+  const insets = useSafeAreaInsets();
   const esAdmin = rol === "admin";
   const inicio = useInicio(rol);
   const { data } = inicio;
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 16, gap: 12 }}
+      style={{ backgroundColor: colores.fondo }}
+      contentContainerStyle={{ padding: 16, paddingTop: insets.top + 16, gap: 12 }}
       refreshControl={<RefreshControl refreshing={inicio.isRefetching} onRefresh={() => void inicio.refetch()} />}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <View>
-          <Text>{`Hola, ${nombre}`}</Text>
-          <Text>{esAdmin ? "Administrador" : "Operativo"}</Text>
+          <Texto>{`Hola, ${nombre}`}</Texto>
+          <Texto>{esAdmin ? "Administrador" : "Operativo"}</Texto>
         </View>
         {esAdmin && <CampanaAlertas />}
       </View>
 
-      {inicio.isError && <Text>No se pudo cargar el inicio. Desliza para reintentar.</Text>}
+      {inicio.isError && <Texto>No se pudo cargar el inicio. Desliza para reintentar.</Texto>}
 
       {data && (
         <>
-          <View style={{ borderWidth: 1, padding: 12, gap: 4 }}>
-            <Text>{`Productos activos: ${data.productosActivos}`}</Text>
+          <View style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
+            <Texto>{`Productos activos: ${data.productosActivos}`}</Texto>
             {textoResumen(data.resumen).map((t) => (
-              <Text key={t}>{t}</Text>
+              <Texto key={t}>{t}</Texto>
             ))}
           </View>
 
           {data.aPedir && (
-            <View style={{ borderWidth: 1, padding: 12, gap: 4 }}>
-              <Text>{`Productos en punto de pedido: ${data.aPedir.total}`}</Text>
-              <Text>Productos próximos a agotarse</Text>
+            <View style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
+              <Texto>{`Productos en punto de pedido: ${data.aPedir.total}`}</Texto>
+              <Texto>Productos próximos a agotarse</Texto>
               {data.aPedir.primeros.map((p) => (
-                <Text key={p.id}>{`${p.nombre} - ${formatearCantidad(p.existencias, p.unidad)}`}</Text>
+                <Texto key={p.id}>{`${p.nombre} - ${formatearCantidad(p.existencias, p.unidad)}`}</Texto>
               ))}
               <Link href="/administracion/pedir" accessibilityRole="link">
-                <Text>Ver todos</Text>
+                <Texto>Ver todos</Texto>
               </Link>
             </View>
           )}
@@ -63,10 +69,10 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: "admin" | "operativ
       <Boton titulo="Salida" onPress={() => router.push("/movimientos/salida")} />
       <Boton titulo="Escanear" onPress={() => router.push("/escaner?destino=existencias")} />
 
-      <Text>Movimientos recientes</Text>
-      {data?.recientes.length === 0 && <Text>Sin movimientos</Text>}
+      <Texto>Movimientos recientes</Texto>
+      {data?.recientes.length === 0 && <Texto>Sin movimientos</Texto>}
       {data?.recientes.map((m) => (
-        <Text key={m.id}>{`${m.producto}: ${etiquetaMovimiento(m.tipo, m.cantidad, m.unidad)} (${m.usuario})`}</Text>
+        <Texto key={m.id}>{`${m.producto}: ${etiquetaMovimiento(m.tipo, m.cantidad, m.unidad)} (${m.usuario})`}</Texto>
       ))}
     </ScrollView>
   );
@@ -76,7 +82,7 @@ function CampanaAlertas() {
   const noLeidas = useAlertasNoLeidas();
   return (
     <Link href="/notificaciones" accessibilityRole="link" accessibilityLabel="Alertas">
-      <Text>{`Alertas (${noLeidas})`}</Text>
+      <Texto>{`Alertas (${noLeidas})`}</Texto>
     </Link>
   );
 }

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Cantidad } from "@/components/Cantidad";
 import type { MotivoSalida } from "@/features/movimientos/api";
@@ -11,6 +11,8 @@ import { useProducto } from "@/features/productos/hooks";
 import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
 import { validarCantidad } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+import { Texto } from "@/components/Texto";
+import { useTema } from "@/tema/TemaProvider";
 
 const MOTIVOS: { valor: MotivoSalida; texto: string }[] = [
   { valor: "venta", texto: "Venta" },
@@ -32,6 +34,7 @@ type Resultado = {
 };
 
 export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
+  const { colores } = useTema();
   const router = useRouter();
   const params = useLocalSearchParams<{ productoId?: string; motivo?: string }>();
   // undefined: usa el valor del parámetro; null: el usuario pidió elegir otro.
@@ -56,15 +59,15 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   if (resultado) {
     return (
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-        <Text accessibilityRole="alert">Movimiento registrado</Text>
-        <Text>Producto: {resultado.nombre}</Text>
-        <Text>
+        <Texto accessibilityRole="alert" tono="exito">Movimiento registrado</Texto>
+        <Texto>Producto: {resultado.nombre}</Texto>
+        <Texto>
           {tipo === "entrada" ? "Entrada" : "Salida"}: {formatearCantidad(resultado.cantidad, resultado.unidad)}
-        </Text>
-        <Text>Existencias anteriores: {formatearCantidad(resultado.antes, resultado.unidad)}</Text>
-        <Text>Existencias finales: {formatearCantidad(resultado.despues, resultado.unidad)}</Text>
+        </Texto>
+        <Texto>Existencias anteriores: {formatearCantidad(resultado.antes, resultado.unidad)}</Texto>
+        <Texto>Existencias finales: {formatearCantidad(resultado.despues, resultado.unidad)}</Texto>
         {resultado.alerta ? (
-          <Text accessibilityRole="alert">El producto alcanzó su punto de pedido. Se notificó al administrador.</Text>
+          <Texto accessibilityRole="alert" tono="peligro">El producto alcanzó su punto de pedido. Se notificó al administrador.</Texto>
         ) : null}
         <Boton titulo="Registrar otro movimiento" onPress={reiniciar} />
         <Boton titulo="Volver al inicio" onPress={() => router.replace("/")} />
@@ -79,7 +82,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
       </ScrollView>
     );
   }
-  if (isLoading || !p) return <ActivityIndicator />;
+  if (isLoading || !p) return <ActivityIndicator color={colores.interactivo} />;
 
   const parseada = validarCantidad(texto, p.unidad, { permitirCero: false });
   const cantidad = parseada.ok ? parseada.valor : 0;
@@ -113,19 +116,19 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
-      <Text accessibilityRole="header">{p.nombre}</Text>
-      <Text>Código: {p.codigo}</Text>
+      <Texto accessibilityRole="header" variante="subtitulo">{p.nombre}</Texto>
+      <Texto>Código: {p.codigo}</Texto>
       <Boton titulo="Elegir otro producto" onPress={reiniciar} />
-      {!p.activo ? <Text accessibilityRole="alert">El producto está dado de baja.</Text> : null}
-      <Text>Existencias actuales: {formatearCantidad(p.existencias, p.unidad)}</Text>
+      {!p.activo ? <Texto accessibilityRole="alert" tono="peligro">El producto está dado de baja.</Texto> : null}
+      <Texto>Existencias actuales: {formatearCantidad(p.existencias, p.unidad)}</Texto>
       <Cantidad valor={texto} unidad={p.unidad} onChange={setTexto} />
-      {errorCantidad ? <Text accessibilityRole="alert">{errorCantidad}</Text> : null}
+      {errorCantidad ? <Texto accessibilityRole="alert" tono="peligro">{errorCantidad}</Texto> : null}
       {parseada.ok && errorSalida === null ? (
-        <Text>Existencias proyectadas: {formatearCantidad(proyectar(p.existencias, cantidad, tipo), p.unidad)}</Text>
+        <Texto>Existencias proyectadas: {formatearCantidad(proyectar(p.existencias, cantidad, tipo), p.unidad)}</Texto>
       ) : null}
       {tipo === "salida" ? (
         <View style={{ gap: 8 }}>
-          <Text>Motivo de la salida</Text>
+          <Texto>Motivo de la salida</Texto>
           {MOTIVOS.map((m) => (
             <Pressable
               key={m.valor}
@@ -133,17 +136,17 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
               accessibilityLabel={m.texto}
               accessibilityState={{ selected: motivo === m.valor }}
               onPress={() => setMotivoElegido(m.valor)}
-              style={{ borderWidth: 1, padding: 8, opacity: motivo === m.valor ? 1 : 0.5 }}
+              style={{ borderWidth: 1, borderColor: colores.borde, padding: 8, opacity: motivo === m.valor ? 1 : 0.5 }}
             >
-              <Text>{m.texto}</Text>
+              <Texto>{m.texto}</Texto>
             </Pressable>
           ))}
         </View>
       ) : null}
       {parseada.ok && tipo === "salida" && generaAlerta(p.existencias, cantidad, p.punto_pedido) ? (
-        <Text>Esta salida dejará el producto en su punto de pedido o por debajo.</Text>
+        <Texto>Esta salida dejará el producto en su punto de pedido o por debajo.</Texto>
       ) : null}
-      {error ? <Text accessibilityRole="alert">{error}</Text> : null}
+      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
       <Boton
         titulo={tipo === "entrada" ? "Registrar entrada" : "Registrar salida"}
         disabled={!valido}
