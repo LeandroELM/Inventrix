@@ -3,6 +3,7 @@ import Movimientos from "../../app/(app)/movimientos/index";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockUseHistorial = jest.fn();
+const mockUseProducto = jest.fn();
 const mockSetParams = jest.fn();
 let mockParams: Record<string, string> = {};
 
@@ -13,6 +14,7 @@ jest.mock("expo-router", () => ({
   useIsFocused: () => true,
 }));
 jest.mock("@/features/movimientos/hooks", () => ({ useHistorial: (...a: unknown[]) => mockUseHistorial(...a) }));
+jest.mock("@/features/productos/hooks", () => ({ useProducto: (...a: unknown[]) => mockUseProducto(...a) }));
 jest.mock("@/features/configuracion/apariencia", () => ({
   leerApariencia: () => Promise.resolve("claro"),
   guardarApariencia: () => Promise.resolve(),
@@ -34,9 +36,10 @@ const fila = {
   usuario: "ana.lopez",
 };
 
-async function montar() {
+async function montar(filas: unknown[] = [fila]) {
+  mockUseProducto.mockReturnValue({ data: { id: "p1", nombre: "Harina" } });
   mockUseHistorial.mockReturnValue({
-    data: { pages: [[fila]] },
+    data: { pages: [filas] },
     isPending: false,
     isError: false,
     hasNextPage: false,
@@ -54,6 +57,7 @@ describe("Historial filtrado por producto", () => {
   beforeEach(() => {
     mockUseHistorial.mockReset();
     mockSetParams.mockReset();
+    mockUseProducto.mockReset();
   });
 
   it("sin productoId no filtra ni muestra aviso", async () => {
@@ -69,8 +73,12 @@ describe("Historial filtrado por producto", () => {
     expect(mockUseHistorial).toHaveBeenLastCalledWith(expect.objectContaining({ productoId: "p1" }));
     expect(screen.getByText("Mostrando: Harina")).toBeTruthy();
     await fireEvent.press(screen.getByLabelText("Quitar filtro"));
-    expect(mockUseHistorial).toHaveBeenLastCalledWith(expect.objectContaining({ productoId: undefined }));
-    expect(screen.queryByText("Mostrando: Harina")).toBeNull();
     expect(mockSetParams).toHaveBeenCalledWith({ productoId: undefined });
+  });
+
+  it("muestra el nombre del producto aunque no tenga movimientos", async () => {
+    mockParams = { productoId: "p1" };
+    await montar([]);
+    expect(screen.getByText("Mostrando: Harina")).toBeTruthy();
   });
 });

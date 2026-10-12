@@ -1,11 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { Presionable } from "@/animacion/Presionable";
 import { Campo } from "@/components/Campo";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { useHistorial } from "@/features/movimientos/hooks";
 import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
 import type { FilaHistorial } from "@/features/movimientos/api";
+import { useProducto } from "@/features/productos/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { Texto } from "@/components/Texto";
 import { useTema } from "@/tema/TemaProvider";
@@ -57,22 +59,15 @@ export default function Movimientos() {
   const [segmento, setSegmento] = useState<Segmento>("todos");
   const router = useRouter();
   const { productoId: productoParam } = useLocalSearchParams<{ productoId?: string }>();
-  const [quitado, setQuitado] = useState<string | null>(null);
-  const productoId = productoParam && productoParam !== quitado ? productoParam : undefined;
-  // Al limpiarse el parámetro, un nuevo filtro por el mismo producto vuelve a aplicarse.
-  if (!productoParam && quitado) setQuitado(null);
+  const productoId = productoParam || undefined;
+  const { data: productoFiltrado } = useProducto(productoId ?? "");
   const consulta = useHistorial({
     texto,
     productoId,
     tipo: segmento === "todos" ? undefined : segmento,
   });
   const filas = consulta.data?.pages.flat() ?? [];
-  const nombreProducto = filas[0]?.producto ?? "este producto";
-
-  function quitarFiltro() {
-    setQuitado(productoParam ?? null);
-    router.setParams({ productoId: undefined });
-  }
+  const nombreProducto = productoFiltrado?.nombre ?? "…";
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12 }}>
@@ -80,9 +75,14 @@ export default function Movimientos() {
       {productoId ? (
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <Texto style={{ flex: 1 }}>{`Mostrando: ${nombreProducto}`}</Texto>
-          <Pressable accessibilityRole="button" accessibilityLabel="Quitar filtro" onPress={quitarFiltro} style={{ minHeight: 48, justifyContent: "center" }}>
+          <Presionable
+            accessibilityRole="button"
+            accessibilityLabel="Quitar filtro"
+            onPress={() => router.setParams({ productoId: undefined })}
+            style={{ minHeight: 48, justifyContent: "center" }}
+          >
             <Texto tono="interactivo">Quitar filtro</Texto>
-          </Pressable>
+          </Presionable>
         </View>
       ) : null}
       <View style={{ flexDirection: "row", gap: 8 }}>
