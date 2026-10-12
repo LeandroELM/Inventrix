@@ -97,7 +97,8 @@ select throws_ok($$select public.registrar_producto('Z', 'Z1', 'unidad', 1, 1)$$
 reset role;
 select ok(not has_function_privilege('anon', 'public.registrar_producto(text,text,public.unidad_medida,numeric,numeric)', 'EXECUTE')
           and not has_function_privilege('anon', 'public.actualizar_producto(uuid,text,public.unidad_medida,numeric)', 'EXECUTE')
-          and not has_function_privilege('anon', 'public.dar_baja_producto(uuid,public.motivo_baja,text)', 'EXECUTE'),
-          'anon sin EXECUTE en RPC de productos');
+          and not has_function_privilege('anon', 'public.dar_baja_producto(uuid,public.motivo_baja,text)', 'EXECUTE')
+          and has_function_privilege('authenticated', 'public.dar_baja_producto(uuid,public.motivo_baja,text)', 'EXECUTE'),
+          'anon sin EXECUTE en RPC de productos; authenticated con EXECUTE en dar_baja_producto');
 select * from finish();
 rollback;

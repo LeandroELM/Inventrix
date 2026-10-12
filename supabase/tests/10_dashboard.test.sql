@@ -23,7 +23,7 @@ begin
   update public.movimientos set created_at = p_cuando where id = v_mov.id;
 end $$;
 
-select plan(19);
+select plan(20);
 
 select pg_temp.crear_usuario('adm', 'admin') as adm \gset
 select pg_temp.crear_usuario('ope', 'operativo') as ope \gset
@@ -69,8 +69,8 @@ select is(public.dashboard_reportes('2026-02-10', '2026-02-12') #>> '{mas_vendid
 select is(public.dashboard_reportes('2026-02-10', '2026-02-12') #>> '{menos_vendido,nombre}', 'Sal', 'menos vendido solo con ventas');
 select is((public.dashboard_reportes('2026-02-10', '2026-02-12') #>> '{menos_vendido,cantidad}')::numeric, 3::numeric, 'caducidad no cuenta como venta');
 -- marzo
-select is(public.dashboard_reportes('2026-03-01', '2026-03-01') #>> '{mas_vendido,nombre}',
-          public.dashboard_reportes('2026-03-01', '2026-03-01') #>> '{menos_vendido,nombre}', 'un solo vendido: ambos iguales');
+select is(public.dashboard_reportes('2026-03-01', '2026-03-01') #>> '{mas_vendido,nombre}', 'Frijol', 'un solo vendido: mas vendido es Frijol');
+select is(public.dashboard_reportes('2026-03-01', '2026-03-01') #>> '{menos_vendido,nombre}', 'Frijol', 'un solo vendido: menos vendido es Frijol');
 -- abril
 select is((public.dashboard_reportes('2026-04-01', '2026-04-05') #>> '{serie,4,salidas}')::int, 1, '23:30 local entra en su dia');
 select is((public.dashboard_reportes('2026-04-01', '2026-04-05') ->> 'total_movimientos')::int, 1, '00:30 del dia siguiente queda fuera');

@@ -5,7 +5,7 @@ const MENSAJES: Record<string, string> = {
   PRODUCTO_INACTIVO: "El producto está dado de baja.",
   PRODUCTO_NO_ENCONTRADO: "No se encontró el producto.",
   CODIGO_DUPLICADO: "Ya existe un producto con ese código.",
-  MOTIVO_REQUERIDO: "Debes indicar el motivo de la salida.",
+  MOTIVO_REQUERIDO: "Debes indicar el motivo.",
   DETALLE_REQUERIDO: "Escribe el motivo de la baja.",
   RANGO_INVALIDO: "El periodo seleccionado no es válido.",
   DATOS_INVALIDOS: "Los datos ingresados no son válidos.",
