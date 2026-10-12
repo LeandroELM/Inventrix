@@ -25,6 +25,7 @@ type PropsPantalla = {
   variante: "pantalla";
   titulo: string;
   subtitulo?: string;
+  lineasTitulo?: number;
   onAtras?: () => void;
   accion?: AccionIcono | AccionTexto;
 };
@@ -112,7 +113,7 @@ function EncabezadoInicio({ nombre, rol, alertas, onAlertas }: Omit<PropsInicio,
   );
 }
 
-function EncabezadoPantalla({ titulo, subtitulo, onAtras, accion }: Omit<PropsPantalla, "variante">) {
+function EncabezadoPantalla({ titulo, subtitulo, lineasTitulo = 1, onAtras, accion }: Omit<PropsPantalla, "variante">) {
   const { colores } = useTema();
   const insets = useSafeAreaInsets();
   const enfocada = useIsFocused();
@@ -142,7 +143,7 @@ function EncabezadoPantalla({ titulo, subtitulo, onAtras, accion }: Omit<PropsPa
           </Presionable>
         ) : null}
         <View style={{ flex: 1 }}>
-          <Texto accessibilityRole="header" variante="titulo" tono="sobrePrimario" numberOfLines={1}>
+          <Texto accessibilityRole="header" variante="titulo" tono="sobrePrimario" numberOfLines={lineasTitulo}>
             {titulo}
           </Texto>
           {subtitulo ? (

@@ -38,13 +38,16 @@ const prod = (id: string, nombre: string, existencias: number) => ({
 const TODOS = [prod("a", "Harina", 20), prod("b", "Aceite", 5), prod("c", "Sal", 0)];
 
 type Estado = "disponible" | "bajo" | "sin" | undefined;
-function simular(opciones: { lista?: ReturnType<typeof prod>[]; isError?: boolean; isLoading?: boolean } = {}) {
+function simular(
+  opciones: { lista?: ReturnType<typeof prod>[]; isError?: boolean; isLoading?: boolean; recargaFalla?: boolean } = {},
+) {
   mockUseProductos.mockImplementation(({ estado }: { estado: Estado }) => {
     const lista = opciones.lista ?? TODOS;
     return {
       data: opciones.isError || opciones.isLoading ? undefined : lista.filter((p) => !estado || estadoInventario(p.existencias, p.punto_pedido) === estado),
       isLoading: opciones.isLoading ?? false,
       error: opciones.isError ? new Error("falla") : null,
+      isError: !!opciones.isError || !!opciones.recargaFalla,
       refetch: mockRefetch,
     };
   });
@@ -109,6 +112,27 @@ describe("Buscar / Existencias", () => {
     await montar();
     await fireEvent.press(screen.getByText("Reintentar"));
     expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it("si falla una recarga conserva la lista y avisa", async () => {
+    simular({ recargaFalla: true });
+    await montar();
+    expect(screen.getByText("Harina")).toBeTruthy();
+    expect(screen.getByText("No se pudo actualizar.")).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText("Reintentar"));
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it("error de primera carga muestra el mensaje de la pantalla", async () => {
+    simular({ isError: true });
+    await montar();
+    expect(screen.getByText("No se pudieron cargar los productos.")).toBeTruthy();
+  });
+
+  it("subtitulo en singular con un producto activo", async () => {
+    simular({ lista: [prod("a", "Harina", 20)] });
+    await montar();
+    expect(screen.getByText("1 producto activo")).toBeTruthy();
   });
 
   it("tocar una fila navega a la ficha", async () => {

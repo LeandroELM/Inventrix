@@ -2,8 +2,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { Skeleton } from "@/animacion/Skeleton";
 import { AnilloExistencias } from "@/components/AnilloExistencias";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Boton } from "@/components/Boton";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { Etiqueta } from "@/components/Etiqueta";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { Icono } from "@/components/Icono";
@@ -14,15 +16,14 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
 import { ETIQUETAS_MOTIVO_BAJA } from "@/features/productos/motivosBaja";
 import { useProducto, useUltimosMovimientos } from "@/features/productos/hooks";
-import { mensajeDeError } from "@/lib/errores";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 function Movimientos({ id }: { id: string }) {
-  const { data, isLoading, error } = useUltimosMovimientos(id);
+  const { data, isLoading, isError, refetch } = useUltimosMovimientos(id);
   if (!data) {
     if (isLoading) return <Skeleton.Fila />;
-    if (error) return <Texto tono="peligro">{mensajeDeError(error)}</Texto>;
+    if (isError) return <EstadoError mensaje="No se pudieron cargar los movimientos." onReintentar={() => void refetch()} />;
     return null;
   }
   if (data.length === 0) return <Texto tono="secundario">Sin movimientos.</Texto>;
@@ -51,7 +52,7 @@ export default function Ficha() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { perfil } = useAuth();
-  const { data: p, isLoading, error, refetch } = useProducto(id);
+  const { data: p, isLoading, refetch, isError } = useProducto(id);
   const puedeEditar = !!perfil && puede(perfil.rol, "editar_producto");
 
   // Si una recarga falla pero ya hay datos, se siguen mostrando.
@@ -66,10 +67,7 @@ export default function Ficha() {
               <Skeleton.Fila />
             </>
           ) : (
-            <>
-              <Texto>{mensajeDeError(error)}</Texto>
-              <Boton titulo="Reintentar" onPress={() => void refetch()} />
-            </>
+            <EstadoError mensaje="No se pudo cargar el producto." onReintentar={() => void refetch()} />
           )}
         </View>
       </View>
@@ -81,6 +79,7 @@ export default function Ficha() {
       <Encabezado
         variante="pantalla"
         titulo={p.nombre}
+        lineasTitulo={2}
         subtitulo={p.codigo ? `Código: ${p.codigo}` : "Sin código"}
         onAtras={() => router.back()}
         accion={
@@ -94,6 +93,7 @@ export default function Ficha() {
         }
       />
       <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}>
+        {isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         <AnilloExistencias existencias={p.existencias} puntoPedido={p.punto_pedido} unidad={p.unidad} />
         {!p.activo ? (
           <Tarjeta>

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Inicio from "../../app/(app)/index";
@@ -57,6 +58,8 @@ const base: DatosInicio = {
   hoy: { entradas: 18, salidas: 9 },
 };
 
+const cliente = new QueryClient();
+
 async function montar(datos: Partial<{ data: DatosInicio; isError: boolean; isLoading: boolean }>, rol: "admin" | "operativo" = "admin") {
   mockUseAuth.mockReturnValue({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol } });
   mockUseInicio.mockReturnValue({
@@ -68,13 +71,15 @@ async function montar(datos: Partial<{ data: DatosInicio; isError: boolean; isLo
     ...datos,
   });
   await render(
+    <QueryClientProvider client={cliente}>
     <SafeAreaProvider
       initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
     >
       <TemaProvider>
         <Inicio />
       </TemaProvider>
-    </SafeAreaProvider>,
+    </SafeAreaProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -140,6 +145,42 @@ describe("Inicio", () => {
     expect(screen.getByText("Movimientos recientes")).toBeTruthy();
     expect(screen.getByText("No se pudo actualizar.")).toBeTruthy();
     expect(screen.getByText("Reintentar")).toBeTruthy();
+  });
+
+  it("chips en singular", async () => {
+    await montar({ data: { ...base, hoy: { entradas: 1, salidas: 1 } } });
+    expect(screen.getByText("+1 entrada hoy")).toBeTruthy();
+    expect(screen.getByText("−1 salida hoy")).toBeTruthy();
+  });
+
+  it("sin movimientos hoy muestra un solo chip neutro", async () => {
+    await montar({ data: { ...base, hoy: { entradas: 0, salidas: 0 } } });
+    expect(screen.getByText("Sin movimientos hoy")).toBeTruthy();
+    expect(screen.queryByText(/entradas? hoy/)).toBeNull();
+    expect(screen.queryByText(/salidas? hoy/)).toBeNull();
+  });
+
+  it("inventario vacio: admin y operativo muestran el aviso", async () => {
+    await montar({ data: { ...base, resumen: [] } });
+    expect(screen.getByText("Existencias generales")).toBeTruthy();
+    expect(screen.getByText("Sin existencias registradas.")).toBeTruthy();
+    await screen.unmount();
+    await montar({ data: { ...base, resumen: [], aPedir: undefined, hoy: undefined } }, "operativo");
+    expect(screen.getByText("Resumen de existencias")).toBeTruthy();
+    expect(screen.getByText("Sin existencias registradas.")).toBeTruthy();
+  });
+
+  it("el detalle de proximos a agotarse usa codigo y abreviatura", async () => {
+    await montar({ data: base });
+    expect(screen.getAllByText("Sin código · kg").length).toBe(3);
+  });
+
+  it("reintentar recarga todo el prefijo inicio (panel y campana)", async () => {
+    const espia = jest.spyOn(cliente, "refetchQueries").mockResolvedValue();
+    await montar({ data: base, isError: true });
+    await fireEvent.press(screen.getByLabelText("Reintentar"));
+    expect(espia).toHaveBeenCalledWith({ queryKey: ["inicio"] });
+    espia.mockRestore();
   });
 
   it("entrada y campana navegan", async () => {

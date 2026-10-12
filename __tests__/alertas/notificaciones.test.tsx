@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import Notificaciones from "../../app/notificaciones";
 
 const mockPush = jest.fn();
@@ -27,13 +27,15 @@ const METRICAS = {
   insets: { top: 24, left: 0, right: 0, bottom: 0 },
 };
 
+let clienteActual: QueryClient;
+
 function renderizar() {
-  const qc = new QueryClient({
+  const qc = (clienteActual = new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: 0 },
       mutations: { retry: false, gcTime: 0 },
     },
-  });
+  }));
   return render(
     <QueryClientProvider client={qc}>
       <SafeAreaProvider initialMetrics={METRICAS}>
@@ -122,6 +124,26 @@ describe("Notificaciones", () => {
     await renderizar();
     await fireEvent.press(await screen.findByRole("button", { name: /Reabastecer: Aceite/ }));
     expect(mockPush).toHaveBeenCalledWith("/administracion/pedir");
+  });
+
+  it("error de primera carga muestra el mensaje y reintenta", async () => {
+    mockListar.mockRejectedValue(new Error("falla"));
+    await renderizar();
+    expect(await screen.findByText("No se pudieron cargar las notificaciones.")).toBeTruthy();
+    mockListar.mockResolvedValue([]);
+    await fireEvent.press(screen.getByText("Reintentar"));
+    expect(await screen.findByText("No hay alertas.")).toBeTruthy();
+  });
+
+  it("si falla una recarga conserva la lista y avisa", async () => {
+    await renderizar();
+    await screen.findByText("Reabastecer: Harina");
+    mockListar.mockRejectedValue(new Error("falla"));
+    await act(async () => {
+      await clienteActual.refetchQueries({ queryKey: ["alertas"] });
+    });
+    expect(await screen.findByText("No se pudo actualizar.")).toBeTruthy();
+    expect(screen.getByText("Reabastecer: Harina")).toBeTruthy();
   });
 
   it("muestra estado vacío", async () => {

@@ -3,15 +3,15 @@ import { useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import { entradaEscalonada } from "@/animacion/entradaEscalonada";
 import { Skeleton } from "@/animacion/Skeleton";
-import { Boton } from "@/components/Boton";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { Icono } from "@/components/Icono";
 import { Tarjeta } from "@/components/Tarjeta";
 import { Texto } from "@/components/Texto";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAPedir } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
-import { mensajeDeError } from "@/lib/errores";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -32,13 +32,14 @@ function proporcion(existencias: number, puntoPedido: number): number {
 function ListaAPedir() {
   const { colores } = useTema();
   const router = useRouter();
-  const { data, isLoading, error, refetch } = useAPedir();
+  const { data, isLoading, isError, refetch } = useAPedir();
 
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Productos a pedir" onAtras={() => router.back()} />
       <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}>
         {/* Si una recarga falla pero ya hay datos, se siguen mostrando. */}
+        {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {!data && isLoading ? (
           <>
             <Skeleton.Fila />
@@ -46,12 +47,7 @@ function ListaAPedir() {
           </>
         ) : null}
         {!data && !isLoading ? (
-          <View style={{ gap: ESPACIO.m }}>
-            <Texto accessibilityRole="alert" tono="peligro">
-              {mensajeDeError(error)}
-            </Texto>
-            <Boton titulo="Reintentar" onPress={() => void refetch()} />
-          </View>
+          <EstadoError mensaje="No se pudieron cargar los productos a pedir." onReintentar={() => void refetch()} />
         ) : null}
         {data?.length === 0 ? <Texto tono="secundario">Ningún producto está en su punto de pedido.</Texto> : null}
         {data && data.length > 0 ? (
@@ -79,7 +75,7 @@ function ListaAPedir() {
             {data.map((p, i) => (
               <Animated.View key={p.id} entering={entradaEscalonada(i)}>
                 <Tarjeta
-                  accessibilityLabel={p.nombre}
+                  accessibilityLabel={`${p.nombre}. Existencias ${formatearCantidad(p.existencias, p.unidad)}; punto de pedido ${formatearCantidad(p.punto_pedido, p.unidad)}`}
                   onPress={() => router.push({ pathname: "/administracion/producto/[id]", params: { id: p.id } })}
                 >
                   <View style={{ gap: ESPACIO.s }}>

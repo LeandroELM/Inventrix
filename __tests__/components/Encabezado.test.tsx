@@ -86,6 +86,13 @@ describe("Encabezado", () => {
     expect(onPress).toHaveBeenCalled();
   });
 
+  it("el titulo admite lineasTitulo (1 por defecto)", async () => {
+    await montar(<Encabezado variante="pantalla" titulo="Largo" />);
+    expect(screen.getByText("Largo").props.numberOfLines).toBe(1);
+    await montar(<Encabezado variante="pantalla" titulo="Largo dos" lineasTitulo={2} />);
+    expect(screen.getByText("Largo dos").props.numberOfLines).toBe(2);
+  });
+
   it("pantalla con atrás llama onAtras", async () => {
     const onAtras = jest.fn();
     await montar(<Encabezado variante="pantalla" titulo="Reportes" onAtras={onAtras} />);

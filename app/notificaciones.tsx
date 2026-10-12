@@ -4,8 +4,9 @@ import Animated from "react-native-reanimated";
 import { entradaEscalonada } from "@/animacion/entradaEscalonada";
 import { Presionable } from "@/animacion/Presionable";
 import { Skeleton } from "@/animacion/Skeleton";
-import { Boton } from "@/components/Boton";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { Texto } from "@/components/Texto";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAlertas, useMarcarLeidas } from "@/features/alertas/hooks";
@@ -13,6 +14,7 @@ import type { Alerta } from "@/features/alertas/api";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 import { grupoDia } from "@/lib/fechaRelativa";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ESPACIO, RADIO, sombra } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -40,7 +42,8 @@ export default function Notificaciones() {
 function ListaAlertas() {
   const { colores, esquema } = useTema();
   const router = useRouter();
-  const { data, isLoading, refetch } = useAlertas();
+  const { data, isLoading, isError, refetch } = useAlertas();
+  const insets = useSafeAreaInsets();
   const marcar = useMarcarLeidas();
   const hayNoLeidas = data?.some((a) => !a.leida) ?? false;
   const ahora = new Date();
@@ -64,13 +67,14 @@ function ListaAlertas() {
           onPress: () => marcar.mutate(),
         }}
       />
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}>
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + insets.bottom, gap: ESPACIO.m }}>
         {marcar.isError ? (
           <Texto accessibilityRole="alert" tono="peligro">
             {mensajeDeError(marcar.error)}
           </Texto>
         ) : null}
         {/* Si una recarga falla pero ya hay datos, se siguen mostrando. */}
+        {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {!data && isLoading ? (
           <>
             <Skeleton.Fila />
@@ -78,12 +82,7 @@ function ListaAlertas() {
           </>
         ) : null}
         {!data && !isLoading ? (
-          <View style={{ gap: ESPACIO.m }}>
-            <Texto accessibilityRole="alert" tono="peligro">
-              No se pudieron cargar las alertas.
-            </Texto>
-            <Boton titulo="Reintentar" onPress={() => void refetch()} />
-          </View>
+          <EstadoError mensaje="No se pudieron cargar las notificaciones." onReintentar={() => void refetch()} />
         ) : null}
         {data?.length === 0 ? <Texto tono="secundario">No hay alertas.</Texto> : null}
         {GRUPOS.map((g) => {

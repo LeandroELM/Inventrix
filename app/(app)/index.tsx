@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
@@ -5,11 +6,11 @@ import Animated from "react-native-reanimated";
 import { Presionable } from "@/animacion/Presionable";
 import { entradaEscalonada } from "@/animacion/entradaEscalonada";
 import { Skeleton } from "@/animacion/Skeleton";
-import { Boton } from "@/components/Boton";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { FilaProducto } from "@/components/FilaProducto";
-import { Tarjeta } from "@/components/Tarjeta";
 import { TarjetaIndicador } from "@/components/TarjetaIndicador";
 import { TarjetaPrincipal } from "@/components/TarjetaPrincipal";
 import { Texto } from "@/components/Texto";
@@ -19,7 +20,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import type { Inicio as DatosInicio, ResumenUnidad } from "@/features/inicio/api";
 import { useInicio } from "@/features/inicio/hooks";
 import { estadoInventario } from "@/features/productos/estado";
-import { formatearCantidad, UNIDADES } from "@/features/productos/unidades";
+import { detalleProducto, formatearCantidad, UNIDADES } from "@/features/productos/unidades";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -35,18 +36,29 @@ function ordenarResumen(resumen: ResumenUnidad[]): ResumenUnidad[] {
   return [...resumen].sort((a, b) => ORDEN_UNIDADES.indexOf(a.unidad) - ORDEN_UNIDADES.indexOf(b.unidad));
 }
 
+function chipsDeHoy(entradas: number, salidas: number) {
+  if (entradas === 0 && salidas === 0) return [{ texto: "Sin movimientos hoy", tono: "neutro" as const }];
+  return [
+    { texto: `+${entradas} ${entradas === 1 ? "entrada" : "entradas"} hoy`, tono: "exito" as const },
+    { texto: `\u2212${salidas} ${salidas === 1 ? "salida" : "salidas"} hoy`, tono: "neutro" as const },
+  ];
+}
+
 function PanelInicio({ nombre, rol }: { nombre: string; rol: Rol }) {
   const router = useRouter();
   const { colores } = useTema();
   const esAdmin = rol === "admin";
   const inicio = useInicio(rol);
   const { data } = inicio;
+  const queryClient = useQueryClient();
+  // Refresca todo el prefijo "inicio": datos del panel y contador de la campana.
+  const recargar = () => void queryClient.refetchQueries({ queryKey: ["inicio"] });
 
   return (
     <ScrollView
       style={{ backgroundColor: colores.fondo }}
       contentContainerStyle={{ paddingBottom: ESPACIO.l, gap: ESPACIO.l }}
-      refreshControl={<RefreshControl refreshing={inicio.isRefetching} onRefresh={() => void inicio.refetch()} />}
+      refreshControl={<RefreshControl refreshing={inicio.isRefetching} onRefresh={recargar} />}
     >
       {esAdmin ? (
         <EncabezadoAdmin nombre={nombre} onAlertas={() => router.push("/notificaciones")} />
@@ -56,32 +68,11 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: Rol }) {
       <View style={{ paddingHorizontal: ESPACIO.l, gap: ESPACIO.l }}>
         {data ? (
           <>
-            {inicio.isError ? (
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <Texto variante="pequeno" style={{ color: colores.textoPeligro, flex: 1 }}>
-                  No se pudo actualizar.
-                </Texto>
-                <Presionable
-                  accessibilityRole="button"
-                  accessibilityLabel="Reintentar"
-                  onPress={() => void inicio.refetch()}
-                  style={{ minHeight: 48, justifyContent: "center", paddingHorizontal: ESPACIO.s }}
-                >
-                  <Texto variante="etiqueta" tono="interactivo">
-                    Reintentar
-                  </Texto>
-                </Presionable>
-              </View>
-            ) : null}
+            {inicio.isError ? <AvisoRecarga onReintentar={recargar} /> : null}
             <Contenido datos={data} esAdmin={esAdmin} />
           </>
         ) : inicio.isError ? (
-          <Tarjeta>
-            <View style={{ gap: ESPACIO.m }}>
-              <Texto>No se pudo cargar el inicio.</Texto>
-              <Boton titulo="Reintentar" onPress={() => void inicio.refetch()} />
-            </View>
-          </Tarjeta>
+          <EstadoError mensaje="No se pudo cargar el inicio." onReintentar={recargar} />
         ) : (
           <View style={{ gap: ESPACIO.m }}>
             <Skeleton.Tarjeta />
@@ -104,12 +95,7 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
   const router = useRouter();
   const resumen = ordenarResumen(datos.resumen);
   const aPedir = datos.aPedir;
-  const chips = datos.hoy
-    ? [
-        { texto: `+${datos.hoy.entradas} entradas hoy`, tono: "exito" as const },
-        { texto: `−${datos.hoy.salidas} salidas hoy`, tono: "neutro" as const },
-      ]
-    : undefined;
+  const chips = datos.hoy ? chipsDeHoy(datos.hoy.entradas, datos.hoy.salidas) : undefined;
 
   return (
     <>
@@ -133,9 +119,10 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
       </Animated.View>
 
       {esAdmin && aPedir ? (
-        <Animated.View entering={entradaEscalonada(1)} style={{ flexDirection: "row", gap: ESPACIO.m }}>
+        <Animated.View entering={entradaEscalonada(1)} style={{ flexDirection: "row", gap: ESPACIO.m, alignItems: "stretch" }}>
           <View style={{ flex: 1 }}>
             <TarjetaIndicador
+              style={{ flex: 1 }}
               variante="alerta"
               valor={aPedir.total}
               texto="Productos en punto de pedido"
@@ -144,8 +131,10 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
           </View>
           <View style={{ flex: 1 }}>
             <TarjetaIndicador
+              style={{ flex: 1 }}
               variante="lista"
               titulo="Existencias generales"
+              vacio="Sin existencias registradas."
               filas={resumen.map((r) => {
                 const [valor, ...resto] = formatearCantidad(r.total, r.unidad).split(" ");
                 return { valor, etiqueta: resto.join(" ") };
@@ -159,6 +148,7 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
         <Animated.View entering={entradaEscalonada(1)}>
           <Seccion titulo="Resumen de existencias">
             <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: ESPACIO.m }}>
+              {resumen.length === 0 ? <Texto tono="secundario">Sin existencias registradas.</Texto> : null}
               {resumen.map((r) => (
                 <View key={r.unidad} style={{ width: "33.33%", gap: ESPACIO.xs, paddingRight: ESPACIO.s }}>
                   <Texto variante="cuerpoFuerte">{formatearCantidad(r.total, r.unidad)}</Texto>
@@ -183,7 +173,7 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
               <Animated.View key={p.id} entering={entradaEscalonada(i + 3)}>
                 <FilaProducto
                   nombre={p.nombre}
-                  detalle={p.codigo ?? UNIDADES[p.unidad].nombre}
+                  detalle={detalleProducto(p.codigo, p.unidad)}
                   cantidad={formatearCantidad(p.existencias, p.unidad)}
                   estado={estadoInventario(p.existencias, p.punto_pedido)}
                   onPress={() => router.push(`/administracion/producto/${p.id}`)}

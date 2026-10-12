@@ -135,6 +135,40 @@ describe("Ficha del producto", () => {
     mockUseProducto.mockReturnValue({ data: producto(), isLoading: false, error: new Error("falla"), refetch: jest.fn() });
     await rerender(<Arbol />);
     expect(screen.getAllByText("Harina").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Reintentar")).toBeNull();
+    expect(screen.queryByText("No se pudo cargar el producto.")).toBeNull();
+  });
+
+  it("si una recarga falla con datos muestra el aviso y conserva el contenido", async () => {
+    const refetch = jest.fn();
+    const { rerender } = await montar("admin");
+    mockUseProducto.mockReturnValue({ data: producto(), isLoading: false, isError: true, error: new Error("f"), refetch });
+    await rerender(<Arbol />);
+    expect(screen.getByText("No se pudo actualizar.")).toBeTruthy();
+    expect(screen.getByText("Movimientos del producto")).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText("Reintentar"));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("error de primera carga muestra el mensaje de la ficha", async () => {
+    mockUseAuth.mockReturnValue({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol: "admin" } });
+    mockUseProducto.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error("f"), refetch: jest.fn() });
+    mockUseMovimientos.mockReturnValue({ data: undefined, isLoading: false, isError: false, error: null });
+    await render(<Arbol />);
+    expect(screen.getByText("No se pudo cargar el producto.")).toBeTruthy();
+  });
+
+  it("error en los movimientos ofrece reintentar", async () => {
+    const refetch = jest.fn();
+    const { rerender } = await montar("admin");
+    mockUseMovimientos.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error("f"), refetch });
+    await rerender(<Arbol />);
+    expect(screen.getByText("No se pudieron cargar los movimientos.")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Reintentar"));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("el titulo admite dos lineas para nombres largos", async () => {
+    await montar("admin", producto({ nombre: "Harina de trigo extra fina para panaderia industrial" }));
+    expect(screen.getByText("Harina de trigo extra fina para panaderia industrial").props.numberOfLines).toBe(2);
   });
 });

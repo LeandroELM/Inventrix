@@ -2,10 +2,12 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
 import { Skeleton } from "@/animacion/Skeleton";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Boton } from "@/components/Boton";
 import { ChipsFiltro } from "@/components/ChipsFiltro";
 import { EntradaTexto } from "@/components/EntradaTexto";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { FilaProducto } from "@/components/FilaProducto";
 import { Texto } from "@/components/Texto";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -13,7 +15,7 @@ import { puede } from "@/features/auth/permisos";
 import { estadoInventario, type Estado } from "@/features/productos/estado";
 import { listarTodosProductos } from "@/features/productos/api";
 import { useProductos } from "@/features/productos/hooks";
-import { UNIDADES, formatearCantidad } from "@/features/productos/unidades";
+import { detalleProducto, formatearCantidad } from "@/features/productos/unidades";
 import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/features/reportes/excel";
 import { mensajeDeError } from "@/lib/errores";
 import { ESPACIO, RADIO } from "@/tema/tokens";
@@ -45,7 +47,7 @@ export default function Buscar() {
     return () => clearTimeout(t);
   }, [busqueda]);
 
-  const { data, isLoading, error, refetch } = useProductos({ texto, estado });
+  const { data, isLoading, isError, refetch } = useProductos({ texto, estado });
 
   // El subtitulo cuenta los productos activos: solo se actualiza sin filtros.
   const sinFiltros = texto.trim() === "" && estado === undefined;
@@ -73,7 +75,7 @@ export default function Buscar() {
       <Encabezado
         variante="pantalla"
         titulo="Existencias"
-        subtitulo={total !== null ? `${total} productos activos` : undefined}
+        subtitulo={total !== null ? `${total} ${total === 1 ? "producto activo" : "productos activos"}` : undefined}
         accion={{
           icono: "escanear",
           etiqueta: "Escanear código de barras",
@@ -95,6 +97,7 @@ export default function Buscar() {
           }}
         />
         <ChipsFiltro etiqueta="Filtrar por estado" opciones={FILTROS} valor={filtro} onCambio={setFiltro} />
+        {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {data ? (
           <FlatList
             style={{ flex: 1 }}
@@ -108,7 +111,7 @@ export default function Buscar() {
             renderItem={({ item }) => (
               <FilaProducto
                 nombre={item.nombre}
-                detalle={`${item.codigo ?? "Sin código"} · ${UNIDADES[item.unidad].abreviatura}`}
+                detalle={detalleProducto(item.codigo, item.unidad)}
                 cantidad={formatearCantidad(item.existencias, item.unidad)}
                 estado={estadoInventario(item.existencias, item.punto_pedido)}
                 onPress={() => router.push(`/administracion/producto/${item.id}`)}
@@ -121,11 +124,8 @@ export default function Buscar() {
             <Skeleton.Fila />
             <Skeleton.Fila />
           </View>
-        ) : error ? (
-          <View style={{ gap: ESPACIO.s }}>
-            <Texto>{mensajeDeError(error)}</Texto>
-            <Boton titulo="Reintentar" onPress={() => void refetch()} />
-          </View>
+        ) : isError ? (
+          <EstadoError mensaje="No se pudieron cargar los productos." onReintentar={() => void refetch()} />
         ) : null}
         {errorExportar ? <Texto tono="peligro">{errorExportar}</Texto> : null}
         {perfil && puede(perfil.rol, "exportar_existencias") ? (

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import Pedir from "../../app/(app)/administracion/pedir";
 
@@ -24,10 +24,12 @@ const METRICAS = {
   insets: { top: 24, left: 0, right: 0, bottom: 0 },
 };
 
+let clienteActual: QueryClient;
+
 function renderizar() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  clienteActual = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   return render(
-    <QueryClientProvider client={qc}>
+    <QueryClientProvider client={clienteActual}>
       <SafeAreaProvider initialMetrics={METRICAS}>
         <Pedir />
       </SafeAreaProvider>
@@ -135,9 +137,36 @@ describe("Productos a pedir", () => {
     expect(await screen.findByText("Ningún producto está en su punto de pedido.")).toBeTruthy();
   });
 
+  it("la fila tiene una etiqueta accesible completa", async () => {
+    await renderizar();
+    expect(
+      await screen.findByLabelText("Harina. Existencias 1.5 kg; punto de pedido 2 kg"),
+    ).toBeTruthy();
+  });
+
+  it("error de primera carga muestra el mensaje y reintenta", async () => {
+    mockListar.mockRejectedValue(new Error("falla"));
+    await renderizar();
+    expect(await screen.findByText("No se pudieron cargar los productos a pedir.")).toBeTruthy();
+    mockListar.mockResolvedValue([]);
+    await fireEvent.press(screen.getByText("Reintentar"));
+    expect(await screen.findByText("Ningún producto está en su punto de pedido.")).toBeTruthy();
+  });
+
+  it("si falla una recarga conserva las filas y avisa", async () => {
+    await renderizar();
+    await screen.findByText("Harina");
+    mockListar.mockRejectedValue(new Error("falla"));
+    await act(async () => {
+      await clienteActual.refetchQueries({ queryKey: ["a-pedir"] });
+    });
+    expect(await screen.findByText("No se pudo actualizar.")).toBeTruthy();
+    expect(screen.getByText("Harina")).toBeTruthy();
+  });
+
   it("al tocar una fila abre la ficha del producto", async () => {
     await renderizar();
-    await fireEvent.press(await screen.findByRole("button", { name: "Aceite" }));
+    await fireEvent.press(await screen.findByRole("button", { name: /^Aceite/ }));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/administracion/producto/[id]",
       params: { id: "p2" },
