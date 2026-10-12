@@ -9,6 +9,7 @@ import {
   type DatosAlta,
   type FiltroProductos,
 } from "@/features/productos/api";
+import type { MotivoBaja } from "@/features/productos/motivosBaja";
 
 export function useProductos(filtro: FiltroProductos) {
   return useQuery({ queryKey: ["productos", filtro], queryFn: () => listarProductos(filtro) });
@@ -51,7 +52,8 @@ export function useActualizarProducto(id: string) {
 export function useDarBajaProducto() {
   const invalidar = useInvalidar();
   return useMutation({
-    mutationFn: (v: { id: string; motivo: string }) => darBajaProducto(v.id, v.motivo),
+    mutationFn: (v: { id: string; motivo: MotivoBaja; detalle?: string }) =>
+      darBajaProducto(v.id, v.motivo, v.detalle),
     onSuccess: (_p, v) => invalidar(v.id),
   });
 }
