@@ -6,14 +6,12 @@ import { Campo } from "@/components/Campo";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useDarBajaProducto, useProducto } from "@/features/productos/hooks";
 import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
+import { ETIQUETAS_MOTIVO_BAJA, MOTIVOS_BAJA, type MotivoBaja } from "@/features/productos/motivosBaja";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
 import { RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
-
-const MOTIVOS = ["Descontinuado", "Registro duplicado", "Otro"] as const;
-type Motivo = (typeof MOTIVOS)[number];
 
 function Baja() {
   const { colores } = useTema();
@@ -22,7 +20,7 @@ function Baja() {
   // undefined: usa el producto recibido por parámetro; null: el usuario pidió elegir otro.
   const [elegido, setId] = useState<string | null | undefined>(undefined);
   const id = elegido === undefined ? (productoId ?? null) : elegido;
-  const [motivo, setMotivo] = useState<Motivo | null>(null);
+  const [motivo, setMotivo] = useState<MotivoBaja | null>(null);
   const [detalle, setDetalle] = useState("");
   const [confirmando, setConfirmando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +46,13 @@ function Baja() {
   }
   if (isLoading || !p) return <ActivityIndicator color={colores.interactivo} />;
 
-  const motivoTexto = motivo === "Otro" ? `Otro: ${detalle.trim()}` : (motivo ?? "");
-  const motivoValido = motivo !== null && (motivo !== "Otro" || detalle.trim() !== "");
+  const motivoValido = motivo !== null && (motivo !== "otro" || detalle.trim() !== "");
 
   async function confirmar() {
-    if (!p) return;
+    if (!p || !motivo) return;
     setError(null);
     try {
-      await baja.mutateAsync({ id: p.id, motivo: motivoTexto });
+      await baja.mutateAsync({ id: p.id, motivo, ...(motivo === "otro" ? { detalle: detalle.trim() } : {}) });
       setConfirmando(false);
       setHecho(true);
     } catch (e) {
@@ -78,34 +75,29 @@ function Baja() {
       />
       {!p.activo ? (
         <Texto accessibilityRole="alert" tono="peligro">El producto ya está dado de baja.</Texto>
-      ) : p.existencias > 0 ? (
-        <View style={{ gap: 8 }}>
-          <Texto accessibilityRole="alert" tono="peligro">
-            Primero regulariza las existencias (registra una salida con motivo Retiro autorizado).
-          </Texto>
-          <Boton
-            titulo="Regularizar"
-            onPress={() =>
-              router.push(`/movimientos/salida?productoId=${encodeURIComponent(p.id)}&motivo=retiro_autorizado`)
-            }
-          />
-        </View>
       ) : (
         <View style={{ gap: 8 }}>
+          {p.existencias > 0 ? (
+            <Texto accessibilityRole="alert" tono="peligro">
+              {`Este producto aún tiene ${formatearCantidad(p.existencias, p.unidad)}; quedarán en cero.`}
+            </Texto>
+          ) : null}
           <Texto>Motivo de la baja</Texto>
-          {MOTIVOS.map((m) => (
+          {MOTIVOS_BAJA.map((m) => (
             <Pressable
               key={m}
               accessibilityRole="button"
-              accessibilityLabel={m}
+              accessibilityLabel={ETIQUETAS_MOTIVO_BAJA[m]}
               accessibilityState={{ selected: motivo === m }}
               onPress={() => setMotivo(m)}
               style={{ borderWidth: 1, borderColor: colores.borde, padding: 8, opacity: motivo === m ? 1 : 0.5 }}
             >
-              <Texto>{m}</Texto>
+              <Texto>{ETIQUETAS_MOTIVO_BAJA[m]}</Texto>
             </Pressable>
           ))}
-          {motivo === "Otro" ? <Campo label="Detalle del motivo" value={detalle} onChangeText={setDetalle} /> : null}
+          {motivo === "otro" ? (
+            <Campo label="Detalle" value={detalle} onChangeText={setDetalle} maxLength={200} />
+          ) : null}
           {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
           <Boton titulo="Dar de baja" disabled={!motivoValido} onPress={() => setConfirmando(true)} />
         </View>

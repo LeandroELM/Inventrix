@@ -14,6 +14,7 @@ const base: Producto = {
   dado_baja_at: null,
   dado_baja_por: null,
   motivo_baja: null,
+  detalle_baja: null,
 };
 
 describe("filasExistencias", () => {

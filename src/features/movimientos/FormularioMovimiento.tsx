@@ -6,6 +6,7 @@ import { Cantidad } from "@/components/Cantidad";
 import type { MotivoSalida } from "@/features/movimientos/api";
 import { generaAlerta, proyectar, validarSalida } from "@/features/movimientos/calculo";
 import { useRegistrarMovimiento } from "@/features/movimientos/hooks";
+import { ETIQUETAS_MOTIVO_SALIDA, MOTIVOS_SALIDA } from "@/features/movimientos/motivos";
 import { BuscadorProducto } from "@/features/productos/BuscadorProducto";
 import { useProducto } from "@/features/productos/hooks";
 import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
@@ -14,14 +15,10 @@ import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
 import { useTema } from "@/tema/TemaProvider";
 
-const MOTIVOS: { valor: MotivoSalida; texto: string }[] = [
-  { valor: "venta", texto: "Venta" },
-  { valor: "consumo_interno", texto: "Consumo interno" },
-  { valor: "retiro_autorizado", texto: "Retiro autorizado" },
-];
+const MOTIVOS = MOTIVOS_SALIDA.map((valor) => ({ valor, texto: ETIQUETAS_MOTIVO_SALIDA[valor] }));
 
 function motivoValido(v: string | undefined): MotivoSalida | null {
-  return MOTIVOS.find((m) => m.valor === v)?.valor ?? null;
+  return MOTIVOS_SALIDA.find((m) => m === v) ?? null;
 }
 
 type Resultado = {

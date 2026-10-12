@@ -14,7 +14,7 @@ create function pg_temp.como(p_id uuid) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 
-select plan(14);
+select plan(16);
 
 -- aislar de los datos del seed (la transaccion se revierte)
 delete from public.movimientos;
@@ -27,6 +27,8 @@ select pg_temp.como(:'adm');
 select public.registrar_producto('Harina', 'H1', 'libra', 10, 2);
 select public.registrar_producto('Azucar', 'A1', 'libra', 5, 5);
 select public.registrar_producto('Aceite', 'L1', 'litro', 3, 1);
+select public.registrar_producto('Con stock', 'B1', 'libra', 4, 0);
+select public.dar_baja_producto((select id from public.productos where codigo = 'B1'), 'ya_no_se_vende');
 select public.registrar_producto('Viejo', 'V1', 'libra', 0, 9);
 select public.dar_baja_producto((select id from public.productos where codigo = 'V1'), 'descontinuado');
 select id as harina from public.productos where codigo = 'H1' \gset
@@ -66,6 +68,11 @@ select is((select count(*)::int from public.reporte_movimientos(
              'salida', null, (select created_at from public.movimientos where producto_id = :'harina' and tipo = 'salida'), :'harina')),
           0, 'reporte_movimientos: p_hasta igual a created_at excluye la fila');
 
+-- baja en historial y reporte
+select is((select count(*)::int from public.historial_movimientos where tipo = 'baja' and codigo = 'B1' and motivo is null and cantidad = 4),
+          1, 'la baja aparece en historial_movimientos con motivo nulo');
+select is((select count(*)::int from public.reporte_movimientos('baja')), 1, 'la baja aparece en reporte_movimientos');
+
 -- Operativo
 select pg_temp.como(:'ope');
 select throws_ok($$select * from public.reporte_movimientos()$$,
@@ -84,7 +91,8 @@ select ok(not has_table_privilege('anon', 'public.productos_a_pedir', 'SELECT')
           'vistas: authenticated select, anon sin acceso');
 select ok(not has_function_privilege('anon', 'public.resumen_existencias()', 'EXECUTE'),
           'anon sin EXECUTE en resumen_existencias');
-select ok(not has_function_privilege('anon', 'public.reporte_movimientos(public.tipo_movimiento,timestamptz,timestamptz,uuid)', 'EXECUTE'),
+select ok(not has_function_privilege('anon', 'public.reporte_movimientos(public.tipo_movimiento,timestamptz,timestamptz,uuid)', 'EXECUTE')
+          and has_function_privilege('authenticated', 'public.reporte_movimientos(public.tipo_movimiento,timestamptz,timestamptz,uuid)', 'EXECUTE'),
           'anon sin EXECUTE en reporte_movimientos');
 
 -- Usuario inactivo
