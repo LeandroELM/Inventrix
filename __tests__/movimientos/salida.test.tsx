@@ -59,7 +59,7 @@ describe("Salida", () => {
   });
 
   it("preselecciona el motivo recibido por parámetro", async () => {
-    mockParams = { productoId: "p1", motivo: "retiro_autorizado" };
+    mockParams = { productoId: "p1", motivo: "caducidad" };
     await renderizar();
     await screen.findByText("Tornillos");
     await fireEvent.changeText(screen.getByLabelText("Cantidad"), "1");
@@ -70,7 +70,7 @@ describe("Salida", () => {
     mockRegistrar.mockResolvedValue({ existencias_antes: 5, existencias_despues: 2, cantidad: 3 });
     await renderizar();
     await screen.findByText("Tornillos");
-    await fireEvent.press(screen.getByRole("button", { name: "Consumo interno" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Daño" }));
     await fireEvent.changeText(screen.getByLabelText("Cantidad"), "3");
     await fireEvent.press(screen.getByRole("button", { name: "Registrar salida" }));
     expect(await screen.findByText("Movimiento registrado")).toBeTruthy();
@@ -78,7 +78,7 @@ describe("Salida", () => {
       productoId: "p1",
       tipo: "salida",
       cantidad: 3,
-      motivo: "consumo_interno",
+      motivo: "dano",
     });
     expect(screen.getByText("El producto alcanzó su punto de pedido. Se notificó al administrador.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Registrar otro movimiento" })).toBeTruthy();

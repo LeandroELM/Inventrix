@@ -10,7 +10,7 @@ import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
 import { useTema } from "@/tema/TemaProvider";
 
-const ETIQUETA_TIPO = { inicial: "Inicial", entrada: "Entrada", salida: "Salida" } as const;
+const ETIQUETA_TIPO = { inicial: "Inicial", entrada: "Entrada", salida: "Salida", baja: "Baja" } as const;
 
 function Movimientos({ id }: { id: string }) {
   const { colores } = useTema();

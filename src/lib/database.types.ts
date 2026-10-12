@@ -131,14 +131,14 @@ isOneToOne: false
                   ]
                 },"productos": {
                   Row: {
-                    "activo": boolean,"codigo": string,"created_at": string,"dado_baja_at": string | null,"dado_baja_por": string | null,"existencias": number,"id": string,"motivo_baja": string | null,"nombre": string,"punto_pedido": number,"unidad": Database["public"]['Enums']["unidad_medida"],"updated_at": string
+                    "activo": boolean,"codigo": string,"created_at": string,"dado_baja_at": string | null,"dado_baja_por": string | null,"detalle_baja": string | null,"existencias": number,"id": string,"motivo_baja": Database["public"]['Enums']["motivo_baja"] | null,"nombre": string,"punto_pedido": number,"unidad": Database["public"]['Enums']["unidad_medida"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "activo"?: boolean,"codigo": string,"created_at"?: string,"dado_baja_at"?: string | null,"dado_baja_por"?: string | null,"existencias"?: number,"id"?: string,"motivo_baja"?: string | null,"nombre": string,"punto_pedido": number,"unidad": Database["public"]['Enums']["unidad_medida"],"updated_at"?: string
+                    "activo"?: boolean,"codigo": string,"created_at"?: string,"dado_baja_at"?: string | null,"dado_baja_por"?: string | null,"detalle_baja"?: string | null,"existencias"?: number,"id"?: string,"motivo_baja"?: Database["public"]['Enums']["motivo_baja"] | null,"nombre": string,"punto_pedido": number,"unidad": Database["public"]['Enums']["unidad_medida"],"updated_at"?: string
                   }
                   Update: {
-                    "activo"?: boolean,"codigo"?: string,"created_at"?: string,"dado_baja_at"?: string | null,"dado_baja_por"?: string | null,"existencias"?: number,"id"?: string,"motivo_baja"?: string | null,"nombre"?: string,"punto_pedido"?: number,"unidad"?: Database["public"]['Enums']["unidad_medida"],"updated_at"?: string
+                    "activo"?: boolean,"codigo"?: string,"created_at"?: string,"dado_baja_at"?: string | null,"dado_baja_por"?: string | null,"detalle_baja"?: string | null,"existencias"?: number,"id"?: string,"motivo_baja"?: Database["public"]['Enums']["motivo_baja"] | null,"nombre"?: string,"punto_pedido"?: number,"unidad"?: Database["public"]['Enums']["unidad_medida"],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -202,9 +202,10 @@ isOneToOne: false
 "created_at": string,
 "dado_baja_at": string | null,
 "dado_baja_por": string | null,
+"detalle_baja": string | null,
 "existencias": number,
 "id": string,
-"motivo_baja": string | null,
+"motivo_baja": Database["public"]['Enums']["motivo_baja"] | null,
 "nombre": string,
 "punto_pedido": number,
 "unidad": Database["public"]['Enums']["unidad_medida"],
@@ -222,15 +223,16 @@ isOneToOne: false
             }[]
                            },
 "dar_baja_producto":
-{ Args: { "p_id": string,"p_motivo": string }; Returns: {
+{ Args: { "p_detalle"?: string,"p_id": string,"p_motivo": Database["public"]['Enums']["motivo_baja"] }; Returns: {
               "activo": boolean,
 "codigo": string,
 "created_at": string,
 "dado_baja_at": string | null,
 "dado_baja_por": string | null,
+"detalle_baja": string | null,
 "existencias": number,
 "id": string,
-"motivo_baja": string | null,
+"motivo_baja": Database["public"]['Enums']["motivo_baja"] | null,
 "nombre": string,
 "punto_pedido": number,
 "unidad": Database["public"]['Enums']["unidad_medida"],
@@ -242,6 +244,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"dashboard_reportes":
+{ Args: { "p_desde": string,"p_hasta": string }; Returns: Json
+                           },
 "eliminar_dispositivo":
 { Args: { "p_token": string }; Returns: undefined
                            },
@@ -279,9 +284,10 @@ isOneToOne: false
 "created_at": string,
 "dado_baja_at": string | null,
 "dado_baja_por": string | null,
+"detalle_baja": string | null,
 "existencias": number,
 "id": string,
-"motivo_baja": string | null,
+"motivo_baja": Database["public"]['Enums']["motivo_baja"] | null,
 "nombre": string,
 "punto_pedido": number,
 "unidad": Database["public"]['Enums']["unidad_medida"],
@@ -308,7 +314,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "motivo_salida": "venta"|"consumo_interno"|"retiro_autorizado","rol_usuario": "admin"|"operativo","tipo_movimiento": "inicial"|"entrada"|"salida","unidad_medida": "unidad"|"libra"|"kilogramo"|"litro"|"caja"|"paquete"
+            "motivo_baja": "descontinuado"|"ya_no_se_vende"|"error_registro"|"otro","motivo_salida": "venta"|"caducidad"|"dano"|"otros","rol_usuario": "admin"|"operativo","tipo_movimiento": "inicial"|"entrada"|"salida"|"baja","unidad_medida": "unidad"|"libra"|"kilogramo"|"litro"|"caja"|"paquete"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -428,7 +434,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "motivo_salida": ["venta", "consumo_interno", "retiro_autorizado"],"rol_usuario": ["admin", "operativo"],"tipo_movimiento": ["inicial", "entrada", "salida"],"unidad_medida": ["unidad", "libra", "kilogramo", "litro", "caja", "paquete"]
+            "motivo_baja": ["descontinuado", "ya_no_se_vende", "error_registro", "otro"],"motivo_salida": ["venta", "caducidad", "dano", "otros"],"rol_usuario": ["admin", "operativo"],"tipo_movimiento": ["inicial", "entrada", "salida", "baja"],"unidad_medida": ["unidad", "libra", "kilogramo", "litro", "caja", "paquete"]
           }
         }
 } as const
