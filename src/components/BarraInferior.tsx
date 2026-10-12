@@ -71,6 +71,8 @@ export function BarraInferior({
     <View
       accessibilityRole="tablist"
       testID="barra-inferior"
+      // La franja sobre la barra (elevación del "+") deja pasar los toques al contenido de atrás.
+      pointerEvents="box-none"
       style={[
         {
           position: "absolute",
