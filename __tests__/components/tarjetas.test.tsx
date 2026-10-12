@@ -1,9 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TarjetaIndicador } from "@/components/TarjetaIndicador";
-import { TarjetaPrincipal } from "@/components/TarjetaPrincipal";
+import { TarjetaPrincipal, VELO_CLARO } from "@/components/TarjetaPrincipal";
 import { contraste } from "@/tema/contraste";
-import { PALETAS, TINTA_OSCURA, type Esquema } from "@/tema/tokens";
+import { PALETAS, type Esquema } from "@/tema/tokens";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 jest.mock("@/features/configuracion/apariencia", () => ({
@@ -98,12 +98,8 @@ describe("TarjetaIndicador", () => {
 describe.each(["claro", "oscuro"] as Esquema[])("contraste de las tarjetas (%s)", (esquema) => {
   const c = PALETAS[esquema];
 
-  it("acceso destacado: tinta oscura sobre marcaAcento", () => {
-    expect(contraste(TINTA_OSCURA, c.marcaAcento)).toBeGreaterThanOrEqual(4.5);
-  });
-
-  it("chip de exito: tinta oscura sobre marcaAcento", () => {
-    expect(contraste(TINTA_OSCURA, c.marcaAcento)).toBeGreaterThanOrEqual(4.5);
+  it("acceso destacado y chip de exito: sobreAcento oscura sobre marcaAcento", () => {
+    expect(contraste(c.sobreAcento, c.marcaAcento)).toBeGreaterThanOrEqual(4.5);
   });
 
   it("indicador alerta: textoAdvertencia sobre advertenciaSuave", () => {
@@ -111,13 +107,13 @@ describe.each(["claro", "oscuro"] as Esquema[])("contraste de las tarjetas (%s)"
   });
 
   it("insignia del indicador: icono oscuro sobre advertencia", () => {
-    expect(contraste(TINTA_OSCURA, c.advertencia)).toBeGreaterThanOrEqual(4.5);
+    expect(contraste(c.sobreAcento, c.advertencia)).toBeGreaterThanOrEqual(4.5);
   });
 
   it("texto claro sobre el degradado y sobre accesos/chips translucidos", () => {
     for (const extremo of c.encabezado) {
       expect(contraste(c.sobrePrimario, extremo)).toBeGreaterThanOrEqual(4.5);
-      expect(contraste(c.sobrePrimario, "rgba(255,255,255,0.12)", extremo)).toBeGreaterThanOrEqual(4.5);
+      expect(contraste(c.sobrePrimario, VELO_CLARO, extremo)).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

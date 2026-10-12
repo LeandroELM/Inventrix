@@ -4,7 +4,7 @@ import { Presionable } from "@/animacion/Presionable";
 import { Icono } from "@/components/Icono";
 import { Tarjeta } from "@/components/Tarjeta";
 import { Texto } from "@/components/Texto";
-import { RADIO, TINTA_OSCURA } from "@/tema/tokens";
+import { RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Props =
@@ -38,7 +38,7 @@ export function TarjetaIndicador(props: Props) {
             justifyContent: "center",
           }}
         >
-          <Icono nombre="alerta" tamano={18} color={TINTA_OSCURA} />
+          <Icono nombre="alerta" tamano={18} color={colores.sobreAcento} />
         </View>
         <NumeroAnimado valor={props.valor} style={{ color: colores.textoAdvertencia }} />
         <Texto variante="cuerpoFuerte" style={{ color: colores.textoAdvertencia }}>

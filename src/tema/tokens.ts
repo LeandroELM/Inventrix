@@ -14,6 +14,7 @@ export type Colores = {
   sobrePeligro: string;
   marca: string;
   marcaAcento: string;
+  sobreAcento: string;
   marcaFondo: string;
   exito: string;
   exitoSuave: string;
@@ -46,6 +47,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     sobrePeligro: "#FFFFFF",
     marca: "#102B50",
     marcaAcento: "#219653",
+    sobreAcento: "#0A1424",
     marcaFondo: "#FFFFFF",
     exito: "#219653",
     exitoSuave: "#E8F5EE",
@@ -76,6 +78,7 @@ export const PALETAS: Record<Esquema, Colores> = {
     sobrePeligro: "#0A1424",
     marca: "#102B50",
     marcaAcento: "#219653",
+    sobreAcento: "#0A1424",
     marcaFondo: "#FFFFFF",
     exito: "#3CC37A",
     exitoSuave: "rgba(60,195,122,0.14)",
@@ -117,6 +120,3 @@ export function sombra(nivel: "suave" | "elevada", esquema: Esquema): ViewStyle 
     elevation: elevada ? 8 : 2,
   };
 }
-
-/** Tinta fija para texto e iconos sobre rellenos de color medio (marcaAcento, advertencia): contraste >= 4.5 en ambos esquemas. */
-export const TINTA_OSCURA = "#0A1424";

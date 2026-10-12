@@ -53,7 +53,7 @@ export function AnilloExistencias({ existencias, puntoPedido, unidad }: Props) {
               stroke={colores.primario}
               strokeWidth={TRAZO}
               fill="none"
-              strokeLinecap="round"
+              strokeLinecap="butt"
               strokeDasharray={`${CIRCUNFERENCIA * fraccion} ${CIRCUNFERENCIA}`}
               transform={`rotate(-90 ${CENTRO} ${CENTRO})`}
             />

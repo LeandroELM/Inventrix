@@ -4,7 +4,7 @@ import { NumeroAnimado } from "@/animacion/NumeroAnimado";
 import { Presionable } from "@/animacion/Presionable";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
-import { ESPACIO, RADIO, TINTA_OSCURA } from "@/tema/tokens";
+import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
 };
 
 // Translucido sobre el degradado: el texto blanco mantiene 4.5:1 en ambos esquemas.
-const VELO_CLARO = "rgba(255,255,255,0.12)";
+export const VELO_CLARO = "rgba(255,255,255,0.12)";
 
 export function TarjetaPrincipal({ titulo, valor, sufijo, chips, accesos }: Props) {
   const { colores } = useTema();
@@ -55,7 +55,7 @@ export function TarjetaPrincipal({ titulo, valor, sufijo, chips, accesos }: Prop
             >
               <Texto
                 variante="etiqueta"
-                style={{ color: chip.tono === "exito" ? TINTA_OSCURA : colores.sobrePrimario }}
+                style={{ color: chip.tono === "exito" ? colores.sobreAcento : colores.sobrePrimario }}
               >
                 {chip.texto}
               </Texto>
@@ -65,7 +65,7 @@ export function TarjetaPrincipal({ titulo, valor, sufijo, chips, accesos }: Prop
       ) : null}
       <View style={{ flexDirection: "row", gap: ESPACIO.s }}>
         {accesos.map((acceso) => {
-          const color = acceso.destacado ? TINTA_OSCURA : colores.sobrePrimario;
+          const color = acceso.destacado ? colores.sobreAcento : colores.sobrePrimario;
           return (
             <Presionable
               key={acceso.titulo}
