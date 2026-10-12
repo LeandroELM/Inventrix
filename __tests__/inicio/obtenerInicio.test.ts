@@ -37,6 +37,7 @@ describe("obtenerInicio: entradas y salidas de hoy", () => {
   it("admin: si el dashboard falla, resuelve sin hoy", async () => {
     simular({ error: { message: "falla" } });
     const inicio = await obtenerInicio("admin", ahora);
+    expect(mockRpc).toHaveBeenCalledWith("dashboard_reportes", { p_desde: "2026-10-11", p_hasta: "2026-10-11" });
     expect(inicio.hoy).toBeUndefined();
   });
 

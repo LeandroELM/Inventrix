@@ -32,7 +32,7 @@ export function textoResumen(resumen: ResumenUnidad[]): string[] {
     .map((r) => formatearCantidad(r.total, r.unidad));
 }
 
-// Entradas y salidas del día; es un dato accesorio, así que un fallo se descarta.
+// Entradas y salidas del dÃ­a; es un dato accesorio, asÃ­ que un fallo se descarta.
 async function movimientosDeHoy(ahora: Date): Promise<Inicio["hoy"]> {
   try {
     const dia = aFecha(ahora);
