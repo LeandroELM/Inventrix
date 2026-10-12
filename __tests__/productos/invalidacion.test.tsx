@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { useRegistrarMovimiento } from "@/features/movimientos/hooks";
-import { useActualizarProducto } from "@/features/productos/hooks";
+import { useActualizarProducto, useDarBajaProducto } from "@/features/productos/hooks";
 
 jest.mock("@/features/movimientos/api", () => ({
   registrarMovimiento: jest.fn().mockResolvedValue({}),
@@ -11,6 +11,7 @@ jest.mock("@/features/movimientos/api", () => ({
 }));
 jest.mock("@/features/productos/api", () => ({
   actualizarProducto: jest.fn().mockResolvedValue({ id: "p1" }),
+  darBajaProducto: jest.fn().mockResolvedValue({ id: "p1" }),
 }));
 
 function envoltorio() {
@@ -26,7 +27,14 @@ describe("invalidación de consultas", () => {
     const { wrapper, claves } = envoltorio();
     const { result } = await renderHook(() => useRegistrarMovimiento(), { wrapper });
     await act(() => result.current.mutateAsync({ productoId: "p1", tipo: "salida", cantidad: 1 } as never));
-    expect(claves()).toEqual(expect.arrayContaining(["productos", "inicio", "historial", "a-pedir", "alertas"]));
+    expect(claves()).toEqual(expect.arrayContaining(["productos", "inicio", "historial", "a-pedir", "alertas", "dashboard"]));
+  });
+
+  it("dar de baja invalida el dashboard", async () => {
+    const { wrapper, claves } = envoltorio();
+    const { result } = await renderHook(() => useDarBajaProducto(), { wrapper });
+    await act(() => result.current.mutateAsync({ id: "p1", motivo: "otro" } as never));
+    expect(claves()).toEqual(expect.arrayContaining(["dashboard"]));
   });
 
   it("actualizar producto invalida a-pedir, alertas e historial", async () => {
