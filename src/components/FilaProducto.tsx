@@ -17,7 +17,8 @@ type Props = {
 
 export function FilaProducto({ nombre, detalle, cantidad, estado, onPress }: Props) {
   const { colores } = useTema();
-  const colorAvatar = { disponible: colores.exito, bajo: colores.advertencia, sin: colores.primario }[estado];
+  const colorAvatar = { disponible: colores.exitoSuave, bajo: colores.advertenciaSuave, sin: colores.primario }[estado];
+  const textoAvatar = { disponible: colores.textoExito, bajo: colores.textoAdvertencia, sin: colores.sobrePrimario }[estado];
   const fondoEtiqueta = { disponible: colores.exitoSuave, bajo: colores.advertenciaSuave, sin: colores.primario }[estado];
   const textoEtiqueta = { disponible: colores.textoExito, bajo: colores.textoAdvertencia, sin: colores.sobrePrimario }[estado];
   const etiqueta = `${nombre}, ${cantidad}, ${ETIQUETA_ESTADO[estado]}`;
@@ -34,7 +35,7 @@ export function FilaProducto({ nombre, detalle, cantidad, estado, onPress }: Pro
           justifyContent: "center",
         }}
       >
-        <Texto variante="etiqueta" style={{ color: estado === "sin" ? colores.sobrePrimario : colores.superficie }}>
+        <Texto variante="etiqueta" style={{ color: textoAvatar }}>
           {iniciales(nombre)}
         </Texto>
       </View>

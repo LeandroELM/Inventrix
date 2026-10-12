@@ -3,6 +3,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { FilaProducto } from "@/components/FilaProducto";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
+import { contraste } from "@/tema/contraste";
+import { PALETAS, type Esquema } from "@/tema/tokens";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 jest.mock("@/features/configuracion/apariencia", () => ({
@@ -76,5 +78,16 @@ describe("FilaMovimiento", () => {
       <FilaMovimiento producto="Arroz" tipo="inicial" motivo={null} fecha={hoy0915} cantidad={5} unidad="unidad" ahora={ahora} />,
     );
     expect(screen.getByText("Entrada · Hoy 09:15")).toBeTruthy();
+  });
+});
+
+describe.each<Esquema>(["claro", "oscuro"])("contraste del avatar de FilaProducto (%s)", (esquema) => {
+  const c = PALETAS[esquema];
+  it.each([
+    ["disponible", c.textoExito, c.exitoSuave],
+    ["bajo", c.textoAdvertencia, c.advertenciaSuave],
+    ["sin", c.sobrePrimario, c.primario],
+  ])("%s alcanza 4.5:1", (_estado, texto, fondo) => {
+    expect(contraste(texto, fondo, c.superficie)).toBeGreaterThanOrEqual(4.5);
   });
 });
