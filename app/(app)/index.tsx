@@ -54,15 +54,34 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: Rol }) {
         <Encabezado variante="inicio" nombre={nombre} rol="Usuario operativo" />
       )}
       <View style={{ paddingHorizontal: ESPACIO.l, gap: ESPACIO.l }}>
-        {inicio.isError ? (
+        {data ? (
+          <>
+            {inicio.isError ? (
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <Texto variante="pequeno" style={{ color: colores.textoPeligro, flex: 1 }}>
+                  No se pudo actualizar.
+                </Texto>
+                <Presionable
+                  accessibilityRole="button"
+                  accessibilityLabel="Reintentar"
+                  onPress={() => void inicio.refetch()}
+                  style={{ minHeight: 48, justifyContent: "center", paddingHorizontal: ESPACIO.s }}
+                >
+                  <Texto variante="etiqueta" tono="interactivo">
+                    Reintentar
+                  </Texto>
+                </Presionable>
+              </View>
+            ) : null}
+            <Contenido datos={data} esAdmin={esAdmin} />
+          </>
+        ) : inicio.isError ? (
           <Tarjeta>
             <View style={{ gap: ESPACIO.m }}>
               <Texto>No se pudo cargar el inicio.</Texto>
               <Boton titulo="Reintentar" onPress={() => void inicio.refetch()} />
             </View>
           </Tarjeta>
-        ) : data ? (
-          <Contenido datos={data} esAdmin={esAdmin} />
         ) : (
           <View style={{ gap: ESPACIO.m }}>
             <Skeleton.Tarjeta />

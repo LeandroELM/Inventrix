@@ -131,8 +131,23 @@ describe("Inicio", () => {
 
   it("escanear navega al escaner de existencias", async () => {
     await montar({ data: base });
-    fireEvent.press(screen.getByLabelText("Escanear"));
+    await fireEvent.press(screen.getByLabelText("Escanear"));
     expect(mockPush).toHaveBeenCalledWith("/escaner?destino=existencias");
+  });
+
+  it("si falla una recarga conserva los datos y avisa", async () => {
+    await montar({ data: base, isError: true });
+    expect(screen.getByText("Movimientos recientes")).toBeTruthy();
+    expect(screen.getByText("No se pudo actualizar.")).toBeTruthy();
+    expect(screen.getByText("Reintentar")).toBeTruthy();
+  });
+
+  it("entrada y campana navegan", async () => {
+    await montar({ data: base });
+    await fireEvent.press(screen.getByLabelText("Entrada"));
+    expect(mockPush).toHaveBeenCalledWith("/movimientos/entrada");
+    await fireEvent.press(screen.getByLabelText(/Notificaciones/));
+    expect(mockPush).toHaveBeenCalledWith("/notificaciones");
   });
 
   it("primera carga: muestra esqueletos; error: ofrece reintentar", async () => {
