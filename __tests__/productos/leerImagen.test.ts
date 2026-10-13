@@ -28,6 +28,12 @@ describe("leerCodigoDeImagen", () => {
     await expect(leerCodigoDeImagen()).resolves.toEqual({ estado: "ok", codigo: "750123" });
   });
 
+  it("una lectura vacía al normalizar cuenta como sin código", async () => {
+    mockLaunch.mockResolvedValue({ canceled: false, assets: [{ uri: "file://a.png" }] });
+    mockScan.mockResolvedValue([{ data: "   " }]);
+    await expect(leerCodigoDeImagen()).resolves.toEqual({ estado: "sin-codigo" });
+  });
+
   it("propaga errores", async () => {
     const error = new Error("fallo");
     mockLaunch.mockRejectedValue(error);

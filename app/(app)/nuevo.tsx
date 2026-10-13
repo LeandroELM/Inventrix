@@ -108,7 +108,7 @@ function NuevoProducto() {
   const [avisoImagen, setAvisoImagen] = useState<{ texto: string; tono: "advertencia" | "peligro" } | null>(null);
   const enCurso = useRef(false);
   const registrar = useRegistrarProducto();
-  const { control, handleSubmit, setValue, setError, reset } = useForm<ValoresFormulario>({
+  const { control, handleSubmit, setValue, setError, reset, formState } = useForm<ValoresFormulario>({
     defaultValues: VACIO,
     resolver,
   });
@@ -248,7 +248,7 @@ function NuevoProducto() {
   }
 
   const sufijo = (
-    <Texto pointerEvents="none" tono="secundario" style={{ position: "absolute", right: ESPACIO.m, top: 34 }}>
+    <Texto tono="secundario" style={{ position: "absolute", right: ESPACIO.m, top: 34, pointerEvents: "none" }}>
       {UNIDADES[unidad].abreviatura}
     </Texto>
   );
@@ -297,7 +297,7 @@ function NuevoProducto() {
             </View>
             <View style={{ flexDirection: "row", gap: ESPACIO.s, marginTop: 22 }}>
               <BotonIcono icono="camara" etiqueta="Escanear con la cámara" onPress={() => router.push("/escaner?destino=nuevo")} />
-              <BotonIcono icono="escanear" etiqueta="Leer código desde una imagen" onPress={() => void leerImagen()} />
+              <BotonIcono icono="imagen" etiqueta="Leer código desde una imagen" onPress={() => void leerImagen()} />
             </View>
           </View>
           {avisoImagen ? <AvisoAdvertencia tono={avisoImagen.tono} texto={avisoImagen.texto} alerta /> : null}
@@ -345,7 +345,7 @@ function NuevoProducto() {
           </View>
           <Nota texto="Cuando las existencias lleguen al punto de pedido, recibirás una alerta de reabastecimiento." />
         </Tarjeta>
-        <Boton titulo="Revisar" onPress={() => void handleSubmit(revisar)()} />
+        <Boton titulo="Revisar" loading={formState.isSubmitting} onPress={() => void handleSubmit(revisar)()} />
       </ScrollView>
     </View>
   );

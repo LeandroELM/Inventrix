@@ -110,6 +110,20 @@ describe("Nuevo producto", () => {
     expect(screen.getByRole("button", { name: "Editar información" })).toBeTruthy();
   });
 
+  it("Revisar queda ocupado mientras se consulta el código", async () => {
+    let resolver: (v: null) => void = () => {};
+    mockCodigoRegistrado.mockReturnValue(new Promise<null>((r) => (resolver = r)));
+    await renderizar();
+    await llenar();
+    await fireEvent.press(screen.getByRole("button", { name: "Revisar" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Revisar" })).toBeDisabled());
+    expect(screen.getByRole("button", { name: "Revisar" })).toBeBusy();
+    await fireEvent.press(screen.getByRole("button", { name: "Revisar" }));
+    expect(mockCodigoRegistrado).toHaveBeenCalledTimes(1);
+    await act(async () => resolver(null));
+    expect(await screen.findByText("Paso 2 de 2 · Confirmación")).toBeTruthy();
+  });
+
   it("editar información vuelve al paso 1 conservando los datos", async () => {
     await irAlPaso2();
     await fireEvent.press(screen.getByRole("button", { name: "Editar información" }));

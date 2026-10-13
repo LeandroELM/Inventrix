@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Flashlight,
   House,
+  ImageUp,
   Info,
   LayoutGrid,
   Lock,
@@ -53,6 +54,7 @@ export const ICONOS = {
   info: Info,
   subida: TrendingUp,
   linterna: Flashlight,
+  imagen: ImageUp,
 };
 
 export type NombreIcono = keyof typeof ICONOS;

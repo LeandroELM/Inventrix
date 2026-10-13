@@ -14,5 +14,8 @@ export async function leerCodigoDeImagen(): Promise<ResultadoLecturaImagen> {
   if (r.canceled || r.assets.length === 0) return { estado: "cancelado" };
   const lecturas = await scanFromURLAsync(r.assets[0].uri, [...TIPOS_CODIGO]);
   if (lecturas.length === 0) return { estado: "sin-codigo" };
-  return { estado: "ok", codigo: normalizarCodigo(lecturas[0].data) };
+  const codigo = normalizarCodigo(lecturas[0].data);
+  // Una lectura que queda vacía al normalizar no sirve como código.
+  if (!codigo) return { estado: "sin-codigo" };
+  return { estado: "ok", codigo };
 }
