@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { BackHandler } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Escaner from "../../app/escaner";
 import { TemaProvider } from "@/tema/TemaProvider";
@@ -45,6 +46,8 @@ jest.mock("react-native-reanimated", () => {
   const mock = require("react-native-reanimated/mock");
   return { ...mock, useReducedMotion: () => true };
 });
+
+type Oyente = Parameters<typeof BackHandler.addEventListener>[1];
 
 const PRODUCTO = { id: "p1", nombre: "Harina de trigo", codigo: "750", unidad: "unidad", existencias: 5, punto_pedido: 2, activo: true };
 
@@ -155,5 +158,56 @@ describe("Escáner", () => {
     await renderizar();
     await fireEvent.press(screen.getByRole("button", { name: "Leer desde imagen" }));
     expect(await screen.findByText("No se encontró ningún código en la imagen.")).toBeTruthy();
+  });
+
+  it("muestra Buscando… mientras consulta el código", async () => {
+    mockBuscar.mockReturnValue(new Promise(() => {}));
+    await renderizar();
+    await leer("750");
+    expect(screen.getByText("Buscando…")).toBeTruthy();
+  });
+
+  it("con la hoja abierta oculta y bloquea las acciones de detrás", async () => {
+    await renderizar();
+    expect(screen.getByRole("button", { name: "Escribir el código manualmente" })).toBeTruthy();
+    await leer("750");
+    await screen.findByText("CÓDIGO RECONOCIDO");
+    expect(screen.queryByRole("button", { name: "Escribir el código manualmente" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Leer desde imagen" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Cerrar lector" })).toBeNull();
+    const oculto = screen.getByRole("button", { name: "Leer desde imagen", includeHiddenElements: true });
+    let nodo = oculto.parent;
+    let bloqueado = false;
+    while (nodo) {
+      const estilo = [nodo.props.style].flat(Infinity);
+      if (estilo.some((e) => e && e.pointerEvents === "none")) bloqueado = true;
+      nodo = nodo.parent;
+    }
+    expect(bloqueado).toBe(true);
+    expect(screen.getByRole("button", { name: "Escanear de nuevo" })).toBeTruthy();
+  });
+
+  it("el botón atrás de Android cierra la hoja sin salir", async () => {
+    const oyentes: Oyente[] = [];
+    const espia = jest.spyOn(BackHandler, "addEventListener").mockImplementation((_evento, oyente) => {
+      oyentes.push(oyente);
+      return { remove: () => oyentes.splice(oyentes.indexOf(oyente), 1) && undefined };
+    });
+    await renderizar();
+    expect(oyentes).toHaveLength(0);
+    await leer("750");
+    await screen.findByText("CÓDIGO RECONOCIDO");
+    expect(oyentes).toHaveLength(1);
+    let manejado: boolean | null | undefined;
+    await act(async () => {
+      manejado = oyentes[0]({} as Parameters<Oyente>[0]);
+    });
+    expect(manejado).toBe(true);
+    expect(screen.queryByText("CÓDIGO RECONOCIDO")).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(oyentes).toHaveLength(0);
+    await leer("750");
+    expect(await screen.findByText("CÓDIGO RECONOCIDO")).toBeTruthy();
+    espia.mockRestore();
   });
 });
