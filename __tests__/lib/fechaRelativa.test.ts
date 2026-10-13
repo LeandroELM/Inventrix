@@ -1,4 +1,10 @@
-import { fechaRelativa, grupoDia } from "@/lib/fechaRelativa";
+import { fechaRelativa, grupoDia, horaLocal } from "@/lib/fechaRelativa";
+
+describe("horaLocal", () => {
+  it("horaLocal da HH:mm", () => {
+    expect(horaLocal(new Date(2026, 9, 12, 9, 5).toISOString())).toBe("09:05");
+  });
+});
 
 describe("fechaRelativa", () => {
   const ahora = new Date(2026, 9, 11, 15, 0);
