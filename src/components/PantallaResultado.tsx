@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AvatarProducto } from "@/components/AvatarProducto";
@@ -30,6 +31,7 @@ export function PantallaResultado({ titulo, frase, producto, datos, aviso, princ
 
   return (
     <LinearGradient colors={[inicio, fin]} style={{ flex: 1 }}>
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
@@ -72,7 +74,8 @@ export function PantallaResultado({ titulo, frase, producto, datos, aviso, princ
             borderTopLeftRadius: RADIO.encabezado,
             borderTopRightRadius: RADIO.encabezado,
             padding: ESPACIO.l,
-            paddingBottom: insets.bottom + ESPACIO.l,
+            // Se muestra dentro de una pestaña: la escena ya reserva el inset inferior y la barra.
+            paddingBottom: ESPACIO.l,
             gap: ESPACIO.l,
           }}
         >

@@ -8,6 +8,9 @@ jest.mock("@/features/configuracion/apariencia", () => ({
   guardarApariencia: () => Promise.resolve(),
 }));
 
+const mockStatusBar = jest.fn((_props: { style: string }) => null);
+jest.mock("expo-status-bar", () => ({ StatusBar: (p: { style: string }) => mockStatusBar(p) }));
+
 jest.mock("react-native-reanimated", () => {
   const mock = require("react-native-reanimated/mock");
   return { ...mock, useReducedMotion: () => true };
@@ -40,6 +43,11 @@ async function montar(props: Partial<React.ComponentProps<typeof PantallaResulta
 }
 
 describe("PantallaResultado", () => {
+  it("usa íconos claros en la barra de estado", async () => {
+    await montar();
+    expect(mockStatusBar).toHaveBeenCalledWith({ style: "light" });
+  });
+
   it("anuncia el título como alerta", async () => {
     await montar();
     expect(screen.getByRole("alert")).toHaveTextContent("¡Salida registrada!");
