@@ -50,6 +50,16 @@ export async function buscarPorCodigo(codigo: string): Promise<Producto | null> 
   return data;
 }
 
+export async function codigoRegistrado(codigo: string): Promise<{ nombre: string; activo: boolean } | null> {
+  const { data, error } = await supabase
+    .from("productos")
+    .select("nombre, activo")
+    .eq("codigo", codigo.trim())
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function obtenerProducto(id: string): Promise<Producto> {
   const { data, error } = await supabase.from("productos").select("*").eq("id", id).single();
   if (error) throw error;

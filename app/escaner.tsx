@@ -11,10 +11,10 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
 import { buscarPorCodigo } from "@/features/productos/api";
 import { crearFiltroLecturas, normalizarCodigo, type DestinoEscaner } from "@/features/productos/escaner";
+import { TIPOS_CODIGO } from "@/features/productos/leerImagen";
 import { mensajeDeError } from "@/lib/errores";
 import { Texto } from "@/components/Texto";
 
-const TIPOS = ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "qr"] as const;
 const DESTINOS: readonly DestinoEscaner[] = ["existencias", "entrada", "salida", "baja", "nuevo"];
 
 function destinoValido(valor: string | undefined): DestinoEscaner {
@@ -86,7 +86,7 @@ export default function Escaner() {
     try {
       const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 1 });
       if (r.canceled || r.assets.length === 0) return;
-      const lecturas = await scanFromURLAsync(r.assets[0].uri, [...TIPOS]);
+      const lecturas = await scanFromURLAsync(r.assets[0].uri, [...TIPOS_CODIGO]);
       if (lecturas.length === 0) {
         setMensaje("No se encontró ningún código en la imagen.");
         return;
@@ -130,7 +130,7 @@ export default function Escaner() {
         style={StyleSheet.absoluteFill}
         facing="back"
         enableTorch={linterna}
-        barcodeScannerSettings={{ barcodeTypes: [...TIPOS] }}
+        barcodeScannerSettings={{ barcodeTypes: [...TIPOS_CODIGO] }}
         onBarcodeScanned={buscando ? undefined : alLeer}
       />
       <View style={styles.panel}>
