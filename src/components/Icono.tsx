@@ -8,6 +8,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Flashlight,
   House,
   Info,
   LayoutGrid,
@@ -51,6 +52,7 @@ export const ICONOS = {
   candado: Lock,
   info: Info,
   subida: TrendingUp,
+  linterna: Flashlight,
 };
 
 export type NombreIcono = keyof typeof ICONOS;
