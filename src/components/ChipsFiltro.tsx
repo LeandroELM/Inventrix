@@ -6,7 +6,7 @@ import { useTema } from "@/tema/TemaProvider";
 
 type Props<T extends string> = {
   opciones: { valor: T; texto: string }[];
-  valor: T;
+  valor: T | null;
   onCambio: (v: T) => void;
   etiqueta: string;
 };

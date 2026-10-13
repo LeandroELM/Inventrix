@@ -13,9 +13,10 @@ type Props = {
   unidad: Unidad;
   maximo?: number;
   etiqueta: string;
+  error?: string;
 };
 
-export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta }: Props) {
+export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta, error }: Props) {
   const { colores } = useTema();
   const { entera, abreviatura } = UNIDADES[unidad];
   const minimo = entera ? 1 : 0.01;
@@ -42,14 +43,14 @@ export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta }: P
         height: 48,
         borderRadius: RADIO.campo,
         borderWidth: 1.5,
-        borderColor: colores.borde,
-        backgroundColor: colores.superficie,
+        borderColor: nombre === "mas" ? colores.primario : colores.borde,
+        backgroundColor: nombre === "mas" ? colores.primario : colores.superficie,
         alignItems: "center",
         justifyContent: "center",
         opacity: deshabilitado ? 0.4 : 1,
       }}
     >
-      <Icono nombre={nombre} color={colores.interactivo} />
+      <Icono nombre={nombre} color={nombre === "mas" ? colores.sobrePrimario : colores.interactivo} />
     </Presionable>
   );
 
@@ -60,31 +61,54 @@ export function ControlCantidad({ valor, onCambio, unidad, maximo, etiqueta }: P
       </Texto>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         {boton("menos", "Disminuir", sinBajar, () => cambiar(Math.max(minimo, base - 1)))}
-        <EntradaTexto
-          accessibilityLabel={etiqueta}
-          value={valor}
-          onChangeText={onCambio}
-          keyboardType={entera ? "number-pad" : "decimal-pad"}
-          textAlign="center"
+        <View
           style={{
             flex: 1,
             minWidth: 0,
             minHeight: 48,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
             borderRadius: RADIO.campo,
-            borderWidth: 1.5,
-            borderColor: colores.borde,
-            backgroundColor: colores.superficie,
+            borderWidth: 2,
+            borderColor: error ? colores.peligro : colores.primario,
+            backgroundColor: error ? colores.peligroSuave : colores.superficie,
             paddingHorizontal: 12,
           }}
-        />
+        >
+          <EntradaTexto
+            accessibilityLabel={etiqueta}
+            value={valor}
+            onChangeText={onCambio}
+            keyboardType={entera ? "number-pad" : "decimal-pad"}
+            textAlign="center"
+            style={{
+              flexShrink: 1,
+              minWidth: 48,
+              minHeight: 44,
+              borderWidth: 0,
+              backgroundColor: "transparent",
+              paddingHorizontal: 0,
+            }}
+          />
+          <Texto tono="secundario" style={{ flexShrink: 0 }}>
+            {abreviatura}
+          </Texto>
+        </View>
         {boton("mas", "Aumentar", sinSubir, () => {
           const siguiente = Math.max(minimo, base + 1);
           cambiar(maximo !== undefined ? Math.min(maximo, siguiente) : siguiente);
         })}
-        <Texto tono="secundario" style={{ flexShrink: 0 }}>
-          {abreviatura}
-        </Texto>
       </View>
+      {error ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icono nombre="info" tamano={18} color={colores.textoPeligro} />
+          <Texto accessibilityRole="alert" variante="pequeno" tono="peligro" style={{ flex: 1 }}>
+            {error}
+          </Texto>
+        </View>
+      ) : null}
     </View>
   );
 }
