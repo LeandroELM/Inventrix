@@ -23,7 +23,7 @@
 
 ## Review Focus
 
-1. Unidades decimales en la salida (kilogramo, "2,5"): el error de exceso debe mostrar las existencias con `formatearCantidad` ("2.5 kg"), igual que el resto de la app, no el número crudo → prueba en la Tarea 6.
+1. Unidades decimales en la salida (kilogramo, existencias 2.5): el error de exceso debe mostrar las existencias con `formatearCantidad` ("2.5 kg"), igual que el resto de la app, no el número crudo → prueba en la Tarea 6.
 2. Doble toque en "Registrar salida" o "Confirmar registro": un solo registro → pruebas en las Tareas 6 y 8.
 3. Tras "Escanear de nuevo", volver a leer el mismo código enseguida debe mostrar la hoja otra vez (el filtro de 1500 ms no debe tragárselo) → prueba en la Tarea 9.
 4. Código con espacios alrededor en Nuevo producto ("  750123  ") debe detectarse como duplicado igual → prueba en la Tarea 7.
