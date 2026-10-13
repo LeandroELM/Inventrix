@@ -32,7 +32,7 @@ export function TarjetaProductoMovimiento({ producto, tipo, proyectadas }: Props
             {producto.nombre}
           </Texto>
           <Texto variante="cuerpo" tono="sobrePrimario">
-            {`${producto.codigo} · ${UNIDADES[producto.unidad].nombre}`}
+            {`${producto.codigo} · ${UNIDADES[producto.unidad].nombre}${tipo === "salida" ? ` · P. pedido ${formatearCantidad(producto.punto_pedido, producto.unidad)}` : ""}`}
           </Texto>
         </View>
       </View>
@@ -51,7 +51,7 @@ export function TarjetaProductoMovimiento({ producto, tipo, proyectadas }: Props
       >
         <View style={{ gap: ESPACIO.xs }}>
           <Texto variante="etiqueta" tono="sobrePrimario">
-            Actuales
+            Existencias actuales
           </Texto>
           <Texto variante="subtitulo" tono="sobrePrimario">
             {actual}
@@ -64,11 +64,6 @@ export function TarjetaProductoMovimiento({ producto, tipo, proyectadas }: Props
           <Texto variante="titulo" style={{ color: colorProyectado }}>
             {formateada ?? "—"}
           </Texto>
-          {tipo === "salida" ? (
-            <Texto variante="pequeno" tono="sobrePrimario">
-              {`P. pedido ${formatearCantidad(producto.punto_pedido, producto.unidad)}`}
-            </Texto>
-          ) : null}
         </View>
       </View>
     </LinearGradient>

@@ -36,7 +36,8 @@ describe("TarjetaProductoMovimiento", () => {
   it("salida muestra Quedarían y el punto de pedido", async () => {
     await montar(<TarjetaProductoMovimiento producto={producto} tipo="salida" proyectadas={40} />);
     expect(screen.getByText("Quedarían")).toBeTruthy();
-    expect(screen.getByText(/P. pedido 15 lb/)).toBeTruthy();
+    expect(screen.getByText("750123 · Libra · P. pedido 15 lb")).toBeTruthy();
+    expect(screen.getByText("Existencias actuales")).toBeTruthy();
   });
 
   it("sin proyección muestra —", async () => {
