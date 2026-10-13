@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import { entradaEscalonada } from "@/animacion/entradaEscalonada";
 import { Skeleton } from "@/animacion/Skeleton";
+import { AvisoAdvertencia } from "@/components/AvisoAdvertencia";
 import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Encabezado } from "@/components/Encabezado";
 import { EstadoError } from "@/components/EstadoError";
@@ -52,26 +53,10 @@ function ListaAPedir() {
         {data?.length === 0 ? <Texto tono="secundario">Ningún producto está en su punto de pedido.</Texto> : null}
         {data && data.length > 0 ? (
           <>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: ESPACIO.m,
-                backgroundColor: colores.advertenciaSuave,
-                borderRadius: RADIO.tarjeta,
-                padding: ESPACIO.l,
-              }}
-            >
-              <Icono nombre="alerta" tamano={28} color={colores.textoAdvertencia} />
-              <View style={{ flex: 1, gap: ESPACIO.xs }}>
-                <Texto variante="subtitulo" style={{ color: colores.textoAdvertencia }}>
-                  {data.length === 1 ? "1 producto" : `${data.length} productos`}
-                </Texto>
-                <Texto style={{ color: colores.textoAdvertencia }}>
-                  Alcanzaron o están por debajo de su punto de pedido.
-                </Texto>
-              </View>
-            </View>
+            <AvisoAdvertencia
+              titulo={data.length === 1 ? "1 producto" : `${data.length} productos`}
+              texto="Alcanzaron o están por debajo de su punto de pedido."
+            />
             {data.map((p, i) => (
               <Animated.View key={p.id} entering={entradaEscalonada(i)}>
                 <Tarjeta

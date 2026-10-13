@@ -10,6 +10,11 @@ function diasEntre(fecha: Date, ahora: Date): number {
 
 const dosDigitos = (n: number) => String(n).padStart(2, "0");
 
+export function horaLocal(iso: string): string {
+  const fecha = new Date(iso);
+  return `${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
+}
+
 export function fechaRelativa(iso: string, ahora: Date): string {
   const fecha = new Date(iso);
   const hora = `${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;

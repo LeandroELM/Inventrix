@@ -13,8 +13,9 @@ export default function Layout() {
     >
       <Stack.Screen name="index" options={{ title: "Historial de movimientos" }} />
       <Stack.Screen name="historial" options={{ headerShown: false }} />
-      <Stack.Screen name="entrada" options={{ title: "Registrar entrada" }} />
-      <Stack.Screen name="salida" options={{ title: "Registrar salida" }} />
+      {/* Entrada y Salida dibujan su propio Encabezado (con escanear y volver). */}
+      <Stack.Screen name="entrada" options={{ headerShown: false }} />
+      <Stack.Screen name="salida" options={{ headerShown: false }} />
     </Stack>
   );
 }

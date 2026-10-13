@@ -8,7 +8,7 @@ jest.mock("@/features/configuracion/apariencia", () => ({
   guardarApariencia: () => Promise.resolve(),
 }));
 
-async function montar(props: { valor: string; unidad?: Unidad; maximo?: number }) {
+async function montar(props: { valor: string; unidad?: Unidad; maximo?: number; error?: string }) {
   const onCambio = jest.fn();
   await render(
     <TemaProvider>
@@ -71,5 +71,16 @@ describe("ControlCantidad", () => {
     const onCambio = await montar({ valor: "5", maximo: 5 });
     await fireEvent.press(screen.getByLabelText("Aumentar"));
     expect(onCambio).not.toHaveBeenCalled();
+  });
+
+  it("muestra el error como alerta", async () => {
+    const error = "La cantidad supera las existencias disponibles (5 unid.).";
+    await montar({ valor: "9", error });
+    expect(screen.getByRole("alert")).toHaveTextContent(error);
+  });
+
+  it("sin error no hay alerta", async () => {
+    await montar({ valor: "1" });
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

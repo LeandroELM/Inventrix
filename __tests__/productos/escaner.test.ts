@@ -22,4 +22,10 @@ describe("crearFiltroLecturas", () => {
     aceptar("750123", 0);
     expect(aceptar("999", 100)).toBe(true);
   });
+  it("reiniciar permite el mismo código enseguida", () => {
+    const aceptar = crearFiltroLecturas(1500);
+    aceptar("750123", 0);
+    aceptar.reiniciar();
+    expect(aceptar("750123", 100)).toBe(true);
+  });
 });

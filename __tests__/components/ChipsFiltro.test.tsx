@@ -43,6 +43,16 @@ describe("ChipsFiltro", () => {
     expect(onCambio).toHaveBeenCalledWith("AGOTADO");
   });
 
+  it("con valor null ningún chip está seleccionado", async () => {
+    const onCambio = jest.fn();
+    await montar(<ChipsFiltro opciones={opciones} valor={null} onCambio={onCambio} etiqueta="Filtrar estado" />);
+    for (const o of opciones) {
+      expect(screen.getByRole("button", { name: o.texto }).props.accessibilityState.selected).toBe(false);
+    }
+    fireEvent.press(screen.getByRole("button", { name: "Bajo" }));
+    expect(onCambio).toHaveBeenCalledWith("BAJO");
+  });
+
   it("cada chip mide al menos 48 dp de alto", async () => {
     await montar(<ChipsFiltro opciones={opciones} valor="TODOS" onCambio={jest.fn()} etiqueta="Filtrar estado" />);
     const chip = screen.getByRole("button", { name: "Todos" });
