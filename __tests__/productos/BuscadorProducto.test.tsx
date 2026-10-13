@@ -64,6 +64,16 @@ describe("BuscadorProducto", () => {
     expect(onElegir).toHaveBeenCalledWith("a", "Harina");
   });
 
+  it("si la consulta falla muestra el error y reintenta", async () => {
+    const refetch = jest.fn();
+    mockUseProductos.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch });
+    await montar();
+    expect(screen.getByText("No se pudieron cargar los productos.")).toBeTruthy();
+    expect(screen.queryByText("No hay productos que coincidan.")).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Reintentar" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
   it("sin resultados muestra el mensaje", async () => {
     mockUseProductos.mockReturnValue({ data: [], isLoading: false });
     await montar();

@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Presionable } from "@/animacion/Presionable";
 import { Skeleton } from "@/animacion/Skeleton";
 import { EntradaTexto } from "@/components/EntradaTexto";
+import { EstadoError } from "@/components/EstadoError";
 import { FilaProducto } from "@/components/FilaProducto";
 import { Icono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
@@ -29,7 +30,7 @@ export function BuscadorProducto({
     const t = setTimeout(() => setTexto(busqueda), 300);
     return () => clearTimeout(t);
   }, [busqueda]);
-  const { data, isLoading } = useProductos({ texto });
+  const { data, isLoading, isError, refetch } = useProductos({ texto });
   const resultados = (data ?? []).slice(0, 20);
   return (
     <View style={{ gap: ESPACIO.m }}>
@@ -81,6 +82,8 @@ export function BuscadorProducto({
           <Skeleton.Fila />
           <Skeleton.Fila />
         </View>
+      ) : isError && !data ? (
+        <EstadoError mensaje="No se pudieron cargar los productos." onReintentar={() => void refetch()} />
       ) : resultados.length === 0 ? (
         <Texto tono="secundario">No hay productos que coincidan.</Texto>
       ) : (
