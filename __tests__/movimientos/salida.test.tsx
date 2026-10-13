@@ -6,6 +6,8 @@ import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockRegistrar = jest.fn();
 const mockReplace = jest.fn();
+const mockBack = jest.fn();
+let mockPuedeVolver = true;
 let mockParams: { productoId?: string; motivo?: string } = {};
 let mockProducto: Record<string, unknown> = {};
 const base = {
@@ -18,15 +20,16 @@ const base = {
   activo: true,
 };
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
+const mockObtener = jest.fn();
 jest.mock("@/features/productos/api", () => ({
-  obtenerProducto: jest.fn(async () => mockProducto),
+  obtenerProducto: (...args: unknown[]) => mockObtener(...args),
   listarProductos: jest.fn(async () => [mockProducto]),
 }));
 jest.mock("@/features/movimientos/api", () => ({
   registrarMovimiento: (...args: unknown[]) => mockRegistrar(...args),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, canGoBack: () => mockPuedeVolver }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -65,8 +68,12 @@ describe("Salida", () => {
   beforeEach(() => {
     mockRegistrar.mockReset();
     mockReplace.mockReset();
+    mockBack.mockReset();
+    mockPuedeVolver = true;
     mockParams = { productoId: "p1" };
     mockProducto = { ...base };
+    mockObtener.mockReset();
+    mockObtener.mockImplementation(async () => mockProducto);
   });
 
   it("rechaza una cantidad mayor a las existencias", async () => {
@@ -170,5 +177,58 @@ describe("Salida", () => {
     expect(await screen.findByText("El producto está dado de baja.")).toBeTruthy();
     expect(screen.queryByLabelText("Cantidad a salir")).toBeNull();
     expect(screen.queryByRole("button", { name: "Registrar salida" })).toBeNull();
+  });
+
+  it("no muestra el aviso previo cuando la cantidad supera las existencias", async () => {
+    await renderizar();
+    await screen.findByText("Tornillos");
+    await fireEvent.changeText(screen.getByLabelText("Cantidad a salir"), "6");
+    expect(screen.getByText("La cantidad supera las existencias disponibles (5 unid.).")).toBeTruthy();
+    expect(screen.queryByText(/Con esta salida el producto llegará a su punto de pedido/)).toBeNull();
+  });
+
+  it("el error de registro se borra al cambiar la cantidad o el motivo", async () => {
+    mockRegistrar.mockRejectedValue(new Error("fallo de red"));
+    await renderizar();
+    await screen.findByText("Tornillos");
+    await fireEvent.press(screen.getByRole("button", { name: "Venta" }));
+    await fireEvent.changeText(screen.getByLabelText("Cantidad a salir"), "1");
+    await fireEvent.press(screen.getByRole("button", { name: "Registrar salida" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    await fireEvent.changeText(screen.getByLabelText("Cantidad a salir"), "2");
+    expect(screen.queryByRole("alert")).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Registrar salida" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    await fireEvent.press(screen.getByRole("button", { name: "Daño" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("si el producto no carga muestra el error, reintenta y conserva volver", async () => {
+    mockObtener.mockRejectedValue(new Error("fallo de red"));
+    await renderizar();
+    expect(await screen.findByText("No se pudo cargar el producto.")).toBeTruthy();
+    expect(screen.getByRole("header", { name: "Registrar salida" })).toBeTruthy();
+    mockObtener.mockResolvedValue(mockProducto);
+    await fireEvent.press(screen.getByRole("button", { name: "Reintentar" }));
+    expect(await screen.findByText("Tornillos")).toBeTruthy();
+    expect(mockObtener).toHaveBeenCalledTimes(2);
+  });
+
+  it("volver regresa atrás o al inicio si no hay historial", async () => {
+    await renderizar();
+    await screen.findByText("Tornillos");
+    await fireEvent.press(screen.getByRole("button", { name: "Volver" }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    mockPuedeVolver = false;
+    await fireEvent.press(screen.getByRole("button", { name: "Volver" }));
+    expect(mockReplace).toHaveBeenCalledWith("/");
+  });
+
+  it("volver está disponible en el buscador", async () => {
+    mockParams = {};
+    await renderizar();
+    await screen.findByLabelText("Buscar producto por nombre o código");
+    await fireEvent.press(screen.getByRole("button", { name: "Volver" }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 });

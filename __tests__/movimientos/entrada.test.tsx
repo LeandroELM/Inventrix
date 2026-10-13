@@ -6,6 +6,8 @@ import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockRegistrar = jest.fn();
 const mockReplace = jest.fn();
+const mockBack = jest.fn();
+let mockPuedeVolver = true;
 let mockParams: { productoId?: string } = {};
 const producto = {
   id: "p1",
@@ -25,7 +27,7 @@ jest.mock("@/features/movimientos/api", () => ({
   registrarMovimiento: (...args: unknown[]) => mockRegistrar(...args),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, canGoBack: () => mockPuedeVolver }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -64,6 +66,8 @@ describe("Entrada", () => {
   beforeEach(() => {
     mockRegistrar.mockReset();
     mockReplace.mockReset();
+    mockBack.mockReset();
+    mockPuedeVolver = true;
     mockParams = {};
   });
 

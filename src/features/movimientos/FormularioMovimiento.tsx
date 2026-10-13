@@ -6,6 +6,7 @@ import { Boton } from "@/components/Boton";
 import { ChipsFiltro } from "@/components/ChipsFiltro";
 import { ControlCantidad } from "@/components/ControlCantidad";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { Etiqueta } from "@/components/Etiqueta";
 import { PantallaResultado } from "@/components/PantallaResultado";
 import { Tarjeta } from "@/components/Tarjeta";
@@ -55,8 +56,24 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const enCurso = useRef(false);
   const registrar = useRegistrarMovimiento();
-  const { data: p, isLoading } = useProducto(id ?? "");
+  const { data: p, isLoading, isError, refetch } = useProducto(id ?? "");
   const titulo = tipo === "entrada" ? "Registrar entrada" : "Registrar salida";
+
+  function volver() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
+  }
+
+  // Un error de registro deja de aplicar en cuanto el usuario cambia los datos.
+  function cambiarTexto(valor: string) {
+    setTexto(valor);
+    setError(null);
+  }
+
+  function cambiarMotivo(valor: MotivoSalida | null) {
+    setMotivoElegido(valor);
+    setError(null);
+  }
 
   function reiniciar() {
     setResultado(null);
@@ -99,7 +116,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   if (!id) {
     return (
       <View style={{ flex: 1, backgroundColor: colores.fondo }}>
-        <Encabezado variante="pantalla" titulo={titulo} />
+        <Encabezado variante="pantalla" titulo={titulo} onAtras={volver} />
         <ScrollView
           contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}
           keyboardShouldPersistTaps="handled"
@@ -115,6 +132,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
     <Encabezado
       variante="pantalla"
       titulo={titulo}
+      onAtras={volver}
       accion={{
         icono: "escanear",
         etiqueta: "Escanear otro producto",
@@ -122,6 +140,17 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
       }}
     />
   );
+
+  if (isError && !p) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+        {encabezado}
+        <View style={{ padding: ESPACIO.l }}>
+          <EstadoError mensaje="No se pudo cargar el producto." onReintentar={() => void refetch()} />
+        </View>
+      </View>
+    );
+  }
 
   if (isLoading || !p) {
     return (
@@ -187,7 +216,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
             <Tarjeta style={{ gap: ESPACIO.s }}>
               <ControlCantidad
                 valor={texto}
-                onCambio={setTexto}
+                onCambio={cambiarTexto}
                 unidad={p.unidad}
                 maximo={tipo === "salida" ? p.existencias : undefined}
                 etiqueta={tipo === "entrada" ? "Cantidad a ingresar" : "Cantidad a salir"}
@@ -204,10 +233,10 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
                 <Texto variante="etiqueta" tono="secundario">
                   Motivo de salida
                 </Texto>
-                <ChipsFiltro opciones={MOTIVOS} valor={motivo} onCambio={setMotivoElegido} etiqueta="Motivo de salida" />
+                <ChipsFiltro opciones={MOTIVOS} valor={motivo} onCambio={cambiarMotivo} etiqueta="Motivo de salida" />
               </Tarjeta>
             ) : null}
-            {parseada.ok && tipo === "salida" && generaAlerta(p.existencias, cantidad, p.punto_pedido) ? (
+            {parseada.ok && errorSalida === null && tipo === "salida" && generaAlerta(p.existencias, cantidad, p.punto_pedido) ? (
               <AvisoAdvertencia texto="Con esta salida el producto llegará a su punto de pedido y se enviará una alerta al administrador." />
             ) : null}
             {error ? <AvisoAdvertencia tono="peligro" alerta texto={error} /> : null}
