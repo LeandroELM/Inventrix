@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import type { Rol } from "@/features/auth/permisos";
 import { listarHistorial, type FilaHistorial } from "@/features/movimientos/api";
+import { obtenerDashboard } from "@/features/reportes/api";
+import { aFecha } from "@/features/reportes/dashboard";
 import { formatearCantidad, UNIDADES, type Unidad } from "@/features/productos/unidades";
 
 export type ResumenUnidad = { unidad: Unidad; total: number };
@@ -19,6 +21,7 @@ export type Inicio = {
   resumen: ResumenUnidad[];
   aPedir?: { total: number; primeros: ProductoAPedir[] };
   recientes: FilaHistorial[];
+  hoy?: { entradas: number; salidas: number };
 };
 
 // Totales por unidad, en el orden de UNIDADES; nunca mezcla unidades.
@@ -29,14 +32,27 @@ export function textoResumen(resumen: ResumenUnidad[]): string[] {
     .map((r) => formatearCantidad(r.total, r.unidad));
 }
 
-export async function obtenerInicio(rol: Rol): Promise<Inicio> {
-  const [activos, resumen, aPedir, recientes] = await Promise.all([
+// Entradas y salidas del día; es un dato accesorio, así que un fallo se descarta.
+async function movimientosDeHoy(ahora: Date): Promise<Inicio["hoy"]> {
+  try {
+    const dia = aFecha(ahora);
+    const { serie } = await obtenerDashboard(dia, dia);
+    const punto = serie.find((p) => p.fecha === dia);
+    return { entradas: punto?.entradas ?? 0, salidas: punto?.salidas ?? 0 };
+  } catch {
+    return undefined;
+  }
+}
+
+export async function obtenerInicio(rol: Rol, ahora: Date = new Date()): Promise<Inicio> {
+  const [activos, resumen, aPedir, recientes, hoy] = await Promise.all([
     supabase.from("productos").select("*", { count: "exact", head: true }).eq("activo", true),
     supabase.rpc("resumen_existencias"),
     rol === "admin"
       ? supabase.from("productos_a_pedir").select("*", { count: "exact" }).limit(3)
       : Promise.resolve(null),
     listarHistorial({ pagina: 0 }).then((f) => f.slice(0, 5)),
+    rol === "admin" ? movimientosDeHoy(ahora) : Promise.resolve(undefined),
   ]);
   if (activos.error) throw activos.error;
   if (resumen.error) throw resumen.error;
@@ -48,6 +64,7 @@ export async function obtenerInicio(rol: Rol): Promise<Inicio> {
       ? { total: aPedir.count ?? aPedir.data.length, primeros: aPedir.data as ProductoAPedir[] }
       : undefined,
     recientes,
+    hoy,
   };
 }
 

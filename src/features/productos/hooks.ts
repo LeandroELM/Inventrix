@@ -32,6 +32,7 @@ function useInvalidar() {
       qc.invalidateQueries({ queryKey: ["a-pedir"] }),
       qc.invalidateQueries({ queryKey: ["alertas"] }),
       qc.invalidateQueries({ queryKey: ["historial"] }),
+      qc.invalidateQueries({ queryKey: ["dashboard"] }),
       ...(id ? [qc.invalidateQueries({ queryKey: ["producto", id] })] : []),
     ]);
 }

@@ -1,10 +1,13 @@
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { Presionable } from "@/animacion/Presionable";
 import { Campo } from "@/components/Campo";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { useHistorial } from "@/features/movimientos/hooks";
 import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
 import type { FilaHistorial } from "@/features/movimientos/api";
+import { useProducto } from "@/features/productos/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { Texto } from "@/components/Texto";
 import { useTema } from "@/tema/TemaProvider";
@@ -54,15 +57,34 @@ export default function Movimientos() {
   const { colores } = useTema();
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
+  const router = useRouter();
+  const { productoId: productoParam } = useLocalSearchParams<{ productoId?: string }>();
+  const productoId = productoParam || undefined;
+  const { data: productoFiltrado } = useProducto(productoId ?? "");
   const consulta = useHistorial({
     texto,
+    productoId,
     tipo: segmento === "todos" ? undefined : segmento,
   });
   const filas = consulta.data?.pages.flat() ?? [];
+  const nombreProducto = productoFiltrado?.nombre ?? "…";
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12 }}>
       <Campo label="Buscar" value={texto} onChangeText={setTexto} placeholder="Producto o código" />
+      {productoId ? (
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <Texto style={{ flex: 1 }}>{`Mostrando: ${nombreProducto}`}</Texto>
+          <Presionable
+            accessibilityRole="button"
+            accessibilityLabel="Quitar filtro"
+            onPress={() => router.setParams({ productoId: undefined })}
+            style={{ minHeight: 48, justifyContent: "center" }}
+          >
+            <Texto tono="interactivo">Quitar filtro</Texto>
+          </Presionable>
+        </View>
+      ) : null}
       <View style={{ flexDirection: "row", gap: 8 }}>
         {SEGMENTOS.map((s) => (
           <Pressable

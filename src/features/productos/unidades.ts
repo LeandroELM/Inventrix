@@ -22,3 +22,7 @@ function formatearNumero(n: number): string {
 export function formatearCantidad(cantidad: number, unidad: Unidad): string {
   return `${formatearNumero(cantidad)} ${UNIDADES[unidad].abreviatura}`;
 }
+
+export function detalleProducto(codigo: string | null, unidad: Unidad): string {
+  return `${codigo ?? "Sin código"} · ${UNIDADES[unidad].abreviatura}`;
+}

@@ -1,20 +1,34 @@
 import { ScrollView, View } from "react-native";
-import { Boton } from "@/components/Boton";
+import { useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
+import { entradaEscalonada } from "@/animacion/entradaEscalonada";
+import { Presionable } from "@/animacion/Presionable";
+import { Skeleton } from "@/animacion/Skeleton";
+import { AvisoRecarga } from "@/components/AvisoRecarga";
+import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
+import { Texto } from "@/components/Texto";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAlertas, useMarcarLeidas } from "@/features/alertas/hooks";
+import type { Alerta } from "@/features/alertas/api";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
-import { Texto } from "@/components/Texto";
+import { grupoDia } from "@/lib/fechaRelativa";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ESPACIO, RADIO, sombra } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
-function dos(n: number): string {
-  return String(n).padStart(2, "0");
-}
+type Grupo = "HOY" | "AYER" | "ANTERIORES";
+const GRUPOS: Grupo[] = ["HOY", "AYER", "ANTERIORES"];
 
-function fechaLegible(iso: string): string {
+const dos = (n: number) => String(n).padStart(2, "0");
+
+// Hora (HH:mm) para hoy y ayer; fecha (dd/MM) para anteriores.
+function marcaDeTiempo(iso: string, grupo: Grupo): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}/${d.getFullYear()} ${dos(d.getHours())}:${dos(d.getMinutes())}`;
+  if (grupo === "ANTERIORES") return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}`;
+  return `${dos(d.getHours())}:${dos(d.getMinutes())}`;
 }
 
 export default function Notificaciones() {
@@ -26,31 +40,106 @@ export default function Notificaciones() {
 }
 
 function ListaAlertas() {
-  const { colores } = useTema();
-  const { data, isLoading, isError } = useAlertas();
+  const { colores, esquema } = useTema();
+  const router = useRouter();
+  const { data, isLoading, isError, refetch } = useAlertas();
+  const insets = useSafeAreaInsets();
   const marcar = useMarcarLeidas();
   const hayNoLeidas = data?.some((a) => !a.leida) ?? false;
+  const ahora = new Date();
 
+  const porGrupo = new Map<Grupo, Alerta[]>();
+  for (const a of data ?? []) {
+    const g = grupoDia(a.created_at, ahora);
+    porGrupo.set(g, [...(porGrupo.get(g) ?? []), a]);
+  }
+
+  let indice = 0;
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Boton
-        titulo="Marcar todas como leídas"
-        disabled={!hayNoLeidas}
-        loading={marcar.isPending}
-        onPress={() => marcar.mutate()}
+    <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+      <Encabezado
+        variante="pantalla"
+        titulo="Notificaciones"
+        onAtras={() => router.back()}
+        accion={{
+          texto: "Marcar leídas",
+          deshabilitado: !hayNoLeidas || marcar.isPending,
+          onPress: () => marcar.mutate(),
+        }}
       />
-      {marcar.isError && <Texto accessibilityRole="alert" tono="peligro">{mensajeDeError(marcar.error)}</Texto>}
-      {isLoading && <Texto>Cargando…</Texto>}
-      {isError && <Texto accessibilityRole="alert" tono="peligro">No se pudieron cargar las alertas.</Texto>}
-      {data?.length === 0 && <Texto>No hay alertas.</Texto>}
-      {data?.map((a) => (
-        <View key={a.id} style={{ borderWidth: 1, borderColor: colores.linea, padding: 12, gap: 4 }}>
-          <Texto>{a.producto}</Texto>
-          <Texto>{`Existencias: ${formatearCantidad(a.existencias, a.unidad)} · Punto de pedido: ${formatearCantidad(a.punto_pedido, a.unidad)}`}</Texto>
-          <Texto>{fechaLegible(a.created_at)}</Texto>
-          <Texto>{a.leida ? "Leída" : "No leída"}</Texto>
-        </View>
-      ))}
-    </ScrollView>
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + insets.bottom, gap: ESPACIO.m }}>
+        {marcar.isError ? (
+          <Texto accessibilityRole="alert" tono="peligro">
+            {mensajeDeError(marcar.error)}
+          </Texto>
+        ) : null}
+        {/* Si una recarga falla pero ya hay datos, se siguen mostrando. */}
+        {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
+        {!data && isLoading ? (
+          <>
+            <Skeleton.Fila />
+            <Skeleton.Fila />
+          </>
+        ) : null}
+        {!data && !isLoading ? (
+          <EstadoError mensaje="No se pudieron cargar las notificaciones." onReintentar={() => void refetch()} />
+        ) : null}
+        {data?.length === 0 ? <Texto tono="secundario">No hay alertas.</Texto> : null}
+        {GRUPOS.map((g) => {
+          const alertas = porGrupo.get(g);
+          if (!alertas) return null;
+          return (
+            <View key={g} style={{ gap: ESPACIO.s }}>
+              <Texto variante="etiqueta" tono="secundario" accessibilityRole="header">
+                {g}
+              </Texto>
+              {alertas.map((a) => {
+                const titulo = `Reabastecer: ${a.producto}`;
+                const detalle = `Quedan ${formatearCantidad(a.existencias, a.unidad)} y su punto de pedido es ${formatearCantidad(a.punto_pedido, a.unidad)}.`;
+                const hora = marcaDeTiempo(a.created_at, g);
+                return (
+                  <Animated.View key={a.id} entering={entradaEscalonada(indice++)}>
+                    <Presionable
+                      accessibilityRole="button"
+                      accessibilityLabel={`${a.leida ? "" : "No leída. "}${titulo}. ${detalle} ${hora}`}
+                      onPress={() => router.push("/administracion/pedir")}
+                      style={[
+                        {
+                          backgroundColor: a.leida ? colores.superficie : colores.primario,
+                          borderRadius: RADIO.tarjeta,
+                          padding: ESPACIO.l,
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                          gap: ESPACIO.m,
+                        },
+                        sombra("suave", esquema),
+                      ]}
+                    >
+                      <View style={{ flex: 1, gap: ESPACIO.xs }}>
+                        <Texto variante="cuerpoFuerte" tono={a.leida ? "texto" : "sobrePrimario"}>
+                          {titulo}
+                        </Texto>
+                        <Texto tono={a.leida ? "secundario" : "sobrePrimario"}>{detalle}</Texto>
+                      </View>
+                      <View style={{ alignItems: "flex-end", gap: ESPACIO.s }}>
+                        <Texto variante="pequeno" tono={a.leida ? "secundario" : "sobrePrimario"}>
+                          {hora}
+                        </Texto>
+                        {!a.leida ? (
+                          <View
+                            testID="punto-no-leida"
+                            style={{ width: 10, height: 10, borderRadius: RADIO.completo, backgroundColor: colores.advertencia }}
+                          />
+                        ) : null}
+                      </View>
+                    </Presionable>
+                  </Animated.View>
+                );
+              })}
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }

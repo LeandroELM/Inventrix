@@ -1,4 +1,4 @@
-import { UNIDADES, formatearCantidad } from "@/features/productos/unidades";
+import { UNIDADES, detalleProducto, formatearCantidad } from "@/features/productos/unidades";
 
 describe("UNIDADES", () => {
   it("define abreviaturas y enteras", () => {
@@ -23,5 +23,12 @@ describe("formatearCantidad", () => {
     expect(formatearCantidad(1234567.891, "libra")).toBe("1,234,567.89 lb");
     expect(formatearCantidad(1.999, "libra")).toBe("2 lb");
     expect(formatearCantidad(0, "caja")).toBe("0 cajas");
+  });
+});
+
+describe("detalleProducto", () => {
+  it("une codigo y abreviatura, con Sin codigo si falta", () => {
+    expect(detalleProducto("C-1", "kilogramo")).toBe("C-1 · kg");
+    expect(detalleProducto(null, "caja")).toBe("Sin código · cajas");
   });
 });
