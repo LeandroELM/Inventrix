@@ -18,6 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { useTema } from "@/tema/TemaProvider";
 
 const DURACION = 250;
@@ -41,6 +42,9 @@ export function HojaInferior({ children, onCerrar, encabezado, bloqueado = false
   const { height } = useWindowDimensions();
   const { top } = useSafeAreaInsets();
   const [teclado, setTeclado] = useState(0);
+  // Dentro de las pestañas la hoja llega al borde inferior, bajo la barra y Trix: el contenido
+  // suma su espacio. Con el teclado visible ambos se ocultan y la hoja ya sube sobre él.
+  const espacio = useEspacioInferior();
   // Con edge-to-edge la ventana no se encoge: se sube la hoja la altura del teclado y se
   // limita su alto para que el encabezado siga en pantalla.
   const alto = Math.max(
@@ -164,7 +168,9 @@ export function HojaInferior({ children, onCerrar, encabezado, bloqueado = false
             {encabezado?.(cerrar)}
           </View>
         </GestureDetector>
-        <View style={{ flex: 1 }}>{children}</View>
+        <View testID="contenido-hoja" style={{ flex: 1, paddingBottom: teclado > 0 ? 0 : espacio }}>
+          {children}
+        </View>
       </Animated.View>
     </View>
   );
