@@ -6,6 +6,7 @@ import type { PeriodoDashboard, PuntoSerie } from "@/features/reportes/dashboard
 import { useTema } from "@/tema/TemaProvider";
 
 const ALTO_BARRAS = 140;
+const ANCHO_ETIQUETA = 24;
 const INICIALES_DIA = ["D", "L", "M", "X", "J", "V", "S"];
 
 /** Mayor valor de la serie; 1 si todo es cero, para no dividir entre cero. */
@@ -54,7 +55,7 @@ export function GraficoBarras({ serie, periodo }: Props) {
       {entradas + salidas === 0 ? (
         <Texto tono="secundario">Sin movimientos en el periodo.</Texto>
       ) : (
-        <View onLayout={(e) => setAncho(e.nativeEvent.layout.width)}>
+        <View testID="area-grafico" onLayout={(e) => setAncho(e.nativeEvent.layout.width)}>
           <Svg
             width={ancho}
             height={ALTO_BARRAS}
@@ -88,8 +89,17 @@ export function GraficoBarras({ serie, periodo }: Props) {
           </Svg>
           <View style={{ flexDirection: "row" }}>
             {serie.map((p, i) => (
-              <View key={p.fecha} style={{ width: celda, alignItems: "center" }}>
-                <Texto variante="pequeno" tono="secundario" numberOfLines={1}>
+              <View key={p.fecha} style={{ width: celda, height: 16, overflow: "visible" }}>
+                <Texto
+                  variante="pequeno"
+                  tono="secundario"
+                  style={{
+                    position: "absolute",
+                    width: ANCHO_ETIQUETA,
+                    left: (celda - ANCHO_ETIQUETA) / 2,
+                    textAlign: "center",
+                  }}
+                >
                   {etiquetaEje(p.fecha, i, periodo)}
                 </Texto>
               </View>

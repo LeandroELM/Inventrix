@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GraficoBarras, escalaGrafico, etiquetaEje } from "@/components/GraficoBarras";
 import type { PuntoSerie } from "@/features/reportes/dashboard";
@@ -63,5 +63,20 @@ describe("GraficoBarras", () => {
     await montar(<GraficoBarras serie={SERIE} periodo="7d" />);
     expect(screen.getByText("Entradas")).toBeTruthy();
     expect(screen.getByText("Salidas")).toBeTruthy();
+  });
+
+  it("con el ancho medido muestra las etiquetas de día intactas", async () => {
+    const serie: PuntoSerie[] = Array.from({ length: 30 }, (_, i) => ({
+      fecha: `2026-10-${String(i + 1).padStart(2, "0")}`,
+      entradas: i,
+      salidas: 1,
+    }));
+    await montar(<GraficoBarras serie={serie} periodo="30d" />);
+    await fireEvent(screen.getByTestId("area-grafico"), "layout", {
+      nativeEvent: { layout: { width: 328, height: 200 } },
+    });
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.getByText("6")).toBeTruthy();
+    expect(screen.getByText("11")).toBeTruthy();
   });
 });
