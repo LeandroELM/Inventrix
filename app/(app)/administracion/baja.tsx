@@ -173,12 +173,8 @@ function Baja() {
         )}
       </ScrollView>
       {confirmando ? (
-        <HojaInferior
-          onCerrar={() => {
-            // La hoja no se puede cerrar mientras la baja está en curso.
-            if (!baja.isPending) setConfirmando(false);
-          }}
-        >
+        // La hoja no se puede cerrar mientras la baja está en curso.
+        <HojaInferior bloqueado={baja.isPending} onCerrar={() => setConfirmando(false)}>
           <View style={{ padding: ESPACIO.xl, gap: ESPACIO.l }}>
             <Texto variante="subtitulo">
               {`¿Dar de baja "${p.nombre}"? Dejará de aparecer en Existencias y no podrá usarse en movimientos nuevos.`}

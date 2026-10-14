@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { BackHandler } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Baja from "../../app/(app)/administracion/baja";
 import { formatearCantidad } from "@/features/productos/unidades";
@@ -142,6 +143,24 @@ describe("Baja de producto", () => {
     await screen.findByText("No tienes permiso para realizar esta acción.");
     await waitFor(() => expect(screen.queryByText("Confirmar baja")).toBeNull());
     expect(chip("Descontinuado").props.accessibilityState?.selected).toBe(true);
+  });
+
+  it("con la baja en curso, el fondo y el botón atrás no cierran la confirmación", async () => {
+    await abrir();
+    const espia = jest.spyOn(BackHandler, "addEventListener");
+    let terminar: (v: unknown) => void = () => {};
+    mockDarBaja.mockImplementation(() => new Promise((r) => { terminar = r; }));
+    await fireEvent.press(chip("Descontinuado"));
+    await fireEvent.press(chip("Dar de baja"));
+    await fireEvent.press(screen.getByText("Confirmar baja"));
+    await fireEvent.press(screen.getByLabelText("Cerrar"));
+    const manejador = espia.mock.calls.filter((c) => c[0] === "hardwareBackPress").at(-1)?.[1] as () => boolean;
+    expect(manejador()).toBe(true);
+    await new Promise((r) => setTimeout(r, 400));
+    expect(screen.getByText('¿Dar de baja "Aceite"? Dejará de aparecer en Existencias y no podrá usarse en movimientos nuevos.')).toBeTruthy();
+    expect(chip("Confirmar baja")).toBeTruthy();
+    terminar({});
+    await screen.findByText("Producto dado de baja");
   });
 
   it("un producto inactivo solo muestra el aviso", async () => {
