@@ -130,6 +130,22 @@ describe("HojaExportar", () => {
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
+  it("con la exportación en curso, el velo y Cerrar no cierran la hoja", async () => {
+    let terminar: () => void = () => {};
+    (exportarExcel as jest.Mock).mockReturnValue(new Promise<void>((r) => (terminar = r)));
+    const onCerrar = await montar();
+    await fireEvent.press(screen.getByText("Exportar a Excel"));
+    await waitFor(() => expect(exportarExcel).toHaveBeenCalled());
+    await fireEvent.press(screen.getByRole("button", { name: "Cerrar" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Cerrar exportación" }));
+    await act(async () => {
+      jest.advanceTimersByTime(400);
+    });
+    expect(onCerrar).not.toHaveBeenCalled();
+    terminar();
+    await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
+  });
+
   it("desde posterior a hasta deshabilita", async () => {
     await montar();
     await fireEvent.press(screen.getByRole("button", { name: "Personalizado" }));

@@ -81,7 +81,9 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
   }
 
   return (
+    // La hoja no se puede cerrar mientras la exportación está en curso.
     <HojaInferior
+      bloqueado={exportando}
       onCerrar={onCerrar}
       encabezado={(cerrar) => (
         <View style={{ flexDirection: "row", alignItems: "center", paddingLeft: 20, paddingRight: 4 }}>
@@ -155,7 +157,7 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
               <AvisoAdvertencia texto="La fecha inicial no puede ser posterior a la final." alerta />
             ) : null}
             {aviso ? <AvisoAdvertencia texto={aviso.texto} tono={aviso.tono} alerta /> : null}
-            <Boton titulo="Exportar a Excel" onPress={exportar} loading={exportando} disabled={rangoInvertido} />
+            <Boton titulo="Exportar a Excel" onPress={() => void exportar()} loading={exportando} disabled={rangoInvertido} />
           </>
         )}
       </View>
