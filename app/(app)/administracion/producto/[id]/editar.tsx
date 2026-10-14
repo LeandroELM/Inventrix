@@ -64,6 +64,14 @@ function Formulario({ p }: { p: Producto }) {
   const [errores, setErrores] = useState<ErroresFormulario>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
 
+  // Un cambio en el formulario invalida el error general anterior.
+  function cambiar<T>(fijar: (v: T) => void) {
+    return (v: T) => {
+      setErrorGeneral(null);
+      fijar(v);
+    };
+  }
+
   async function guardar() {
     setErrorGeneral(null);
     // Código y cantidad inicial no se editan: se rellenan con valores válidos para reutilizar la validación.
@@ -110,13 +118,13 @@ function Formulario({ p }: { p: Producto }) {
               </Texto>
             </View>
           </View>
-          <Campo label="Nombre" value={nombre} onChangeText={setNombre} error={errores.nombre} />
-          <SelectorUnidad valor={unidad} onChange={setUnidad} />
+          <Campo label="Nombre" value={nombre} onChangeText={cambiar(setNombre)} error={errores.nombre} />
+          <SelectorUnidad valor={unidad} onChange={cambiar(setUnidad)} />
           <View>
             <Campo
               label="Punto de pedido"
               value={puntoPedido}
-              onChangeText={setPuntoPedido}
+              onChangeText={cambiar(setPuntoPedido)}
               keyboardType="decimal-pad"
               error={errores.puntoPedido}
               style={{ paddingRight: 56 }}

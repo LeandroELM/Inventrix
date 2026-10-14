@@ -67,6 +67,16 @@ describe("Editar producto", () => {
     expect(mockActualizar).not.toHaveBeenCalled();
   });
 
+  it("el error general se borra al cambiar el formulario", async () => {
+    await montar();
+    await screen.findByText("El código no se puede cambiar.");
+    await fireEvent.press(screen.getByRole("button", { name: "Unidad" }));
+    await fireEvent.press(screen.getByText("Guardar cambios"));
+    await screen.findByText(/unidad entera/);
+    await fireEvent.changeText(screen.getByLabelText("Nombre"), "Aceite de oliva");
+    expect(screen.queryByText(/unidad entera/)).toBeNull();
+  });
+
   it("muestra el codigo en solo lectura", async () => {
     await montar();
     expect(await screen.findByText("El código no se puede cambiar.")).toBeTruthy();
