@@ -6,6 +6,7 @@ import { Icono, type NombreIcono } from "@/components/Icono";
 import { Tarjeta } from "@/components/Tarjeta";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { puede, type Accion } from "@/features/auth/permisos";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -30,11 +31,12 @@ export default function Administracion() {
   const { perfil } = useAuth();
   const router = useRouter();
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   if (!perfil) return null;
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Administración" subtitulo="Herramientas del administrador" />
-      <View style={{ padding: ESPACIO.l }}>
+      <View style={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio }}>
         <Tarjeta>
           {OPCIONES.filter((o) => puede(perfil.rol, o.accion)).map((o) => (
             <FilaLista

@@ -22,6 +22,7 @@ import { formatearCantidad, type Unidad } from "@/features/productos/unidades";
 import { validarCantidad } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
 import { horaLocal } from "@/lib/fechaRelativa";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -44,6 +45,7 @@ type Resultado = {
 
 export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   const router = useRouter();
   const params = useLocalSearchParams<{ productoId?: string; motivo?: string }>();
   // undefined: usa el valor del parámetro; null: el usuario pidió elegir otro.
@@ -118,7 +120,7 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
       <View style={{ flex: 1, backgroundColor: colores.fondo }}>
         <Encabezado variante="pantalla" titulo={titulo} onAtras={volver} />
         <ScrollView
-          contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}
+          contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m }}
           keyboardShouldPersistTaps="handled"
         >
           {tipo === "entrada" ? <Etiqueta tipo="disponible" texto="+ Ingreso" /> : null}
@@ -204,7 +206,8 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       {encabezado}
       <ScrollView
-        contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}
+        testID="contenido-principal"
+        contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m }}
         keyboardShouldPersistTaps="handled"
       >
         <TarjetaProductoMovimiento producto={p} tipo={tipo} proyectadas={proyectadas} />

@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Entrada from "../../app/(app)/movimientos/entrada";
+import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockRegistrar = jest.fn();
@@ -40,15 +42,17 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-async function renderizar() {
+async function renderizar(conEspacio = false) {
   const qc = new QueryClient({ defaultOptions: { mutations: { retry: false, gcTime: 0 }, queries: { retry: false, gcTime: 0 } } });
   return render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 } }}
     >
       <TemaProvider>
         <QueryClientProvider client={qc}>
-          <Entrada />
+          <EspacioInferiorContext.Provider value={conEspacio}>
+            <Entrada />
+          </EspacioInferiorContext.Provider>
         </QueryClientProvider>
       </TemaProvider>
     </SafeAreaProvider>,
@@ -75,6 +79,14 @@ describe("Entrada", () => {
     await renderizar();
     expect(await screen.findByLabelText("Buscar producto por nombre o código")).toBeTruthy();
     expect(screen.getByText("+ Ingreso")).toBeTruthy();
+  });
+
+  it("deja espacio final para la barra y Trix", async () => {
+    mockParams = { productoId: "p1" };
+    await renderizar(true);
+    await screen.findByText("Harina");
+    const estilo = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    expect(estilo.paddingBottom).toBe(16 + 162);
   });
 
   it("proyecta las existencias, registra y muestra el resultado", async () => {

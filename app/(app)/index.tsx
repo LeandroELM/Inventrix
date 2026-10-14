@@ -21,6 +21,7 @@ import { filasResumen, type Inicio as DatosInicio, type ResumenUnidad } from "@/
 import { useInicio } from "@/features/inicio/hooks";
 import { estadoInventario } from "@/features/productos/estado";
 import { detalleProducto, formatearCantidad, UNIDADES } from "@/features/productos/unidades";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -51,13 +52,15 @@ function PanelInicio({ nombre, rol }: { nombre: string; rol: Rol }) {
   const inicio = useInicio(rol);
   const { data } = inicio;
   const queryClient = useQueryClient();
+  const espacio = useEspacioInferior();
   // Refresca todo el prefijo "inicio": datos del panel y contador de la campana.
   const recargar = () => void queryClient.refetchQueries({ queryKey: ["inicio"] });
 
   return (
     <ScrollView
+      testID="contenido-principal"
       style={{ backgroundColor: colores.fondo }}
-      contentContainerStyle={{ paddingBottom: ESPACIO.l, gap: ESPACIO.l }}
+      contentContainerStyle={{ paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}
       refreshControl={<RefreshControl refreshing={inicio.isRefetching} onRefresh={recargar} />}
     >
       {esAdmin ? (

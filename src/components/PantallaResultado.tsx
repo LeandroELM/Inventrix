@@ -4,6 +4,7 @@ import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AvatarProducto } from "@/components/AvatarProducto";
 import { AvisoAdvertencia } from "@/components/AvisoAdvertencia";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { Boton } from "@/components/Boton";
 import { Icono } from "@/components/Icono";
 import { Tarjeta } from "@/components/Tarjeta";
@@ -27,6 +28,7 @@ type Props = {
 export function PantallaResultado({ titulo, frase, producto, datos, aviso, principal, secundario }: Props) {
   const { colores } = useTema();
   const insets = useSafeAreaInsets();
+  const espacio = useEspacioInferior();
   const [inicio, fin] = colores.encabezado;
 
   return (
@@ -68,14 +70,15 @@ export function PantallaResultado({ titulo, frase, producto, datos, aviso, princ
           </Texto>
         </View>
         <View
+          testID="acciones-resultado"
           style={{
             flexGrow: 1,
             backgroundColor: colores.fondo,
             borderTopLeftRadius: RADIO.encabezado,
             borderTopRightRadius: RADIO.encabezado,
             padding: ESPACIO.l,
-            // Se muestra dentro de una pestaña: la escena ya reserva el inset inferior y la barra.
-            paddingBottom: ESPACIO.l,
+            // Dentro de las pestañas, el contenido pasa bajo la barra: se suma su espacio.
+            paddingBottom: ESPACIO.l + espacio,
             gap: ESPACIO.l,
           }}
         >

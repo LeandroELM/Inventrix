@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Inicio from "../../app/(app)/index";
+import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 import type { Inicio as DatosInicio } from "@/features/inicio/api";
 
@@ -60,7 +62,11 @@ const base: DatosInicio = {
 
 const cliente = new QueryClient();
 
-async function montar(datos: Partial<{ data: DatosInicio; isError: boolean; isLoading: boolean }>, rol: "admin" | "operativo" = "admin") {
+async function montar(
+  datos: Partial<{ data: DatosInicio; isError: boolean; isLoading: boolean }>,
+  rol: "admin" | "operativo" = "admin",
+  conEspacio = false,
+) {
   mockUseAuth.mockReturnValue({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol } });
   mockUseInicio.mockReturnValue({
     data: undefined,
@@ -73,10 +79,12 @@ async function montar(datos: Partial<{ data: DatosInicio; isError: boolean; isLo
   await render(
     <QueryClientProvider client={cliente}>
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 } }}
     >
       <TemaProvider>
-        <Inicio />
+        <EspacioInferiorContext.Provider value={conEspacio}>
+          <Inicio />
+        </EspacioInferiorContext.Provider>
       </TemaProvider>
     </SafeAreaProvider>
     </QueryClientProvider>,
@@ -87,6 +95,12 @@ describe("Inicio", () => {
   beforeEach(() => {
     mockPush.mockReset();
     mockAlertas.mockReturnValue(2);
+  });
+
+  it("deja espacio final para la barra y Trix", async () => {
+    await montar({ data: base }, "admin", true);
+    const estilo = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    expect(estilo.paddingBottom).toBe(16 + 162);
   });
 
   it("administrador: saludo, chips de hoy, alerta, proximos a agotarse y movimientos", async () => {

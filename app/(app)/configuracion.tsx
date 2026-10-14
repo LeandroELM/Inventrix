@@ -1,92 +1,39 @@
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, Switch, View } from "react-native";
+import { Switch, View } from "react-native";
 import { Boton } from "@/components/Boton";
-import { Campo } from "@/components/Campo";
+import { FilaLista } from "@/components/FilaLista";
+import { Icono } from "@/components/Icono";
+import { IconoTrix } from "@/components/Marca";
 import { Pantalla } from "@/components/Pantalla";
+import { Tarjeta } from "@/components/Tarjeta";
+import { Texto } from "@/components/Texto";
 import { cargarNotificaciones } from "@/features/alertas/notificaciones";
 import { registrarPush, type ResultadoPush } from "@/features/alertas/push";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { validarContrasenaNueva } from "@/features/configuracion/contrasena";
+import { HojaCerrarSesion } from "@/features/configuracion/HojaCerrarSesion";
+import { HojaContrasena } from "@/features/configuracion/HojaContrasena";
+import { TarjetaPerfil } from "@/features/configuracion/TarjetaPerfil";
 import { mensajeDeError } from "@/lib/errores";
-import { supabase } from "@/lib/supabase";
+import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
-import { Texto } from "@/components/Texto";
 
-const ROLES = { admin: "Administrador", operativo: "Operativo" } as const;
 const ESTADO_PERMISO = {
   granted: "Permitido",
   denied: "Denegado",
   undetermined: "Sin definir",
 } as const;
 
-function SeccionCuenta() {
-  const { perfil } = useAuth();
-  const [abierto, setAbierto] = useState(false);
-  const [nueva, setNueva] = useState("");
-  const [confirmacion, setConfirmacion] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [exito, setExito] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-
-  async function cambiar() {
-    setExito(false);
-    const invalido = validarContrasenaNueva(nueva, confirmacion);
-    if (invalido) {
-      setError(invalido);
-      return;
-    }
-    setError(null);
-    setGuardando(true);
-    try {
-      const { error: e } = await supabase.auth.updateUser({ password: nueva });
-      if (e) {
-        setError(mensajeDeError(e));
-        return;
-      }
-      setNueva("");
-      setConfirmacion("");
-      setAbierto(false);
-      setExito(true);
-    } catch (e) {
-      setError(mensajeDeError(e));
-    } finally {
-      setGuardando(false);
-    }
-  }
-
+function Encabezado({ texto }: { texto: string }) {
   return (
-    <>
-      <Texto accessibilityRole="header" variante="subtitulo">Mi cuenta</Texto>
-      {perfil ? (
-        <>
-          <Texto>Nombre: {perfil.nombre}</Texto>
-          <Texto>Usuario: {perfil.usuario}</Texto>
-          <Texto>Rol: {ROLES[perfil.rol]}</Texto>
-        </>
-      ) : null}
-      {exito ? <Texto>Contraseña actualizada.</Texto> : null}
-      {abierto ? (
-        <>
-          <Campo label="Nueva contraseña" secureTextEntry autoCapitalize="none" value={nueva} onChangeText={setNueva} />
-          <Campo
-            label="Confirmar contraseña"
-            secureTextEntry
-            autoCapitalize="none"
-            value={confirmacion}
-            onChangeText={setConfirmacion}
-          />
-          {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
-          <Boton titulo="Guardar contraseña" onPress={() => void cambiar()} loading={guardando} />
-        </>
-      ) : (
-        <Boton titulo="Cambiar contraseña" onPress={() => setAbierto(true)} />
-      )}
-    </>
+    <Texto accessibilityRole="header" variante="pequeno" tono="secundario">
+      {texto}
+    </Texto>
   );
 }
 
-function SeccionNotificaciones() {
+function useNotificaciones() {
   const [permiso, setPermiso] = useState<string>("Consultando…");
   const [resultado, setResultado] = useState<ResultadoPush | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -120,43 +67,161 @@ function SeccionNotificaciones() {
     await consultar();
   }
 
+  return { permiso, resultado, error, reintentar };
+}
+
+type EstadoNotificaciones = ReturnType<typeof useNotificaciones>;
+
+function FilaNotificaciones({
+  permiso,
+  reintentar,
+}: Pick<EstadoNotificaciones, "permiso" | "reintentar">) {
+  const { colores } = useTema();
   return (
-    <>
-      <Texto accessibilityRole="header" variante="subtitulo">Notificaciones</Texto>
-      <Texto>Permiso: {permiso}</Texto>
-      {resultado === "autorizado" ? <Texto>Dispositivo registrado.</Texto> : null}
-      {resultado === "denegado" ? <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto> : null}
-      {resultado === "no_disponible" ? <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto> : null}
-      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
-      <Boton titulo="Reintentar registro" onPress={() => void reintentar()} />
-    </>
+    <FilaLista
+      titulo="Notificaciones"
+      detalle={`Permiso: ${permiso}`}
+      izquierda={<Icono nombre="campana" tamano={20} color={colores.textoSecundario} />}
+      derecha={
+        permiso !== "Permitido" ? (
+          <Boton
+            titulo="Reintentar"
+            variante="secundario"
+            accessibilityLabel="Reintentar registro de notificaciones"
+            onPress={() => void reintentar()}
+          />
+        ) : undefined
+      }
+    />
   );
 }
 
-function FilaModoOscuro() {
-  const { esquema, alternarEsquema } = useTema();
+function MensajesNotificaciones({
+  resultado,
+  error,
+}: Pick<EstadoNotificaciones, "resultado" | "error">) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-      <Texto>Modo oscuro</Texto>
-      <Switch accessibilityLabel="Modo oscuro" value={esquema === "oscuro"} onValueChange={alternarEsquema} />
-    </View>
+    <>
+      {resultado === "autorizado" ? <Texto>Dispositivo registrado.</Texto> : null}
+      {resultado === "denegado" ? (
+        <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto>
+      ) : null}
+      {resultado === "no_disponible" ? (
+        <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto>
+      ) : null}
+      {error ? (
+        <Texto accessibilityRole="alert" tono="peligro">
+          {error}
+        </Texto>
+      ) : null}
+    </>
   );
 }
 
 export default function Configuracion() {
   const { perfil, cerrarSesion } = useAuth();
   const router = useRouter();
+  const { colores, esquema, alternarEsquema } = useTema();
+  const [hoja, setHoja] = useState<"contrasena" | "sesion" | null>(null);
+  const [exito, setExito] = useState(false);
+  const notificaciones = useNotificaciones();
+  const esAdmin = perfil?.rol === "admin";
+  const version = Constants.expoConfig?.version;
+
   return (
-    <Pantalla bordeSuperior>
-      <ScrollView contentContainerStyle={{ gap: 12 }}>
-        <Texto accessibilityRole="header" variante="subtitulo">Configuración</Texto>
-        <SeccionCuenta />
-        {perfil?.rol === "admin" ? <SeccionNotificaciones /> : null}
-        <FilaModoOscuro />
-        <Texto accessibilityRole="header" variante="subtitulo">Soporte técnico</Texto>
-        <Boton titulo="Abrir soporte" onPress={() => router.push("/soporte")} />
-        <Boton titulo="Cerrar sesión" onPress={() => void cerrarSesion()} />
-      </ScrollView>
-    </Pantalla>
+    <>
+      <Pantalla scroll bordeSuperior>
+        <Texto accessibilityRole="header" variante="titulo">
+          Configuración
+        </Texto>
+        {perfil ? <TarjetaPerfil perfil={perfil} /> : null}
+        {exito ? (
+          <Texto tono="exito" accessibilityLiveRegion="polite">
+            Contraseña actualizada.
+          </Texto>
+        ) : null}
+
+        <Encabezado texto="CUENTA" />
+        <Tarjeta>
+          <FilaLista
+            titulo="Cambiar contraseña"
+            izquierda={<Icono nombre="candado" tamano={20} color={colores.textoSecundario} />}
+            onPress={() => {
+              setExito(false);
+              setHoja("contrasena");
+            }}
+          />
+        </Tarjeta>
+
+        <Encabezado texto="PREFERENCIAS" />
+        <View testID="tarjeta-preferencias">
+          <Tarjeta>
+            <FilaLista
+              titulo="Modo oscuro"
+              izquierda={<Icono nombre="luna" tamano={20} color={colores.textoSecundario} />}
+              onPress={alternarEsquema}
+              derecha={
+                <Switch
+                  accessibilityLabel="Modo oscuro"
+                  value={esquema === "oscuro"}
+                  onValueChange={alternarEsquema}
+                  trackColor={{ false: colores.inactivo, true: colores.interactivo }}
+                  thumbColor={colores.superficie}
+                />
+              }
+            />
+            {esAdmin ? (
+              <FilaNotificaciones
+                permiso={notificaciones.permiso}
+                reintentar={notificaciones.reintentar}
+              />
+            ) : null}
+          </Tarjeta>
+        </View>
+        {esAdmin ? (
+          <MensajesNotificaciones
+            resultado={notificaciones.resultado}
+            error={notificaciones.error}
+          />
+        ) : null}
+
+        <Encabezado texto="AYUDA" />
+        <Tarjeta>
+          <FilaLista
+            titulo="Hablar con Trix"
+            detalle="Dudas sobre cómo usar la app"
+            izquierda={<IconoTrix tamano={20} />}
+            onPress={() => router.push("/soporte")}
+          />
+        </Tarjeta>
+
+        <Tarjeta>
+          <FilaLista
+            titulo="Cerrar sesión"
+            tono="peligro"
+            izquierda={<Icono nombre="salir" tamano={20} color={colores.peligro} />}
+            onPress={() => setHoja("sesion")}
+          />
+        </Tarjeta>
+
+        {version ? (
+          <View style={{ alignItems: "center", paddingTop: ESPACIO.s }}>
+            <Texto variante="pequeno" tono="secundario">{`Inventrix v${version}`}</Texto>
+          </View>
+        ) : null}
+      </Pantalla>
+      {hoja === "contrasena" ? (
+        <HojaContrasena
+          onCerrar={() => setHoja(null)}
+          onGuardada={() => {
+            setHoja(null);
+            setExito(true);
+          }}
+        />
+      ) : null}
+      {hoja === "sesion" ? (
+        <HojaCerrarSesion onCerrar={() => setHoja(null)} onConfirmar={cerrarSesion} />
+      ) : null}
+    </>
   );
 }

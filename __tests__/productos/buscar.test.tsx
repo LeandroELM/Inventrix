@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Buscar from "../../app/(app)/buscar";
+import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 import { estadoInventario } from "@/features/productos/estado";
 
@@ -53,14 +55,16 @@ function simular(
   });
 }
 
-async function montar(rol: "admin" | "operativo" = "admin") {
+async function montar(rol: "admin" | "operativo" = "admin", conEspacio = false) {
   mockUseAuth.mockReturnValue({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol } });
   await render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 } }}
     >
       <TemaProvider>
-        <Buscar />
+        <EspacioInferiorContext.Provider value={conEspacio}>
+          <Buscar />
+        </EspacioInferiorContext.Provider>
       </TemaProvider>
     </SafeAreaProvider>,
   );
@@ -70,6 +74,24 @@ describe("Buscar / Existencias", () => {
   beforeEach(() => {
     mockPush.mockReset();
     mockRefetch.mockReset();
+  });
+
+  it("Exportar a Excel queda sobre la barra", async () => {
+    simular();
+    await montar("admin", true);
+    // El pie (aviso y botón) está fuera de la lista: el espacio va en el contenedor que lo envuelve.
+    const cuerpo = screen.getByTestId("cuerpo-buscar");
+    expect(StyleSheet.flatten(cuerpo.props.style).paddingBottom).toBe(16 + 162);
+    expect(screen.getByText("Exportar a Excel")).toBeTruthy();
+    // La lista ya termina sobre ese espacio: no lo repite.
+    const lista = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    expect(lista.paddingBottom).toBe(16);
+  });
+
+  it("fuera de las pestañas el pie conserva su relleno", async () => {
+    simular();
+    await montar("admin", false);
+    expect(StyleSheet.flatten(screen.getByTestId("cuerpo-buscar").props.style).paddingBottom).toBe(16);
   });
 
   it("muestra titulo, subtitulo y los tres productos", async () => {

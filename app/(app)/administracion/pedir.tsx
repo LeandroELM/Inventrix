@@ -13,6 +13,7 @@ import { Texto } from "@/components/Texto";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useAPedir } from "@/features/alertas/hooks";
 import { formatearCantidad } from "@/features/productos/unidades";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -34,11 +35,12 @@ function ListaAPedir() {
   const { colores } = useTema();
   const router = useRouter();
   const { data, isLoading, isError, refetch } = useAPedir();
+  const espacio = useEspacioInferior();
 
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Productos a pedir" onAtras={() => router.back()} />
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }}>
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m }}>
         {/* Si una recarga falla pero ya hay datos, se siguen mostrando. */}
         {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {!data && isLoading ? (

@@ -23,6 +23,7 @@ import { exportarExcel, nombreArchivoReporte } from "@/features/reportes/excel";
 import { HojaExportar } from "@/features/reportes/HojaExportar";
 import { useDashboard } from "@/features/reportes/hooks";
 import { mensajeDeError } from "@/lib/errores";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -59,6 +60,7 @@ type Aviso = { texto: string; tono: "advertencia" | "peligro" };
 
 function Reportes() {
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [periodo, setPeriodo] = useState<PeriodoDashboard>("7d");
@@ -110,7 +112,7 @@ function Reportes() {
         onAtras={() => (router.canGoBack() ? router.back() : router.replace("/administracion"))}
       />
       <ScrollView
-        contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}
+        contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}
         refreshControl={<RefreshControl refreshing={refrescandoManual} onRefresh={refrescar} />}
       >
         <ChipsFiltro etiqueta="Periodo" opciones={PERIODOS} valor={periodo} onCambio={setPeriodo} />

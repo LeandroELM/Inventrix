@@ -1,8 +1,11 @@
+import { StyleSheet } from "react-native";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { FilaLista } from "@/components/FilaLista";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { FilaProducto } from "@/components/FilaProducto";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
+import { Texto } from "@/components/Texto";
 import { contraste } from "@/tema/contraste";
 import { PALETAS, type Esquema } from "@/tema/tokens";
 import { TemaProvider } from "@/tema/TemaProvider";
@@ -41,6 +44,26 @@ describe("FilaProducto", () => {
     const nombre = "A".repeat(60);
     await montar(<FilaProducto nombre={nombre} detalle="x" cantidad="1 unid." estado="disponible" />);
     expect(screen.getByText(nombre).props.numberOfLines).toBe(1);
+  });
+});
+
+describe("FilaLista", () => {
+  it("con derecha no dibuja el chevrón", async () => {
+    await montar(<FilaLista titulo="Ajuste" derecha={<Texto>Sí</Texto>} onPress={() => {}} />);
+    expect(screen.getByText("Sí")).toBeTruthy();
+    expect(screen.queryByTestId("chevron-fila")).toBeNull();
+  });
+
+  it("en tono peligro", async () => {
+    await montar(<FilaLista titulo="Cerrar sesión" tono="peligro" onPress={() => {}} />);
+    const estilo = StyleSheet.flatten(screen.getByText("Cerrar sesión").props.style);
+    expect(estilo.color).toBe(PALETAS.claro.textoPeligro);
+    expect(screen.queryByTestId("chevron-fila")).toBeNull();
+  });
+
+  it("con onPress normal dibuja el chevrón", async () => {
+    await montar(<FilaLista titulo="Ajuste" onPress={() => {}} />);
+    expect(screen.getByTestId("chevron-fila", { includeHiddenElements: true })).toBeTruthy();
   });
 });
 

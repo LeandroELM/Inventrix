@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { PantallaResultado } from "@/components/PantallaResultado";
 import { TemaProvider } from "@/tema/TemaProvider";
 
@@ -16,14 +18,15 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-async function montar(props: Partial<React.ComponentProps<typeof PantallaResultado>> = {}) {
+async function montar(props: Partial<React.ComponentProps<typeof PantallaResultado>> = {}, enPestanas = false, inferior = 0) {
   const principal = { titulo: "Registrar otra salida", onPress: jest.fn() };
   const secundario = { titulo: "Volver al inicio", onPress: jest.fn() };
   await render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: inferior } }}
     >
       <TemaProvider>
+        <EspacioInferiorContext.Provider value={enPestanas}>
         <PantallaResultado
           titulo="¡Salida registrada!"
           frase="El inventario se actualizó correctamente."
@@ -36,6 +39,7 @@ async function montar(props: Partial<React.ComponentProps<typeof PantallaResulta
           secundario={secundario}
           {...props}
         />
+        </EspacioInferiorContext.Provider>
       </TemaProvider>
     </SafeAreaProvider>,
   );
@@ -85,5 +89,11 @@ describe("PantallaResultado", () => {
     const nombre = "Nombre muy largo ".repeat(10).trim();
     await montar({ producto: { nombre, detalle: "Código 1" } });
     expect(screen.getByText(nombre).props.numberOfLines).toBe(2);
+  });
+
+  it("los botones quedan sobre la barra en las pestañas", async () => {
+    await montar({}, true, 24);
+    const estilo = StyleSheet.flatten(screen.getByTestId("acciones-resultado").props.style);
+    expect(estilo.paddingBottom).toBe(16 + 162);
   });
 });

@@ -1,4 +1,6 @@
+import { createContext, useContext } from "react";
 import { View } from "react-native";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "expo-router/tabs";
 import { Presionable } from "@/animacion/Presionable";
 import { Icono, type NombreIcono } from "@/components/Icono";
@@ -14,6 +16,17 @@ export const ESPACIO_TRIX = 64;
 
 export function espacioInferior(insetInferior: number): number {
   return ALTO_BARRA + MARGEN_BARRA + insetInferior + ESPACIO_TRIX;
+}
+
+// Las pestañas lo activan: dentro de ellas el contenido se desplaza bajo la barra y Trix, y cada
+// pantalla suma este espacio al final para que lo último no quede tapado.
+export const EspacioInferiorContext = createContext(false);
+
+export function useEspacioInferior(): number {
+  const enPestanas = useContext(EspacioInferiorContext);
+  // Contexto directo: sin SafeAreaProvider el inset es 0 en vez de lanzar.
+  const insets = useContext(SafeAreaInsetsContext);
+  return enPestanas ? espacioInferior(insets?.bottom ?? 0) : 0;
 }
 
 // Pestañas con un Stack anidado: al tocarlas se vuelve a su pantalla raíz.

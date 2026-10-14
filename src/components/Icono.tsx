@@ -8,12 +8,16 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  CircleHelp,
+  Eye,
+  EyeOff,
   Flashlight,
   House,
   ImageUp,
   Info,
   LayoutGrid,
   Lock,
+  LogOut,
   MessageCircle,
   Minus,
   Moon,
@@ -24,6 +28,7 @@ import {
   SlidersHorizontal,
   TrendingUp,
   TriangleAlert,
+  User,
   X,
 } from "lucide-react-native";
 import { useTema } from "@/tema/TemaProvider";
@@ -55,6 +60,11 @@ export const ICONOS = {
   subida: TrendingUp,
   linterna: Flashlight,
   imagen: ImageUp,
+  usuario: User,
+  ojo: Eye,
+  ojoTachado: EyeOff,
+  salir: LogOut,
+  ayuda: CircleHelp,
 };
 
 export type NombreIcono = keyof typeof ICONOS;
@@ -63,12 +73,14 @@ export function Icono({
   nombre,
   tamano = 20,
   color,
+  testID,
 }: {
   nombre: NombreIcono;
   tamano?: number;
   color?: string;
+  testID?: string;
 }) {
   const { colores } = useTema();
   const Componente = ICONOS[nombre];
-  return <Componente size={tamano} color={color ?? colores.texto} strokeWidth={1.75} />;
+  return <Componente size={tamano} color={color ?? colores.texto} strokeWidth={1.75} testID={testID} />;
 }

@@ -20,6 +20,7 @@ import { ETIQUETAS_MOTIVO_BAJA, MOTIVOS_BAJA, type MotivoBaja } from "@/features
 import { detalleProducto, formatearCantidad } from "@/features/productos/unidades";
 import { mensajeDeError } from "@/lib/errores";
 import { fechaLocal } from "@/lib/fechaRelativa";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -29,6 +30,7 @@ type Resultado = { nombre: string; detalle: string; retiradas: string; fecha: st
 
 function Baja() {
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   const router = useRouter();
   const { productoId } = useLocalSearchParams<{ productoId?: string }>();
   // undefined: usa el producto recibido por parámetro; null: el usuario pidió elegir otro.
@@ -77,7 +79,7 @@ function Baja() {
     return (
       <View style={{ flex: 1, backgroundColor: colores.fondo }}>
         {encabezado}
-        <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m }} keyboardShouldPersistTaps="handled">
           <BuscadorProducto escanearDestino="baja" onElegir={setId} />
         </ScrollView>
       </View>
@@ -134,7 +136,7 @@ function Baja() {
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       {encabezado}
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.m }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m }} keyboardShouldPersistTaps="handled">
         <Tarjeta>
           <View style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.m }}>
             <AvatarProducto nombre={p.nombre} tamano={48} />

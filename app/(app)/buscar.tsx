@@ -18,6 +18,7 @@ import { useProductos } from "@/features/productos/hooks";
 import { detalleProducto, formatearCantidad } from "@/features/productos/unidades";
 import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/features/reportes/excel";
 import { mensajeDeError } from "@/lib/errores";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -34,6 +35,7 @@ export default function Buscar() {
   const { colores } = useTema();
   const router = useRouter();
   const { perfil } = useAuth();
+  const espacio = useEspacioInferior();
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -82,7 +84,9 @@ export default function Buscar() {
           onPress: () => router.push("/escaner?destino=existencias"),
         }}
       />
-      <View style={{ padding: ESPACIO.l, gap: ESPACIO.m, flex: 1 }}>
+      {/* El pie (aviso y "Exportar a Excel") queda fijo bajo la lista: el contenedor suma el
+          espacio para que la barra y Trix no lo tapen. */}
+      <View testID="cuerpo-buscar" style={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m, flex: 1 }}>
         <EntradaTexto
           accessibilityLabel="Buscar producto"
           placeholder="Buscar por nombre o código"
@@ -100,7 +104,9 @@ export default function Buscar() {
         {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {data ? (
           <FlatList
+            testID="contenido-principal"
             style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: ESPACIO.l }}
             data={data}
             keyExtractor={(p) => p.id}
             ListEmptyComponent={

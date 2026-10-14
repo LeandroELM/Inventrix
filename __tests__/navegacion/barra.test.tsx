@@ -1,6 +1,19 @@
+/// <reference types="node" />
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import fs from "fs";
+import path from "path";
 import type { ComponentProps } from "react";
-import { ALTO_BARRA, BarraInferior, ESPACIO_TRIX, MARGEN_BARRA, espacioInferior } from "@/components/BarraInferior";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  ALTO_BARRA,
+  BarraInferior,
+  ESPACIO_TRIX,
+  EspacioInferiorContext,
+  MARGEN_BARRA,
+  espacioInferior,
+  useEspacioInferior,
+} from "@/components/BarraInferior";
+import { Texto } from "@/components/Texto";
 import { tabsPara } from "@/features/auth/navegacion";
 import { useTecladoVisible } from "@/lib/useTecladoVisible";
 import { TemaProvider } from "@/tema/TemaProvider";
@@ -33,6 +46,10 @@ async function dibujar(props: Props) {
       <BarraInferior {...props} />
     </TemaProvider>,
   );
+}
+
+function MuestraEspacio() {
+  return <Texto>{String(useEspacioInferior())}</Texto>;
 }
 
 describe("BarraInferior", () => {
@@ -107,5 +124,35 @@ describe("BarraInferior", () => {
   it("reserva espacio para barra y Trix", () => {
     expect(espacioInferior(24)).toBe(162);
     expect([ALTO_BARRA, MARGEN_BARRA, ESPACIO_TRIX]).toEqual([62, 12, 64]);
+  });
+
+  it("useEspacioInferior es 0 fuera de las pestañas", async () => {
+    await render(
+      <TemaProvider>
+        <MuestraEspacio />
+      </TemaProvider>,
+    );
+    expect(screen.getByText("0")).toBeTruthy();
+  });
+
+  it("useEspacioInferior dentro de las pestañas suma barra, inset y Trix", async () => {
+    await render(
+      <SafeAreaProvider
+        initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 24 } }}
+      >
+        <TemaProvider>
+          <EspacioInferiorContext.Provider value={true}>
+            <MuestraEspacio />
+          </EspacioInferiorContext.Provider>
+        </TemaProvider>
+      </SafeAreaProvider>,
+    );
+    expect(screen.getByText(String(espacioInferior(24)))).toBeTruthy();
+  });
+
+  it("el layout de pestañas no reserva espacio en la escena", () => {
+    const fuente = fs.readFileSync(path.join(__dirname, "../../app/(app)/_layout.tsx"), "utf8");
+    expect(fuente).not.toContain("paddingBottom");
+    expect(fuente).toContain("EspacioInferiorContext.Provider");
   });
 });
