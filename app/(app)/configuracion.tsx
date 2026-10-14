@@ -33,8 +33,7 @@ function Encabezado({ texto }: { texto: string }) {
   );
 }
 
-function FilaNotificaciones() {
-  const { colores } = useTema();
+function useNotificaciones() {
   const [permiso, setPermiso] = useState<string>("Consultando…");
   const [resultado, setResultado] = useState<ResultadoPush | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,27 +67,53 @@ function FilaNotificaciones() {
     await consultar();
   }
 
+  return { permiso, resultado, error, reintentar };
+}
+
+type EstadoNotificaciones = ReturnType<typeof useNotificaciones>;
+
+function FilaNotificaciones({
+  permiso,
+  reintentar,
+}: Pick<EstadoNotificaciones, "permiso" | "reintentar">) {
+  const { colores } = useTema();
+  return (
+    <FilaLista
+      titulo="Notificaciones"
+      detalle={`Permiso: ${permiso}`}
+      izquierda={<Icono nombre="campana" tamano={20} color={colores.textoSecundario} />}
+      derecha={
+        permiso !== "Permitido" ? (
+          <Boton
+            titulo="Reintentar"
+            variante="secundario"
+            accessibilityLabel="Reintentar registro de notificaciones"
+            onPress={() => void reintentar()}
+          />
+        ) : undefined
+      }
+    />
+  );
+}
+
+function MensajesNotificaciones({
+  resultado,
+  error,
+}: Pick<EstadoNotificaciones, "resultado" | "error">) {
   return (
     <>
-      <FilaLista
-        titulo="Notificaciones"
-        detalle={`Permiso: ${permiso}`}
-        izquierda={<Icono nombre="campana" tamano={20} color={colores.textoSecundario} />}
-        derecha={
-          permiso !== "Permitido" ? (
-            <Boton
-              titulo="Reintentar"
-              variante="secundario"
-              accessibilityLabel="Reintentar registro de notificaciones"
-              onPress={() => void reintentar()}
-            />
-          ) : undefined
-        }
-      />
       {resultado === "autorizado" ? <Texto>Dispositivo registrado.</Texto> : null}
-      {resultado === "denegado" ? <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto> : null}
-      {resultado === "no_disponible" ? <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto> : null}
-      {error ? <Texto accessibilityRole="alert" tono="peligro">{error}</Texto> : null}
+      {resultado === "denegado" ? (
+        <Texto>Permiso denegado. Actívalo en los ajustes del teléfono.</Texto>
+      ) : null}
+      {resultado === "no_disponible" ? (
+        <Texto>Las notificaciones no están disponibles en este dispositivo.</Texto>
+      ) : null}
+      {error ? (
+        <Texto accessibilityRole="alert" tono="peligro">
+          {error}
+        </Texto>
+      ) : null}
     </>
   );
 }
@@ -99,15 +124,21 @@ export default function Configuracion() {
   const { colores, esquema, alternarEsquema } = useTema();
   const [hoja, setHoja] = useState<"contrasena" | "sesion" | null>(null);
   const [exito, setExito] = useState(false);
+  const notificaciones = useNotificaciones();
+  const esAdmin = perfil?.rol === "admin";
   const version = Constants.expoConfig?.version;
 
   return (
     <>
       <Pantalla scroll bordeSuperior>
-        <Texto accessibilityRole="header" variante="titulo">Configuración</Texto>
+        <Texto accessibilityRole="header" variante="titulo">
+          Configuración
+        </Texto>
         {perfil ? <TarjetaPerfil perfil={perfil} /> : null}
         {exito ? (
-          <Texto tono="exito" accessibilityLiveRegion="polite">Contraseña actualizada.</Texto>
+          <Texto tono="exito" accessibilityLiveRegion="polite">
+            Contraseña actualizada.
+          </Texto>
         ) : null}
 
         <Encabezado texto="CUENTA" />
@@ -123,17 +154,34 @@ export default function Configuracion() {
         </Tarjeta>
 
         <Encabezado texto="PREFERENCIAS" />
-        <Tarjeta>
-          <FilaLista
-            titulo="Modo oscuro"
-            izquierda={<Icono nombre="luna" tamano={20} color={colores.textoSecundario} />}
-            onPress={alternarEsquema}
-            derecha={
-              <Switch accessibilityLabel="Modo oscuro" value={esquema === "oscuro"} onValueChange={alternarEsquema} />
-            }
+        <View testID="tarjeta-preferencias">
+          <Tarjeta>
+            <FilaLista
+              titulo="Modo oscuro"
+              izquierda={<Icono nombre="luna" tamano={20} color={colores.textoSecundario} />}
+              onPress={alternarEsquema}
+              derecha={
+                <Switch
+                  accessibilityLabel="Modo oscuro"
+                  value={esquema === "oscuro"}
+                  onValueChange={alternarEsquema}
+                />
+              }
+            />
+            {esAdmin ? (
+              <FilaNotificaciones
+                permiso={notificaciones.permiso}
+                reintentar={notificaciones.reintentar}
+              />
+            ) : null}
+          </Tarjeta>
+        </View>
+        {esAdmin ? (
+          <MensajesNotificaciones
+            resultado={notificaciones.resultado}
+            error={notificaciones.error}
           />
-          {perfil?.rol === "admin" ? <FilaNotificaciones /> : null}
-        </Tarjeta>
+        ) : null}
 
         <Encabezado texto="AYUDA" />
         <Tarjeta>
@@ -169,7 +217,9 @@ export default function Configuracion() {
           }}
         />
       ) : null}
-      {hoja === "sesion" ? <HojaCerrarSesion onCerrar={() => setHoja(null)} onConfirmar={cerrarSesion} /> : null}
+      {hoja === "sesion" ? (
+        <HojaCerrarSesion onCerrar={() => setHoja(null)} onConfirmar={cerrarSesion} />
+      ) : null}
     </>
   );
 }

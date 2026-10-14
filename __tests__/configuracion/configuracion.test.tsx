@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Configuracion from "../../app/(app)/configuracion";
 import { guardarApariencia } from "@/features/configuracion/apariencia";
@@ -94,6 +94,16 @@ describe("Configuración", () => {
     await render(pantalla());
     expect(await screen.findByText("Permiso: Permitido")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Reintentar registro de notificaciones" })).toBeNull();
+  });
+
+  it("el resultado del registro va debajo de la tarjeta de preferencias", async () => {
+    mockRol = "admin";
+    mockPermisos.mockResolvedValue({ status: "denied" });
+    await render(pantalla());
+    await fireEvent.press(await screen.findByRole("button", { name: "Reintentar registro de notificaciones" }));
+    const mensaje = await screen.findByText("Dispositivo registrado.");
+    expect(mensaje).toBeTruthy();
+    expect(within(screen.getByTestId("tarjeta-preferencias")).queryByText("Dispositivo registrado.")).toBeNull();
   });
 
   it("Cerrar sesión pide confirmación", async () => {
