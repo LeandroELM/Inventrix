@@ -30,14 +30,21 @@ function archivosTsx(dir: string): string[] {
   });
 }
 
+// Usa <Pantalla> (que ya suma el espacio) o guarda useEspacioInferior() en una variable que llega
+// a algún paddingBottom.
+function reservaEspacio(contenido: string): boolean {
+  if (contenido.includes("<Pantalla")) return true;
+  const variable = /const (\w+) = useEspacioInferior\(\)/.exec(contenido)?.[1];
+  if (!variable) return false;
+  return new RegExp(`paddingBottom:[^,}]*\\b${variable}\\b`).test(contenido);
+}
+
+// Esta prueba solo ve que el espacio se lee y se aplica en algún paddingBottom, no dónde. Los pies
+// fijos fuera del scroll (Buscar) y las hojas (HojaInferior) tienen sus propias pruebas de render.
 describe("espacio final de las pantallas de pestaña", () => {
   it("toda pantalla de pestaña reserva el espacio final", () => {
     for (const archivo of LISTA) {
-      const contenido = leer(archivo);
-      expect({ archivo, reserva: contenido.includes("useEspacioInferior(") || contenido.includes("<Pantalla") }).toEqual({
-        archivo,
-        reserva: true,
-      });
+      expect({ archivo, reserva: reservaEspacio(leer(archivo)) }).toEqual({ archivo, reserva: true });
     }
   });
 
