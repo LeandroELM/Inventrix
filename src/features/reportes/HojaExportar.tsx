@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRef, useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Presionable } from "@/animacion/Presionable";
 import { AvisoAdvertencia } from "@/components/AvisoAdvertencia";
 import { Boton } from "@/components/Boton";
@@ -101,7 +101,10 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
         </View>
       )}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, gap: 12 }}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, gap: 12 }}
+      >
         {eligiendo ? (
           <>
             <BuscadorProducto
@@ -160,7 +163,7 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
             <Boton titulo="Exportar a Excel" onPress={() => void exportar()} loading={exportando} disabled={rangoInvertido} />
           </>
         )}
-      </View>
+      </ScrollView>
     </HojaInferior>
   );
 }
