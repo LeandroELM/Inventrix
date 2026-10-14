@@ -58,6 +58,7 @@ export default function Movimientos() {
       <View style={{ padding: ESPACIO.l, gap: ESPACIO.m, flex: 1 }}>
         <View
           style={{
+            height: 52,
             flexDirection: "row",
             alignItems: "center",
             gap: ESPACIO.s,
@@ -68,13 +69,13 @@ export default function Movimientos() {
             paddingHorizontal: ESPACIO.m,
           }}
         >
-          <Icono nombre="buscar" tamano={18} color={colores.textoSecundario} />
+          <Icono nombre="buscar" tamano={20} color={colores.textoSecundario} />
           <EntradaTexto
             accessibilityLabel="Buscar por producto o código"
             placeholder="Buscar por producto o código"
             value={busqueda}
             onChangeText={setBusqueda}
-            style={{ flex: 1, paddingVertical: 8 }}
+            style={{ flex: 1, height: "100%", padding: 0 }}
           />
         </View>
         <ChipsFiltro etiqueta="Tipo de movimiento" opciones={SEGMENTOS} valor={segmento} onCambio={setSegmento} />
