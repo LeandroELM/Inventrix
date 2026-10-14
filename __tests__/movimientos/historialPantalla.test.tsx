@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Movimientos from "../../app/(app)/movimientos/index";
 import type { FilaHistorial } from "@/features/movimientos/api";
+import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockPush = jest.fn();
@@ -62,15 +64,17 @@ const FILA_AYER: FilaHistorial = {
   existencias_despues: 15,
 };
 
-async function montar() {
+async function montar(conEspacio = false) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   await render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 } }}
     >
       <TemaProvider>
         <QueryClientProvider client={qc}>
-          <Movimientos />
+          <EspacioInferiorContext.Provider value={conEspacio}>
+            <Movimientos />
+          </EspacioInferiorContext.Provider>
         </QueryClientProvider>
       </TemaProvider>
     </SafeAreaProvider>,
@@ -83,6 +87,13 @@ describe("Pantalla de Historial", () => {
     mockPush.mockReset();
     mockRol = "operativo";
     mockListar.mockResolvedValue([FILA_HOY, FILA_AYER]);
+  });
+
+  it("deja espacio final para la barra y Trix", async () => {
+    await montar(true);
+    await screen.findByText("HOY");
+    const estilo = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    expect(estilo.paddingBottom).toBe(16 + 162);
   });
 
   it("muestra el encabezado y los encabezados de dia", async () => {

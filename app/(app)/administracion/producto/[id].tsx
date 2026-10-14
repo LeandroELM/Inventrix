@@ -16,6 +16,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { puede } from "@/features/auth/permisos";
 import { ETIQUETAS_MOTIVO_BAJA } from "@/features/productos/motivosBaja";
 import { useProducto, useUltimosMovimientos } from "@/features/productos/hooks";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -54,6 +55,7 @@ export default function Ficha() {
   const { perfil } = useAuth();
   const { data: p, isLoading, refetch, isError } = useProducto(id);
   const puedeEditar = !!perfil && puede(perfil.rol, "editar_producto");
+  const espacio = useEspacioInferior();
 
   // Si una recarga falla pero ya hay datos, se siguen mostrando.
   if (!p) {
@@ -92,7 +94,7 @@ export default function Ficha() {
             : undefined
         }
       />
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}>
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}>
         {isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         <AnilloExistencias existencias={p.existencias} puntoPedido={p.punto_pedido} unidad={p.unidad} />
         {!p.activo ? (

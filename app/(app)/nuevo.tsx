@@ -25,6 +25,7 @@ import {
   type ValoresFormulario,
 } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -102,6 +103,7 @@ function Nota({ texto }: { texto: string }) {
 function NuevoProducto() {
   const router = useRouter();
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   const { codigo } = useLocalSearchParams<{ codigo?: string }>();
   const [paso, setPaso] = useState<Paso>("formulario");
   const [datos, setDatos] = useState<DatosProducto | null>(null);
@@ -209,7 +211,7 @@ function NuevoProducto() {
     return (
       <View style={{ flex: 1, backgroundColor: colores.fondo }}>
         <Encabezado variante="pantalla" titulo="Nuevo producto" subtitulo="Paso 2 de 2 · Confirmación" accion={cerrar} />
-        <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
           <BarraPasos paso={2} />
           <LinearGradient colors={[inicio, fin]} style={{ borderRadius: RADIO.tarjeta, padding: ESPACIO.l, gap: ESPACIO.l }}>
             <View style={{ gap: ESPACIO.xs }}>
@@ -251,7 +253,7 @@ function NuevoProducto() {
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Nuevo producto" subtitulo="Paso 1 de 2 · Datos del producto" accion={cerrar} />
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
         <BarraPasos paso={1} />
         <Tarjeta style={{ gap: ESPACIO.l }}>
           <Controller

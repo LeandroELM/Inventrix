@@ -16,6 +16,7 @@ import { HojaDetalleMovimiento } from "@/features/movimientos/HojaDetalleMovimie
 import { useHistorial } from "@/features/movimientos/hooks";
 import { useProducto } from "@/features/productos/hooks";
 import { conEncabezadosDia } from "@/lib/fechaRelativa";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -31,6 +32,7 @@ export default function Movimientos() {
   const { colores } = useTema();
   const router = useRouter();
   const { perfil } = useAuth();
+  const espacio = useEspacioInferior();
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
@@ -109,7 +111,9 @@ export default function Movimientos() {
           <EstadoError mensaje="No se pudo cargar el historial." onReintentar={() => void consulta.refetch()} />
         ) : (
           <FlatList
+            testID="contenido-principal"
             style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: ESPACIO.l + espacio }}
             data={elementos}
             keyExtractor={(e) => (e.tipo === "dia" ? `dia-${e.clave}` : String(e.fila.id))}
             renderItem={({ item }) =>

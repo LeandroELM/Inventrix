@@ -18,6 +18,7 @@ import { useProductos } from "@/features/productos/hooks";
 import { detalleProducto, formatearCantidad } from "@/features/productos/unidades";
 import { exportarExcel, filasExistencias, nombreArchivoExistencias } from "@/features/reportes/excel";
 import { mensajeDeError } from "@/lib/errores";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -34,6 +35,7 @@ export default function Buscar() {
   const { colores } = useTema();
   const router = useRouter();
   const { perfil } = useAuth();
+  const espacio = useEspacioInferior();
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -100,7 +102,9 @@ export default function Buscar() {
         {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
         {data ? (
           <FlatList
+            testID="contenido-principal"
             style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: ESPACIO.l + espacio }}
             data={data}
             keyExtractor={(p) => p.id}
             ListEmptyComponent={

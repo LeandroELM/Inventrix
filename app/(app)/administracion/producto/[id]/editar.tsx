@@ -17,6 +17,7 @@ import { useActualizarProducto, useProducto } from "@/features/productos/hooks";
 import { UNIDADES, type Unidad } from "@/features/productos/unidades";
 import { validarFormularioProducto, type ErroresFormulario } from "@/features/productos/validacion";
 import { mensajeDeError } from "@/lib/errores";
+import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
@@ -56,6 +57,7 @@ function Cargador({ id }: { id: string }) {
 function Formulario({ p }: { p: Producto }) {
   const router = useRouter();
   const { colores } = useTema();
+  const espacio = useEspacioInferior();
   const cerrar = useCerrar();
   const actualizar = useActualizarProducto(p.id);
   const [nombre, setNombre] = useState(p.nombre);
@@ -104,7 +106,7 @@ function Formulario({ p }: { p: Producto }) {
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Editar producto" subtitulo={p.nombre} accion={cerrar} />
-      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }} keyboardShouldPersistTaps="handled">
         <Tarjeta style={{ gap: ESPACIO.l }}>
           <View style={{ gap: ESPACIO.xs }}>
             <Texto variante="etiqueta" tono="secundario">
