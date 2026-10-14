@@ -165,6 +165,8 @@ export default function Configuracion() {
                   accessibilityLabel="Modo oscuro"
                   value={esquema === "oscuro"}
                   onValueChange={alternarEsquema}
+                  trackColor={{ false: colores.inactivo, true: colores.interactivo }}
+                  thumbColor={colores.superficie}
                 />
               }
             />
