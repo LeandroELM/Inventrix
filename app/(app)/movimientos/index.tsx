@@ -10,6 +10,7 @@ import { EstadoError } from "@/components/EstadoError";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { Icono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
+import { useAuth } from "@/features/auth/AuthProvider";
 import type { FilaHistorial } from "@/features/movimientos/api";
 import { HojaDetalleMovimiento } from "@/features/movimientos/HojaDetalleMovimiento";
 import { useHistorial } from "@/features/movimientos/hooks";
@@ -29,6 +30,7 @@ const SEGMENTOS: { valor: Segmento; texto: string }[] = [
 export default function Movimientos() {
   const { colores } = useTema();
   const router = useRouter();
+  const { perfil } = useAuth();
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
@@ -44,16 +46,21 @@ export default function Movimientos() {
 
   const tipo = segmento === "todos" ? undefined : segmento;
   const consulta = useHistorial({ texto, productoId, tipo });
-  const elementos = conEncabezadosDia(consulta.data?.pages.flat() ?? [], new Date());
+  // Una fila insertada entre páginas puede repetirse en la siguiente: se deja la primera.
+  const filas = [...new Map((consulta.data?.pages.flat() ?? []).map((f) => [f.id, f])).values()];
+  const elementos = conEncabezadosDia(filas, new Date());
   const hayFiltros = texto.trim() !== "" || tipo !== undefined || productoId !== undefined;
   const nombreProducto = productoFiltrado?.nombre ?? "…";
+  // Para el admin, Movimientos no es pestaña: llega desde Inicio o la ficha. El operativo
+  // solo vuelve cuando viene filtrado por un producto.
+  const conVolver = perfil?.rol === "admin" || productoId !== undefined;
 
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado
         variante="pantalla"
         titulo="Historial de movimientos"
-        onAtras={router.canGoBack() ? () => router.back() : undefined}
+        onAtras={conVolver ? () => (router.canGoBack() ? router.back() : router.replace("/")) : undefined}
       />
       <View style={{ padding: ESPACIO.l, gap: ESPACIO.m, flex: 1 }}>
         <View

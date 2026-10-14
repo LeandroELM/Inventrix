@@ -7,12 +7,16 @@ import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockPush = jest.fn();
 const mockListar = jest.fn();
+let mockRol = "operativo";
 
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({}),
   useRouter: () => ({ push: mockPush, setParams: jest.fn(), canGoBack: () => false, back: jest.fn() }),
   useIsFocused: () => true,
+}));
+jest.mock("@/features/auth/AuthProvider", () => ({
+  useAuth: () => ({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol: mockRol } }),
 }));
 jest.mock("@/features/movimientos/api", () => ({
   ...jest.requireActual("@/features/movimientos/api"),
@@ -77,6 +81,7 @@ describe("Pantalla de Historial", () => {
   beforeEach(() => {
     mockListar.mockReset();
     mockPush.mockReset();
+    mockRol = "operativo";
     mockListar.mockResolvedValue([FILA_HOY, FILA_AYER]);
   });
 
@@ -86,6 +91,41 @@ describe("Pantalla de Historial", () => {
     expect(await screen.findByText("HOY")).toBeTruthy();
     expect(screen.getByText("AYER")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Volver" })).toBeNull();
+  });
+
+  it("operativo sin producto no tiene flecha de volver", async () => {
+    await montar();
+    await screen.findByText("HOY");
+    expect(screen.queryByRole("button", { name: "Volver" })).toBeNull();
+  });
+
+  it("admin tiene flecha de volver", async () => {
+    mockRol = "admin";
+    await montar();
+    await screen.findByText("HOY");
+    expect(screen.getByRole("button", { name: "Volver" })).toBeTruthy();
+  });
+
+  it("muestra Skeleton en la carga inicial", async () => {
+    mockListar.mockReturnValue(new Promise(() => {}));
+    await montar();
+    expect(screen.getAllByLabelText("Cargando").length).toBeGreaterThan(0);
+  });
+
+  it("al cambiar de tipo conserva la lista sin volver a Skeleton", async () => {
+    await montar();
+    await screen.findByText("HOY");
+    mockListar.mockReturnValue(new Promise(() => {}));
+    await fireEvent.press(screen.getByRole("button", { name: "Salidas" }));
+    expect(screen.queryAllByLabelText("Cargando")).toHaveLength(0);
+    expect(screen.getByText("Frijol rojo")).toBeTruthy();
+  });
+
+  it("no repite filas con el mismo id", async () => {
+    mockListar.mockResolvedValue([FILA_HOY, FILA_HOY, FILA_AYER]);
+    await montar();
+    await screen.findByText("HOY");
+    expect(screen.getAllByText("Frijol rojo")).toHaveLength(1);
   });
 
   it("vacio sin filtros", async () => {

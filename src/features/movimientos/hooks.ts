@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listarHistorial,
   registrarMovimiento,
@@ -30,5 +30,7 @@ export function useHistorial(filtro: FiltroHistorial) {
     initialPageParam: 0,
     queryFn: ({ pageParam }) => listarHistorial({ ...filtro, pagina: pageParam }),
     getNextPageParam: (ultima, todas) => (ultima.length < TAMANO_PAGINA ? undefined : todas.length),
+    // Al cambiar búsqueda o tipo se conserva la lista anterior en vez de volver a Skeleton.
+    placeholderData: keepPreviousData,
   });
 }

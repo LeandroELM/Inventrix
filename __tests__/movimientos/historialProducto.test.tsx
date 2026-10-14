@@ -14,6 +14,9 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ setParams: mockSetParams, push: jest.fn(), canGoBack: () => false, back: jest.fn() }),
   useIsFocused: () => true,
 }));
+jest.mock("@/features/auth/AuthProvider", () => ({
+  useAuth: () => ({ perfil: { id: "1", usuario: "a", nombre: "Ana", rol: "operativo" } }),
+}));
 jest.mock("@/features/movimientos/hooks", () => ({ useHistorial: (...a: unknown[]) => mockUseHistorial(...a) }));
 jest.mock("@/features/productos/hooks", () => ({ useProducto: (...a: unknown[]) => mockUseProducto(...a) }));
 jest.mock("react-native-reanimated", () => {
@@ -83,6 +86,12 @@ describe("Historial filtrado por producto", () => {
     expect(screen.getByText("Mostrando: Harina")).toBeTruthy();
     await fireEvent.press(screen.getByLabelText("Quitar filtro"));
     expect(mockSetParams).toHaveBeenCalledWith({ productoId: undefined });
+  });
+
+  it("operativo con productoId tiene flecha de volver", async () => {
+    mockParams = { productoId: "p1" };
+    await montar();
+    expect(screen.getByRole("button", { name: "Volver" })).toBeTruthy();
   });
 
   it("muestra el nombre del producto aunque no tenga movimientos", async () => {
