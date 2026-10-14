@@ -93,6 +93,31 @@ describe("TarjetaIndicador", () => {
     expect(screen.getByText("3")).toBeTruthy();
     expect(screen.getByText("Salidas")).toBeTruthy();
   });
+
+  it("dato muestra titulo, valor y detalle", async () => {
+    await montar(<TarjetaIndicador variante="dato" titulo="Más vendido" valor="Frijol rojo" detalle="120 lb" />);
+    expect(screen.getByText("Más vendido")).toBeTruthy();
+    expect(screen.getByText("Frijol rojo")).toBeTruthy();
+    expect(screen.getByText("120 lb")).toBeTruthy();
+  });
+
+  it("dato sin onPress no es boton", async () => {
+    await montar(<TarjetaIndicador variante="dato" titulo="Más vendido" valor="Frijol rojo" detalle="120 lb" />);
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("dato con onPress es boton con etiqueta completa", async () => {
+    const onPress = jest.fn();
+    await montar(<TarjetaIndicador variante="dato" titulo="En punto de pedido" valor="3" detalle="productos" onPress={onPress} />);
+    await fireEvent.press(screen.getByRole("button", { name: "En punto de pedido: 3, productos" }));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("dato limita el valor a dos lineas", async () => {
+    const valor = "Producto con un nombre extremadamente largo para probar el límite";
+    await montar(<TarjetaIndicador variante="dato" titulo="Más vendido" valor={valor} />);
+    expect(screen.getByText(valor).props.numberOfLines).toBe(2);
+  });
 });
 
 describe.each(["claro", "oscuro"] as Esquema[])("contraste de las tarjetas (%s)", (esquema) => {

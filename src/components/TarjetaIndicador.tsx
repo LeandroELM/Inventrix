@@ -10,6 +10,7 @@ import { useTema } from "@/tema/TemaProvider";
 type Props = { style?: StyleProp<ViewStyle> } & (
   | { variante: "alerta"; valor: number; texto: string; onPress: () => void }
   | { variante: "lista"; titulo: string; filas: { valor: string; etiqueta: string }[]; vacio?: string }
+  | { variante: "dato"; titulo: string; valor: string; detalle?: string; onPress?: () => void }
 );
 
 export function TarjetaIndicador(props: Props) {
@@ -49,6 +50,32 @@ export function TarjetaIndicador(props: Props) {
           {props.texto}
         </Texto>
       </Presionable>
+    );
+  }
+
+  if (props.variante === "dato") {
+    return (
+      <Tarjeta
+        onPress={props.onPress}
+        accessibilityLabel={
+          props.onPress ? `${props.titulo}: ${props.valor}${props.detalle ? `, ${props.detalle}` : ""}` : undefined
+        }
+        style={props.style}
+      >
+        <View style={{ gap: 4 }}>
+          <Texto variante="etiqueta" tono="secundario">
+            {props.titulo}
+          </Texto>
+          <Texto variante="titulo" numberOfLines={2}>
+            {props.valor}
+          </Texto>
+          {props.detalle ? (
+            <Texto variante="pequeno" tono="secundario">
+              {props.detalle}
+            </Texto>
+          ) : null}
+        </View>
+      </Tarjeta>
     );
   }
 
