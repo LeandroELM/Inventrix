@@ -31,6 +31,10 @@ export function grupoDia(iso: string, ahora: Date): "HOY" | "AYER" | "ANTERIORES
   return "ANTERIORES";
 }
 
+export function fechaLocal(f: Date): string {
+  return `${dosDigitos(f.getDate())}/${dosDigitos(f.getMonth() + 1)}/${f.getFullYear()}`;
+}
+
 export function fechaHoraLocal(iso: string): string {
   const f = new Date(iso);
   return `${dosDigitos(f.getDate())}/${dosDigitos(f.getMonth() + 1)}/${f.getFullYear()} ${horaLocal(iso)}`;
