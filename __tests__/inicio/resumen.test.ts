@@ -1,6 +1,6 @@
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 
-import { textoResumen } from "@/features/inicio/api";
+import { filasResumen, textoResumen } from "@/features/inicio/api";
 
 describe("textoResumen", () => {
   it("formatea los totales en el orden de UNIDADES", () => {
@@ -15,5 +15,11 @@ describe("textoResumen", () => {
 
   it("devuelve lista vacía sin datos", () => {
     expect(textoResumen([])).toEqual([]);
+  });
+});
+
+describe("filasResumen", () => {
+  it("filasResumen separa valor y unidad", () => {
+    expect(filasResumen([{ unidad: "libra", total: 120 }])).toEqual([{ valor: "120", etiqueta: "lb" }]);
   });
 });

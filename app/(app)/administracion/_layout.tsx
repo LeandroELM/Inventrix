@@ -11,9 +11,9 @@ export default function Layout() {
         animation: "slide_from_right",
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Administración" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="existencias" options={{ headerShown: false }} />
-      <Stack.Screen name="reportes" options={{ title: "Reportes" }} />
+      <Stack.Screen name="reportes" options={{ headerShown: false }} />
       <Stack.Screen name="baja" options={{ title: "Dar de baja producto" }} />
       <Stack.Screen name="pedir" options={{ headerShown: false }} />
       <Stack.Screen name="producto/[id]" options={{ headerShown: false }} />
