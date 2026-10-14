@@ -11,6 +11,7 @@ import { Encabezado } from "@/components/Encabezado";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { PantallaResultado } from "@/components/PantallaResultado";
 import { SelectorUnidad } from "@/components/SelectorUnidad";
+import { SufijoUnidad } from "@/components/SufijoUnidad";
 import { Tarjeta } from "@/components/Tarjeta";
 import { Texto } from "@/components/Texto";
 import { RequiereRol } from "@/features/auth/RequiereRol";
@@ -247,12 +248,6 @@ function NuevoProducto() {
     );
   }
 
-  const sufijo = (
-    <Texto tono="secundario" style={{ position: "absolute", right: ESPACIO.m, top: 34, pointerEvents: "none" }}>
-      {UNIDADES[unidad].abreviatura}
-    </Texto>
-  );
-
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       <Encabezado variante="pantalla" titulo="Nuevo producto" subtitulo="Paso 1 de 2 · Datos del producto" accion={cerrar} />
@@ -317,7 +312,7 @@ function NuevoProducto() {
                       error={fieldState.error?.message}
                       style={{ paddingRight: 56 }}
                     />
-                    {sufijo}
+                    <SufijoUnidad unidad={unidad} />
                   </View>
                 )}
               />
@@ -337,7 +332,7 @@ function NuevoProducto() {
                       error={fieldState.error?.message}
                       style={{ paddingRight: 56 }}
                     />
-                    {sufijo}
+                    <SufijoUnidad unidad={unidad} />
                   </View>
                 )}
               />

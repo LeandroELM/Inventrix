@@ -17,7 +17,7 @@ export default function Layout() {
       <Stack.Screen name="baja" options={{ headerShown: false }} />
       <Stack.Screen name="pedir" options={{ headerShown: false }} />
       <Stack.Screen name="producto/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="producto/[id]/editar" options={{ title: "Editar producto" }} />
+      <Stack.Screen name="producto/[id]/editar" options={{ headerShown: false }} />
     </Stack>
   );
 }
