@@ -69,10 +69,14 @@ function Reportes() {
 
   const dashboard = useDashboard(periodo);
   const inicio = useInicio("admin");
-  const refrescando = dashboard.isRefetching || inicio.isRefetching;
+  // El indicador solo refleja el tirón manual, no los refrescos en segundo plano.
+  const [refrescandoManual, setRefrescandoManual] = useState(false);
   const refrescar = () => {
-    void queryClient.refetchQueries({ queryKey: ["dashboard"] });
-    void queryClient.refetchQueries({ queryKey: ["inicio"] });
+    setRefrescandoManual(true);
+    void Promise.allSettled([
+      queryClient.refetchQueries({ queryKey: ["dashboard"], type: "active" }),
+      queryClient.refetchQueries({ queryKey: ["inicio"], type: "active" }),
+    ]).then(() => setRefrescandoManual(false));
   };
 
   async function exportarDirecto(tipo: TipoDirecto) {
@@ -107,7 +111,7 @@ function Reportes() {
       />
       <ScrollView
         contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}
-        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} />}
+        refreshControl={<RefreshControl refreshing={refrescandoManual} onRefresh={refrescar} />}
       >
         <ChipsFiltro etiqueta="Periodo" opciones={PERIODOS} valor={periodo} onCambio={setPeriodo} />
 

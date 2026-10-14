@@ -13,6 +13,7 @@ import { filasDeReporte, obtenerReporte } from "@/features/reportes/api";
 import { exportarExcel, nombreArchivoReporte } from "@/features/reportes/excel";
 import { rangoPeriodo, type Periodo } from "@/features/reportes/rango";
 import { mensajeDeError } from "@/lib/errores";
+import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Tipo = "entradas" | "salidas" | "historial";
@@ -86,7 +87,7 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
       bloqueado={exportando}
       onCerrar={onCerrar}
       encabezado={(cerrar) => (
-        <View style={{ flexDirection: "row", alignItems: "center", paddingLeft: 20, paddingRight: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingLeft: ESPACIO.xl, paddingRight: ESPACIO.xs }}>
           <Texto variante="titulo" style={{ flex: 1 }} numberOfLines={1}>
             {`Exportar ${tipo}`}
           </Texto>
@@ -103,7 +104,7 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, gap: 12 }}
+        contentContainerStyle={{ paddingHorizontal: ESPACIO.xl, paddingTop: ESPACIO.s, paddingBottom: ESPACIO.l, gap: ESPACIO.m }}
       >
         {eligiendo ? (
           <>
@@ -126,7 +127,7 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
               onCambio={(p) => cambiarFiltro(() => setPeriodo(p))}
             />
             {periodo === "personalizado" ? (
-              <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={{ flexDirection: "row", gap: ESPACIO.s }}>
                 <View style={{ flex: 1 }}>
                   <Boton titulo={`Desde: ${fechaCorta(desde)}`} variante="secundario" onPress={() => setSelector("desde")} />
                 </View>
@@ -147,13 +148,23 @@ export function HojaExportar({ tipo, onCerrar }: Props) {
                 }}
               />
             ) : null}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.s }}>
               <Texto variante="cuerpoFuerte" style={{ flex: 1 }} numberOfLines={1}>
                 {`Producto: ${producto ? producto.nombre : "Todos"}`}
               </Texto>
-              <Boton titulo="Cambiar" variante="fantasma" onPress={() => setEligiendo(true)} />
+              <Boton
+                titulo="Cambiar"
+                accessibilityLabel="Cambiar producto"
+                variante="fantasma"
+                onPress={() => setEligiendo(true)}
+              />
               {producto ? (
-                <Boton titulo="Quitar" variante="fantasma" onPress={() => cambiarFiltro(() => setProducto(null))} />
+                <Boton
+                  titulo="Quitar"
+                  accessibilityLabel="Quitar producto"
+                  variante="fantasma"
+                  onPress={() => cambiarFiltro(() => setProducto(null))}
+                />
               ) : null}
             </View>
             {rangoInvertido ? (

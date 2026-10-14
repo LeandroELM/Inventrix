@@ -99,13 +99,13 @@ describe("HojaExportar", () => {
   it("producto elegido se envía y Quitar lo elimina", async () => {
     const onCerrar = await montar();
     expect(screen.getByText("Producto: Todos")).toBeTruthy();
-    await fireEvent.press(screen.getByRole("button", { name: "Cambiar" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Cambiar producto" }));
     await fireEvent.press(screen.getByRole("button", { name: "Elegir producto" }));
     expect(screen.getByText("Producto: Frijol rojo")).toBeTruthy();
     await fireEvent.press(screen.getByText("Exportar a Excel"));
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
     expect(obtenerReporte).toHaveBeenCalledWith("salidas", expect.objectContaining({ productoId: "p1" }));
-    await fireEvent.press(screen.getByRole("button", { name: "Quitar" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Quitar producto" }));
     expect(screen.getByText("Producto: Todos")).toBeTruthy();
   });
 
@@ -122,7 +122,7 @@ describe("HojaExportar", () => {
     const fallo = new Error("sin conexión");
     (obtenerReporte as jest.Mock).mockRejectedValue(fallo);
     const onCerrar = await montar();
-    await fireEvent.press(screen.getByRole("button", { name: "Cambiar" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Cambiar producto" }));
     await fireEvent.press(screen.getByRole("button", { name: "Elegir producto" }));
     await fireEvent.press(screen.getByText("Exportar a Excel"));
     expect(await screen.findByText(mensajeDeError(fallo))).toBeTruthy();
