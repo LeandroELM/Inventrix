@@ -9,10 +9,18 @@ import { exportarExcel } from "@/features/reportes/excel";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockPush = jest.fn();
+const mockBack = jest.fn();
+const mockReplace = jest.fn();
+let mockPuedeVolver = true;
 
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({
+    push: mockPush,
+    back: mockBack,
+    replace: mockReplace,
+    canGoBack: () => mockPuedeVolver,
+  }),
   useIsFocused: () => true,
 }));
 jest.mock("@/features/auth/AuthProvider", () => ({
@@ -70,6 +78,7 @@ async function montar() {
 describe("Reportes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPuedeVolver = true;
     (obtenerDashboard as jest.Mock).mockResolvedValue(DASHBOARD);
     (obtenerInicio as jest.Mock).mockResolvedValue(INICIO);
     (obtenerReporte as jest.Mock).mockResolvedValue([{ x: 1 }]);
@@ -136,6 +145,19 @@ describe("Reportes", () => {
     await waitFor(() => expect(screen.queryByText("Exportando…")).toBeNull());
     expect(exportarExcel).toHaveBeenCalledTimes(1);
     expect(obtenerReporte).toHaveBeenCalledWith("existencias");
+  });
+
+  it("Volver regresa a la pantalla anterior", async () => {
+    await montar();
+    await fireEvent.press(screen.getByRole("button", { name: "Volver" }));
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("Volver sin historial va a Administración", async () => {
+    mockPuedeVolver = false;
+    await montar();
+    await fireEvent.press(screen.getByRole("button", { name: "Volver" }));
+    expect(mockReplace).toHaveBeenCalledWith("/administracion");
   });
 
   it("Entradas abre la hoja", async () => {

@@ -100,7 +100,11 @@ function Reportes() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
-      <Encabezado variante="pantalla" titulo="Reportes" />
+      <Encabezado
+        variante="pantalla"
+        titulo="Reportes"
+        onAtras={() => (router.canGoBack() ? router.back() : router.replace("/administracion"))}
+      />
       <ScrollView
         contentContainerStyle={{ padding: ESPACIO.l, gap: ESPACIO.l }}
         refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} />}
