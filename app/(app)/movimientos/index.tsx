@@ -1,121 +1,155 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { useEffect, useState } from "react";
+import { FlatList, View } from "react-native";
 import { Presionable } from "@/animacion/Presionable";
-import { Campo } from "@/components/Campo";
-import { etiquetaMovimiento } from "@/features/movimientos/calculo";
-import { useHistorial } from "@/features/movimientos/hooks";
-import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
-import type { FilaHistorial } from "@/features/movimientos/api";
-import { useProducto } from "@/features/productos/hooks";
-import { formatearCantidad } from "@/features/productos/unidades";
+import { Skeleton } from "@/animacion/Skeleton";
+import { ChipsFiltro } from "@/components/ChipsFiltro";
+import { Encabezado } from "@/components/Encabezado";
+import { EntradaTexto } from "@/components/EntradaTexto";
+import { EstadoError } from "@/components/EstadoError";
+import { FilaMovimiento } from "@/components/FilaMovimiento";
+import { Icono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
+import type { FilaHistorial } from "@/features/movimientos/api";
+import { HojaDetalleMovimiento } from "@/features/movimientos/HojaDetalleMovimiento";
+import { useHistorial } from "@/features/movimientos/hooks";
+import { useProducto } from "@/features/productos/hooks";
+import { conEncabezadosDia } from "@/lib/fechaRelativa";
+import { ESPACIO, RADIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Segmento = "todos" | "entrada" | "salida";
 
-const SEGMENTOS: { valor: Segmento; titulo: string }[] = [
-  { valor: "todos", titulo: "Todos" },
-  { valor: "entrada", titulo: "Entradas" },
-  { valor: "salida", titulo: "Salidas" },
+const SEGMENTOS: { valor: Segmento; texto: string }[] = [
+  { valor: "todos", texto: "Todos" },
+  { valor: "entrada", texto: "Entradas" },
+  { valor: "salida", texto: "Salidas" },
 ];
-
-const TIPOS = { entrada: "Entrada", salida: "Salida", inicial: "Inicial", baja: "Baja" } as const;
-
-function FilaMovimiento({ fila }: { fila: FilaHistorial }) {
-  const [abierta, setAbierta] = useState(false);
-  const fecha = new Date(fila.created_at);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${fila.producto}, ${TIPOS[fila.tipo]}`}
-      accessibilityState={{ expanded: abierta }}
-      onPress={() => setAbierta((a) => !a)}
-      style={{ padding: 12, borderBottomWidth: 1, gap: 4 }}
-    >
-      <Texto>{fecha.toLocaleDateString("es")}</Texto>
-      <Texto>{fila.producto}</Texto>
-      <Texto>
-        {TIPOS[fila.tipo]} {etiquetaMovimiento(fila.tipo, fila.cantidad, fila.unidad)}
-      </Texto>
-      {abierta ? (
-        <View style={{ gap: 2 }}>
-          <Texto>Usuario: {fila.usuario}</Texto>
-          <Texto>Fecha y hora: {fecha.toLocaleString("es")}</Texto>
-          {fila.motivo ? <Texto>Motivo: {ETIQUETAS_MOTIVO_SALIDA[fila.motivo]}</Texto> : null}
-          <Texto>
-            Existencias: {formatearCantidad(fila.existencias_antes, fila.unidad)} {"\u2192"}{" "}
-            {formatearCantidad(fila.existencias_despues, fila.unidad)}
-          </Texto>
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
 
 export default function Movimientos() {
   const { colores } = useTema();
+  const router = useRouter();
+  const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState("");
   const [segmento, setSegmento] = useState<Segmento>("todos");
-  const router = useRouter();
+  const [detalle, setDetalle] = useState<FilaHistorial | null>(null);
   const { productoId: productoParam } = useLocalSearchParams<{ productoId?: string }>();
   const productoId = productoParam || undefined;
   const { data: productoFiltrado } = useProducto(productoId ?? "");
-  const consulta = useHistorial({
-    texto,
-    productoId,
-    tipo: segmento === "todos" ? undefined : segmento,
-  });
-  const filas = consulta.data?.pages.flat() ?? [];
+
+  useEffect(() => {
+    const t = setTimeout(() => setTexto(busqueda), 300);
+    return () => clearTimeout(t);
+  }, [busqueda]);
+
+  const tipo = segmento === "todos" ? undefined : segmento;
+  const consulta = useHistorial({ texto, productoId, tipo });
+  const elementos = conEncabezadosDia(consulta.data?.pages.flat() ?? [], new Date());
+  const hayFiltros = texto.trim() !== "" || tipo !== undefined || productoId !== undefined;
   const nombreProducto = productoFiltrado?.nombre ?? "…";
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
-      <Campo label="Buscar" value={texto} onChangeText={setTexto} placeholder="Producto o código" />
-      {productoId ? (
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <Texto style={{ flex: 1 }}>{`Mostrando: ${nombreProducto}`}</Texto>
-          <Presionable
-            accessibilityRole="button"
-            accessibilityLabel="Quitar filtro"
-            onPress={() => router.setParams({ productoId: undefined })}
-            style={{ minHeight: 48, justifyContent: "center" }}
-          >
-            <Texto tono="interactivo">Quitar filtro</Texto>
-          </Presionable>
-        </View>
-      ) : null}
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        {SEGMENTOS.map((s) => (
-          <Pressable
-            key={s.valor}
-            accessibilityRole="button"
-            accessibilityLabel={s.titulo}
-            accessibilityState={{ selected: segmento === s.valor }}
-            onPress={() => setSegmento(s.valor)}
-            style={{ flex: 1, padding: 8, alignItems: "center", borderWidth: segmento === s.valor ? 2 : 1, borderColor: segmento === s.valor ? colores.interactivo : colores.borde }}
-          >
-            <Texto>{s.titulo}</Texto>
-          </Pressable>
-        ))}
-      </View>
-      {consulta.isPending ? (
-        <ActivityIndicator color={colores.interactivo} />
-      ) : consulta.isError ? (
-        <Texto>No se pudo cargar el historial.</Texto>
-      ) : (
-        <FlatList
-          data={filas}
-          keyExtractor={(f) => String(f.id)}
-          renderItem={({ item }) => <FilaMovimiento fila={item} />}
-          onEndReached={() => {
-            if (consulta.hasNextPage && !consulta.isFetchingNextPage) void consulta.fetchNextPage();
+    <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+      <Encabezado
+        variante="pantalla"
+        titulo="Historial de movimientos"
+        onAtras={router.canGoBack() ? () => router.back() : undefined}
+      />
+      <View style={{ padding: ESPACIO.l, gap: ESPACIO.m, flex: 1 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: ESPACIO.s,
+            borderWidth: 1.5,
+            borderColor: colores.borde,
+            borderRadius: RADIO.campo,
+            backgroundColor: colores.superficie,
+            paddingHorizontal: ESPACIO.m,
           }}
-          onEndReachedThreshold={0.5}
-          ListEmptyComponent={<Texto>Sin movimientos.</Texto>}
-          ListFooterComponent={consulta.isFetchingNextPage ? <ActivityIndicator color={colores.interactivo} /> : null}
+        >
+          <Icono nombre="buscar" tamano={18} color={colores.textoSecundario} />
+          <EntradaTexto
+            accessibilityLabel="Buscar por producto o código"
+            placeholder="Buscar por producto o código"
+            value={busqueda}
+            onChangeText={setBusqueda}
+            style={{ flex: 1, paddingVertical: 8 }}
+          />
+        </View>
+        <ChipsFiltro etiqueta="Tipo de movimiento" opciones={SEGMENTOS} valor={segmento} onCambio={setSegmento} />
+        {productoId ? (
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: ESPACIO.s }}>
+            <Texto style={{ flex: 1 }}>{`Mostrando: ${nombreProducto}`}</Texto>
+            <Presionable
+              accessibilityRole="button"
+              accessibilityLabel="Quitar filtro"
+              onPress={() => router.setParams({ productoId: undefined })}
+              style={{ minHeight: 48, justifyContent: "center" }}
+            >
+              <Texto tono="interactivo">Quitar filtro</Texto>
+            </Presionable>
+          </View>
+        ) : null}
+        {consulta.isPending ? (
+          <View style={{ gap: ESPACIO.m }}>
+            <Skeleton.Fila />
+            <Skeleton.Fila />
+            <Skeleton.Fila />
+          </View>
+        ) : consulta.isError ? (
+          <EstadoError mensaje="No se pudo cargar el historial." onReintentar={() => void consulta.refetch()} />
+        ) : (
+          <FlatList
+            style={{ flex: 1 }}
+            data={elementos}
+            keyExtractor={(e) => (e.tipo === "dia" ? `dia-${e.clave}` : String(e.fila.id))}
+            renderItem={({ item }) =>
+              item.tipo === "dia" ? (
+                <Texto
+                  variante="etiqueta"
+                  tono="secundario"
+                  accessibilityRole="header"
+                  style={{ paddingTop: ESPACIO.m }}
+                >
+                  {item.texto}
+                </Texto>
+              ) : (
+                <FilaMovimiento
+                  producto={item.fila.producto}
+                  tipo={item.fila.tipo}
+                  motivo={item.fila.motivo}
+                  fecha={item.fila.created_at}
+                  cantidad={item.fila.cantidad}
+                  unidad={item.fila.unidad}
+                  usuario={item.fila.usuario}
+                  onPress={() => setDetalle(item.fila)}
+                />
+              )
+            }
+            onEndReached={() => {
+              if (consulta.hasNextPage && !consulta.isFetchingNextPage) void consulta.fetchNextPage();
+            }}
+            onEndReachedThreshold={0.5}
+            ListEmptyComponent={
+              <Texto tono="secundario">
+                {hayFiltros ? "No hay movimientos que coincidan." : "Sin movimientos."}
+              </Texto>
+            }
+            ListFooterComponent={consulta.isFetchingNextPage ? <Skeleton.Fila /> : null}
+          />
+        )}
+      </View>
+      {detalle ? (
+        <HojaDetalleMovimiento
+          fila={detalle}
+          onCerrar={() => setDetalle(null)}
+          onVerProducto={(id) => {
+            setDetalle(null);
+            router.push(`/administracion/producto/${id}`);
+          }}
         />
-      )}
+      ) : null}
     </View>
   );
 }

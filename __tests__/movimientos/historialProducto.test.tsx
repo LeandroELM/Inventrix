@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Movimientos from "../../app/(app)/movimientos/index";
 import { TemaProvider } from "@/tema/TemaProvider";
 
@@ -10,11 +11,15 @@ let mockParams: Record<string, string> = {};
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockParams,
-  useRouter: () => ({ setParams: mockSetParams, push: jest.fn() }),
+  useRouter: () => ({ setParams: mockSetParams, push: jest.fn(), canGoBack: () => false, back: jest.fn() }),
   useIsFocused: () => true,
 }));
 jest.mock("@/features/movimientos/hooks", () => ({ useHistorial: (...a: unknown[]) => mockUseHistorial(...a) }));
 jest.mock("@/features/productos/hooks", () => ({ useProducto: (...a: unknown[]) => mockUseProducto(...a) }));
+jest.mock("react-native-reanimated", () => {
+  const mock = require("react-native-reanimated/mock");
+  return { ...mock, useReducedMotion: () => true };
+});
 jest.mock("@/features/configuracion/apariencia", () => ({
   leerApariencia: () => Promise.resolve("claro"),
   guardarApariencia: () => Promise.resolve(),
@@ -47,9 +52,13 @@ async function montar(filas: unknown[] = [fila]) {
     fetchNextPage: jest.fn(),
   });
   await render(
-    <TemaProvider>
-      <Movimientos />
-    </TemaProvider>,
+    <SafeAreaProvider
+      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+    >
+      <TemaProvider>
+        <Movimientos />
+      </TemaProvider>
+    </SafeAreaProvider>,
   );
 }
 
