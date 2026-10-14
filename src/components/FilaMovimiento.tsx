@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { Presionable } from "@/animacion/Presionable";
 import { Icono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
 import { etiquetaMovimiento } from "@/features/movimientos/calculo";
@@ -17,16 +18,17 @@ type Props = {
   unidad: Unidad;
   usuario?: string;
   ahora?: Date;
+  onPress?: () => void;
 };
 
-const NOMBRE_TIPO: Record<TipoMovimiento, string> = {
+export const NOMBRE_TIPO: Record<TipoMovimiento, string> = {
   entrada: "Entrada",
   inicial: "Entrada",
   salida: "Salida",
   baja: "Baja",
 };
 
-export function FilaMovimiento({ producto, tipo, motivo, fecha, cantidad, unidad, usuario, ahora }: Props) {
+export function FilaMovimiento({ producto, tipo, motivo, fecha, cantidad, unidad, usuario, ahora, onPress }: Props) {
   const { colores } = useTema();
   const esEntrada = tipo === "entrada" || tipo === "inicial";
   const partes = [NOMBRE_TIPO[tipo]];
@@ -34,8 +36,10 @@ export function FilaMovimiento({ producto, tipo, motivo, fecha, cantidad, unidad
   partes.push(fechaRelativa(fecha, ahora ?? new Date()));
   if (usuario) partes.push(usuario);
 
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingVertical: 8 }}>
+  const cantidadTexto = etiquetaMovimiento(tipo, cantidad, unidad);
+  const estilo = { flexDirection: "row" as const, alignItems: "center" as const, gap: 12, minHeight: 56, paddingVertical: 8 };
+  const contenido = (
+    <>
       <View
         style={{
           width: 36,
@@ -61,8 +65,21 @@ export function FilaMovimiento({ producto, tipo, motivo, fecha, cantidad, unidad
         </Texto>
       </View>
       <Texto variante="cuerpoFuerte" tono={esEntrada ? "exito" : "texto"}>
-        {etiquetaMovimiento(tipo, cantidad, unidad)}
+        {cantidadTexto}
       </Texto>
-    </View>
+    </>
   );
+  if (onPress) {
+    return (
+      <Presionable
+        accessibilityRole="button"
+        accessibilityLabel={`${producto}, ${partes.join(", ")}, ${cantidadTexto}`}
+        onPress={onPress}
+        style={estilo}
+      >
+        {contenido}
+      </Presionable>
+    );
+  }
+  return <View style={estilo}>{contenido}</View>;
 }

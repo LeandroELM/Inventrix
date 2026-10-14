@@ -7,6 +7,8 @@ import { useTema } from "@/tema/TemaProvider";
 
 type Props = {
   titulo: string;
+  /** Etiqueta accesible cuando el título solo no basta; por defecto, el título. */
+  accessibilityLabel?: string;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -16,6 +18,7 @@ type Props = {
 
 export function Boton({
   titulo,
+  accessibilityLabel,
   onPress,
   disabled = false,
   loading = false,
@@ -33,7 +36,7 @@ export function Boton({
   return (
     <Presionable
       accessibilityRole="button"
-      accessibilityLabel={titulo}
+      accessibilityLabel={accessibilityLabel ?? titulo}
       accessibilityState={{ disabled: inactivo, busy: loading }}
       disabled={inactivo}
       onPress={onPress}

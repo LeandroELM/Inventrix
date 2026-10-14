@@ -79,6 +79,22 @@ describe("FilaMovimiento", () => {
     );
     expect(screen.getByText("Entrada · Hoy 09:15")).toBeTruthy();
   });
+
+  it("FilaMovimiento con onPress es boton", async () => {
+    const onPress = jest.fn();
+    await montar(
+      <FilaMovimiento producto="Arroz" tipo="salida" motivo="venta" fecha={hoy0915} cantidad={2} unidad="unidad" ahora={ahora} onPress={onPress} />,
+    );
+    fireEvent.press(screen.getByRole("button"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("FilaMovimiento sin onPress no es boton", async () => {
+    await montar(
+      <FilaMovimiento producto="Arroz" tipo="salida" motivo="venta" fecha={hoy0915} cantidad={2} unidad="unidad" ahora={ahora} />,
+    );
+    expect(screen.queryByRole("button")).toBeNull();
+  });
 });
 
 describe.each<Esquema>(["claro", "oscuro"])("contraste del avatar de FilaProducto (%s)", (esquema) => {

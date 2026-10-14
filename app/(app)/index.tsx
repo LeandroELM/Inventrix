@@ -17,7 +17,7 @@ import { Texto } from "@/components/Texto";
 import { useAlertasNoLeidas } from "@/features/alertas/hooks";
 import type { Rol } from "@/features/auth/permisos";
 import { useAuth } from "@/features/auth/AuthProvider";
-import type { Inicio as DatosInicio, ResumenUnidad } from "@/features/inicio/api";
+import { filasResumen, type Inicio as DatosInicio, type ResumenUnidad } from "@/features/inicio/api";
 import { useInicio } from "@/features/inicio/hooks";
 import { estadoInventario } from "@/features/productos/estado";
 import { detalleProducto, formatearCantidad, UNIDADES } from "@/features/productos/unidades";
@@ -135,10 +135,7 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
               variante="lista"
               titulo="Existencias generales"
               vacio="Sin existencias registradas."
-              filas={resumen.map((r) => {
-                const [valor, ...resto] = formatearCantidad(r.total, r.unidad).split(" ");
-                return { valor, etiqueta: resto.join(" ") };
-              })}
+              filas={filasResumen(datos.resumen)}
             />
           </View>
         </Animated.View>

@@ -11,7 +11,8 @@ export default function Layout() {
         animation: "slide_from_right",
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Historial de movimientos" }} />
+      {/* El Historial dibuja su propio Encabezado (volver solo si hay historial de navegación). */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="historial" options={{ headerShown: false }} />
       {/* Entrada y Salida dibujan su propio Encabezado (con escanear y volver). */}
       <Stack.Screen name="entrada" options={{ headerShown: false }} />

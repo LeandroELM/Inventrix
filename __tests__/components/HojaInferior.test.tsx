@@ -14,11 +14,12 @@ const METRICAS = {
   insets: { top: 24, left: 0, right: 0, bottom: 0 },
 };
 
-async function montar(onCerrar: () => void) {
+async function montar(onCerrar: () => void, bloqueado = false) {
   await render(
     <SafeAreaProvider initialMetrics={METRICAS}>
       <HojaInferior
         onCerrar={onCerrar}
+        bloqueado={bloqueado}
         encabezado={(cerrar) => (
           <Text accessibilityRole="button" accessibilityLabel="X" onPress={cerrar}>
             Encabezado
@@ -68,5 +69,20 @@ describe("HojaInferior", () => {
     )?.[1] as () => boolean;
     expect(manejador()).toBe(true);
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
+  });
+
+  it("con bloqueado, el fondo, el encabezado y el botón atrás no cierran la hoja", async () => {
+    (useReducedMotion as jest.Mock).mockReturnValue(false);
+    const espia = jest.spyOn(BackHandler, "addEventListener");
+    const onCerrar = jest.fn();
+    await montar(onCerrar, true);
+    await fireEvent.press(screen.getByLabelText("Cerrar"));
+    await fireEvent.press(screen.getByLabelText("X"));
+    const manejador = espia.mock.calls.find(
+      (c) => c[0] === "hardwareBackPress",
+    )?.[1] as () => boolean;
+    expect(manejador()).toBe(true);
+    await new Promise((r) => setTimeout(r, 400));
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 });

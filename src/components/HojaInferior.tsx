@@ -31,9 +31,11 @@ type Props = {
   onCerrar: () => void;
   /** Zona de arrastre (junto al asa): solo aquí el gesto cierra la hoja. Recibe el cierre animado. */
   encabezado?: (cerrar: () => void) => ReactNode;
+  /** Con true la hoja no se cierra (gesto, fondo ni atrás): p. ej. mientras hay una operación en curso. */
+  bloqueado?: boolean;
 };
 
-export function HojaInferior({ children, onCerrar, encabezado }: Props) {
+export function HojaInferior({ children, onCerrar, encabezado, bloqueado = false }: Props) {
   const { colores } = useTema();
   const reducido = useReducedMotion();
   const { height } = useWindowDimensions();
@@ -66,14 +68,14 @@ export function HojaInferior({ children, onCerrar, encabezado }: Props) {
   }, []);
 
   const cerrar = useCallback(() => {
-    if (cerrando.get()) return;
+    if (bloqueado || cerrando.get()) return;
     cerrando.set(true);
     progreso.set(
       withTiming(1, { duration: DURACION, easing: Easing.in(Easing.cubic) }, (fin) => {
         if (fin) scheduleOnRN(onCerrar);
       }),
     );
-  }, [cerrando, progreso, onCerrar]);
+  }, [bloqueado, cerrando, progreso, onCerrar]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -94,7 +96,7 @@ export function HojaInferior({ children, onCerrar, encabezado }: Props) {
         })
         .onEnd((e) => {
           if (cerrando.get()) return;
-          if (e.translationY > alto * UMBRAL_CIERRE) {
+          if (!bloqueado && e.translationY > alto * UMBRAL_CIERRE) {
             cerrando.set(true);
             arrastre.set(
               withTiming(alto, { duration: DURACION }, (fin) => {
@@ -105,7 +107,7 @@ export function HojaInferior({ children, onCerrar, encabezado }: Props) {
             arrastre.set(withTiming(0, { duration: DURACION }));
           }
         }),
-    [alto, arrastre, cerrando, onCerrar],
+    [alto, arrastre, bloqueado, cerrando, onCerrar],
   );
 
   const estiloFondo = useAnimatedStyle(() => ({ opacity: 1 - progreso.get() }));

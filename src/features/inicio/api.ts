@@ -32,6 +32,14 @@ export function textoResumen(resumen: ResumenUnidad[]): string[] {
     .map((r) => formatearCantidad(r.total, r.unidad));
 }
 
+// Mismos totales como filas valor/etiqueta (p. ej. "386" y "lb") para las tarjetas de lista.
+export function filasResumen(resumen: ResumenUnidad[]): { valor: string; etiqueta: string }[] {
+  return textoResumen(resumen).map((texto) => {
+    const [valor, ...resto] = texto.split(" ");
+    return { valor, etiqueta: resto.join(" ") };
+  });
+}
+
 // Entradas y salidas del día; es un dato accesorio, así que un fallo se descarta.
 async function movimientosDeHoy(ahora: Date): Promise<Inicio["hoy"]> {
   try {

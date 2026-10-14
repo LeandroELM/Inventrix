@@ -10,6 +10,7 @@ import { useTema } from "@/tema/TemaProvider";
 type Props = { style?: StyleProp<ViewStyle> } & (
   | { variante: "alerta"; valor: number; texto: string; onPress: () => void }
   | { variante: "lista"; titulo: string; filas: { valor: string; etiqueta: string }[]; vacio?: string }
+  | { variante: "dato"; titulo: string; valor: string; detalle?: string; onPress?: () => void }
 );
 
 export function TarjetaIndicador(props: Props) {
@@ -49,6 +50,33 @@ export function TarjetaIndicador(props: Props) {
           {props.texto}
         </Texto>
       </Presionable>
+    );
+  }
+
+  if (props.variante === "dato") {
+    const etiqueta = `${props.titulo}: ${props.valor}${props.detalle ? `, ${props.detalle}` : ""}`;
+    const tocable = props.onPress !== undefined;
+    return (
+      <Tarjeta onPress={props.onPress} accessibilityLabel={tocable ? etiqueta : undefined} style={props.style}>
+        {/* Sin onPress, el lector de pantalla la lee como un solo elemento con la misma etiqueta. */}
+        <View
+          accessible={!tocable}
+          accessibilityLabel={tocable ? undefined : etiqueta}
+          style={{ gap: 4 }}
+        >
+          <Texto variante="etiqueta" tono="secundario">
+            {props.titulo}
+          </Texto>
+          <Texto variante="titulo" numberOfLines={2}>
+            {props.valor}
+          </Texto>
+          {props.detalle ? (
+            <Texto variante="pequeno" tono="secundario">
+              {props.detalle}
+            </Texto>
+          ) : null}
+        </View>
+      </Tarjeta>
     );
   }
 
