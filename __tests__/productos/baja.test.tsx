@@ -8,6 +8,7 @@ import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockDarBaja = jest.fn();
 const mockReplace = jest.fn();
+const mockDismissTo = jest.fn();
 const mockObtener = jest.fn();
 const base = {
   id: "p1", nombre: "Aceite", codigo: "F1", unidad: "unidad", existencias: 12, punto_pedido: 1, activo: true,
@@ -21,7 +22,7 @@ jest.mock("@/features/productos/api", () => ({
 }));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ productoId: "p1" }),
-  useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: mockReplace }),
+  useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: mockReplace, dismissTo: mockDismissTo }),
   useIsFocused: () => true,
   Redirect: () => null,
 }));
@@ -37,10 +38,7 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-async function abrir(producto: Record<string, unknown> = base) {
-  mockDarBaja.mockReset().mockResolvedValue({});
-  mockReplace.mockReset();
-  mockObtener.mockReset().mockResolvedValue(producto);
+async function montar() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   await render(
     <SafeAreaProvider
@@ -53,6 +51,14 @@ async function abrir(producto: Record<string, unknown> = base) {
       </TemaProvider>
     </SafeAreaProvider>,
   );
+}
+
+async function abrir(producto: Record<string, unknown> = base) {
+  mockDarBaja.mockReset().mockResolvedValue({});
+  mockReplace.mockReset();
+  mockDismissTo.mockReset();
+  mockObtener.mockReset().mockResolvedValue(producto);
+  await montar();
   await screen.findByText("Aceite");
 }
 
@@ -131,7 +137,7 @@ describe("Baja de producto", () => {
     await fireEvent.press(screen.getByText("Confirmar baja"));
     await screen.findByText("Producto dado de baja");
     await fireEvent.press(screen.getByText("Volver a Administración"));
-    expect(mockReplace).toHaveBeenCalledWith("/administracion");
+    expect(mockDismissTo).toHaveBeenCalledWith("/administracion");
   });
 
   it("si la baja falla cierra la hoja, muestra el error y conserva el motivo", async () => {
@@ -161,6 +167,18 @@ describe("Baja de producto", () => {
     expect(chip("Confirmar baja")).toBeTruthy();
     terminar({});
     await screen.findByText("Producto dado de baja");
+  });
+
+  it("si el producto no carga muestra el error y Reintentar vuelve a consultarlo", async () => {
+    mockObtener.mockReset().mockRejectedValue(new Error("NO_AUTORIZADO"));
+    await montar();
+    expect(await screen.findByText("No tienes permiso para realizar esta acción.")).toBeTruthy();
+    expect(screen.getByRole("header", { name: "Dar de baja producto" })).toBeTruthy();
+    const llamadas = mockObtener.mock.calls.length;
+    mockObtener.mockResolvedValue(base);
+    await fireEvent.press(screen.getByRole("button", { name: "Reintentar" }));
+    expect(await screen.findByText("Aceite")).toBeTruthy();
+    expect(mockObtener.mock.calls.length).toBeGreaterThan(llamadas);
   });
 
   it("un producto inactivo solo muestra el aviso", async () => {

@@ -1,12 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Skeleton } from "@/animacion/Skeleton";
 import { AvatarProducto } from "@/components/AvatarProducto";
 import { AvisoAdvertencia } from "@/components/AvisoAdvertencia";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { ChipsFiltro } from "@/components/ChipsFiltro";
 import { Encabezado } from "@/components/Encabezado";
+import { EstadoError } from "@/components/EstadoError";
 import { HojaInferior } from "@/components/HojaInferior";
 import { PantallaResultado } from "@/components/PantallaResultado";
 import { Tarjeta } from "@/components/Tarjeta";
@@ -39,7 +41,7 @@ function Baja() {
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const enCurso = useRef(false);
   const baja = useDarBajaProducto();
-  const { data: p, isLoading } = useProducto(id ?? "");
+  const { data: p, isLoading, error: errorCarga, refetch } = useProducto(id ?? "");
 
   function volver() {
     if (router.canGoBack()) router.back();
@@ -64,7 +66,7 @@ function Baja() {
           { etiqueta: "Fecha", valor: resultado.fecha },
         ]}
         principal={{ titulo: "Ver en Existencias", onPress: () => router.replace("/buscar") }}
-        secundario={{ titulo: "Volver a Administración", onPress: () => router.replace("/administracion") }}
+        secundario={{ titulo: "Volver a Administración", onPress: () => router.dismissTo("/administracion") }}
       />
     );
   }
@@ -82,11 +84,24 @@ function Baja() {
     );
   }
 
-  if (isLoading || !p) {
+  if (!p) {
     return (
       <View style={{ flex: 1, backgroundColor: colores.fondo }}>
         {encabezado}
-        <ActivityIndicator color={colores.interactivo} style={{ marginTop: ESPACIO.xl }} />
+        <View style={{ padding: ESPACIO.l, gap: ESPACIO.m }}>
+          {isLoading ? (
+            <>
+              <Skeleton.Fila />
+              <Skeleton.Fila />
+              <Skeleton.Fila />
+            </>
+          ) : (
+            <EstadoError
+              mensaje={errorCarga ? mensajeDeError(errorCarga) : "No se pudo cargar el producto."}
+              onReintentar={() => void refetch()}
+            />
+          )}
+        </View>
       </View>
     );
   }
