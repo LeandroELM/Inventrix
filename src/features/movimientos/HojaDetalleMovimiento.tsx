@@ -10,6 +10,7 @@ import { etiquetaMovimiento } from "@/features/movimientos/calculo";
 import { ETIQUETAS_MOTIVO_SALIDA } from "@/features/movimientos/motivos";
 import { formatearCantidad } from "@/features/productos/unidades";
 import { fechaHoraLocal } from "@/lib/fechaRelativa";
+import { ESPACIO } from "@/tema/tokens";
 import { useTema } from "@/tema/TemaProvider";
 
 type Props = {
@@ -20,7 +21,7 @@ type Props = {
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12, minHeight: 40 }}>
+    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: ESPACIO.m, minHeight: 40 }}>
       <Texto tono="secundario">{etiqueta}</Texto>
       <Texto variante="cuerpoFuerte" style={{ flexShrink: 1, textAlign: "right" }}>
         {valor}
@@ -37,7 +38,7 @@ export function HojaDetalleMovimiento({ fila, onCerrar, onVerProducto }: Props) 
     <HojaInferior
       onCerrar={onCerrar}
       encabezado={(cerrar) => (
-        <View style={{ flexDirection: "row", alignItems: "center", paddingLeft: 20, paddingRight: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingLeft: ESPACIO.xl, paddingRight: ESPACIO.xs }}>
           <Texto variante="titulo" style={{ flex: 1 }} numberOfLines={1}>
             {`${NOMBRE_TIPO[fila.tipo]} · ${fila.producto}`}
           </Texto>
@@ -52,7 +53,7 @@ export function HojaDetalleMovimiento({ fila, onCerrar, onVerProducto }: Props) 
         </View>
       )}
     >
-      <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 4 }}>
+      <View style={{ paddingHorizontal: ESPACIO.xl, paddingTop: ESPACIO.s, gap: ESPACIO.xs }}>
         <Texto variante="titulo" tono={esEntrada ? "exito" : "texto"}>
           {etiquetaMovimiento(fila.tipo, fila.cantidad, fila.unidad)}
         </Texto>

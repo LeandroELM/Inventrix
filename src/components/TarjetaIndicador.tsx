@@ -54,15 +54,16 @@ export function TarjetaIndicador(props: Props) {
   }
 
   if (props.variante === "dato") {
+    const etiqueta = `${props.titulo}: ${props.valor}${props.detalle ? `, ${props.detalle}` : ""}`;
+    const tocable = props.onPress !== undefined;
     return (
-      <Tarjeta
-        onPress={props.onPress}
-        accessibilityLabel={
-          props.onPress ? `${props.titulo}: ${props.valor}${props.detalle ? `, ${props.detalle}` : ""}` : undefined
-        }
-        style={props.style}
-      >
-        <View style={{ gap: 4 }}>
+      <Tarjeta onPress={props.onPress} accessibilityLabel={tocable ? etiqueta : undefined} style={props.style}>
+        {/* Sin onPress, el lector de pantalla la lee como un solo elemento con la misma etiqueta. */}
+        <View
+          accessible={!tocable}
+          accessibilityLabel={tocable ? undefined : etiqueta}
+          style={{ gap: 4 }}
+        >
           <Texto variante="etiqueta" tono="secundario">
             {props.titulo}
           </Texto>

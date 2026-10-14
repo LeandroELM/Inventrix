@@ -106,6 +106,12 @@ describe("TarjetaIndicador", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
+  it("dato sin onPress se agrupa con la misma etiqueta completa", async () => {
+    await montar(<TarjetaIndicador variante="dato" titulo="Más vendido" valor="Frijol rojo" detalle="120 lb" />);
+    const grupo = screen.getByLabelText("Más vendido: Frijol rojo, 120 lb");
+    expect(grupo.props.accessible).toBe(true);
+  });
+
   it("dato con onPress es boton con etiqueta completa", async () => {
     const onPress = jest.fn();
     await montar(<TarjetaIndicador variante="dato" titulo="En punto de pedido" valor="3" detalle="productos" onPress={onPress} />);
