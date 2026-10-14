@@ -76,11 +76,22 @@ describe("Buscar / Existencias", () => {
     mockRefetch.mockReset();
   });
 
-  it("deja espacio final para la barra y Trix", async () => {
+  it("Exportar a Excel queda sobre la barra", async () => {
     simular();
     await montar("admin", true);
-    const estilo = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
-    expect(estilo.paddingBottom).toBe(16 + 162);
+    // El pie (aviso y botón) está fuera de la lista: el espacio va en el contenedor que lo envuelve.
+    const cuerpo = screen.getByTestId("cuerpo-buscar");
+    expect(StyleSheet.flatten(cuerpo.props.style).paddingBottom).toBe(16 + 162);
+    expect(screen.getByText("Exportar a Excel")).toBeTruthy();
+    // La lista ya termina sobre ese espacio: no lo repite.
+    const lista = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    expect(lista.paddingBottom).toBe(16);
+  });
+
+  it("fuera de las pestañas el pie conserva su relleno", async () => {
+    simular();
+    await montar("admin", false);
+    expect(StyleSheet.flatten(screen.getByTestId("cuerpo-buscar").props.style).paddingBottom).toBe(16);
   });
 
   it("muestra titulo, subtitulo y los tres productos", async () => {

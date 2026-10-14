@@ -84,7 +84,9 @@ export default function Buscar() {
           onPress: () => router.push("/escaner?destino=existencias"),
         }}
       />
-      <View style={{ padding: ESPACIO.l, gap: ESPACIO.m, flex: 1 }}>
+      {/* El pie (aviso y "Exportar a Excel") queda fijo bajo la lista: el contenedor suma el
+          espacio para que la barra y Trix no lo tapen. */}
+      <View testID="cuerpo-buscar" style={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.m, flex: 1 }}>
         <EntradaTexto
           accessibilityLabel="Buscar producto"
           placeholder="Buscar por nombre o código"
@@ -104,7 +106,7 @@ export default function Buscar() {
           <FlatList
             testID="contenido-principal"
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingBottom: ESPACIO.l + espacio }}
+            contentContainerStyle={{ paddingBottom: ESPACIO.l }}
             data={data}
             keyExtractor={(p) => p.id}
             ListEmptyComponent={
