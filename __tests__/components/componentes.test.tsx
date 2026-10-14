@@ -140,4 +140,26 @@ describe("componentes de presentación", () => {
     const estilo = rellenoDelContenido();
     expect(estilo.paddingBottom).toBe(16);
   });
+
+  it("Pantalla centrado centra el contenido del scroll y deja que crezca", async () => {
+    await conTema(
+      <Pantalla scroll centrado>
+        <View testID="hijo" />
+      </Pantalla>,
+    );
+    const estilo = rellenoDelContenido();
+    expect(estilo.flexGrow).toBe(1);
+    expect(estilo.justifyContent).toBe("center");
+  });
+
+  it("Pantalla con scroll sin centrado no centra", async () => {
+    await conTema(
+      <Pantalla scroll>
+        <View testID="hijo" />
+      </Pantalla>,
+    );
+    const estilo = rellenoDelContenido();
+    expect(estilo.flexGrow).toBeUndefined();
+    expect(estilo.justifyContent).toBeUndefined();
+  });
 });

@@ -42,8 +42,8 @@ export default function Login() {
   }
 
   return (
-    <Pantalla scroll bordeSuperior>
-      <View style={{ flexGrow: 1, justifyContent: "center", gap: ESPACIO.l }}>
+    <Pantalla scroll bordeSuperior centrado>
+      <View style={{ gap: ESPACIO.l }}>
         <View style={{ alignItems: "center", gap: ESPACIO.xs, marginBottom: ESPACIO.l }}>
           <LogoMarca tamano={56} />
           <Texto variante="titulo">Inventrix</Texto>
