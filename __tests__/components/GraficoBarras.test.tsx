@@ -65,7 +65,7 @@ describe("GraficoBarras", () => {
     expect(screen.getByText("Salidas")).toBeTruthy();
   });
 
-  it("con el ancho medido muestra las etiquetas de día intactas", async () => {
+  it("con el ancho medido muestra las etiquetas de dÃ­a intactas", async () => {
     const serie: PuntoSerie[] = Array.from({ length: 30 }, (_, i) => ({
       fecha: `2026-10-${String(i + 1).padStart(2, "0")}`,
       entradas: i,
