@@ -10,16 +10,20 @@ type Props = {
   detalle?: string;
   valor?: string;
   izquierda?: ReactNode;
+  derecha?: ReactNode;
+  tono?: "normal" | "peligro";
   onPress?: () => void;
 };
 
-export function FilaLista({ titulo, detalle, valor, izquierda, onPress }: Props) {
+export function FilaLista({ titulo, detalle, valor, izquierda, derecha, tono = "normal", onPress }: Props) {
   const { colores } = useTema();
   const contenido = (
     <>
       {izquierda}
       <View style={{ flex: 1 }}>
-        <Texto variante="cuerpoFuerte">{titulo}</Texto>
+        <Texto variante="cuerpoFuerte" tono={tono === "peligro" ? "peligro" : "texto"}>
+          {titulo}
+        </Texto>
         {detalle ? (
           <Texto variante="pequeno" tono="secundario">
             {detalle}
@@ -27,7 +31,10 @@ export function FilaLista({ titulo, detalle, valor, izquierda, onPress }: Props)
         ) : null}
       </View>
       {valor ? <Texto variante="cuerpoFuerte">{valor}</Texto> : null}
-      {onPress ? <Icono nombre="flecha" tamano={18} color={colores.textoSecundario} /> : null}
+      {derecha ??
+        (onPress && tono !== "peligro" ? (
+          <Icono nombre="flecha" tamano={18} color={colores.textoSecundario} testID="chevron-fila" />
+        ) : null)}
     </>
   );
   const estilo = {

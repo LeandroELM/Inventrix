@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet, View } from "react-native";
+import { createRef } from "react";
+import { StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AvatarProducto, iniciales } from "@/components/AvatarProducto";
 import { EspacioInferiorContext } from "@/components/BarraInferior";
@@ -84,6 +85,27 @@ describe("componentes de presentación", () => {
   it("Campo con error muestra la alerta", async () => {
     await conTema(<Campo label="Nombre" error="Requerido" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Requerido");
+  });
+
+  it("Campo con iconoInicio y accesorioFin", async () => {
+    await conTema(
+      <Campo label="Usuario" iconoInicio="usuario" accesorioFin={<Boton titulo="X" onPress={() => {}} />} />,
+    );
+    expect(screen.getByRole("button", { name: "X" })).toBeTruthy();
+    expect(screen.getByLabelText("Usuario").type).toBe("TextInput");
+  });
+
+  it("Campo sin extras conserva su estilo", async () => {
+    await conTema(<Campo label="Nombre" />);
+    const estilo = StyleSheet.flatten(screen.getByLabelText("Nombre").props.style);
+    expect(estilo.borderWidth).toBe(1.5);
+    expect(estilo.minHeight).toBe(48);
+  });
+
+  it("Campo reenvía la referencia", async () => {
+    const ref = createRef<TextInput>();
+    await conTema(<Campo ref={ref} label="Nombre" />);
+    expect(ref.current).not.toBeNull();
   });
 
   it("Boton peligro sigue siendo botón accesible", async () => {
