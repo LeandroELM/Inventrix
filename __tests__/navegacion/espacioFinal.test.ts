@@ -18,6 +18,7 @@ const LISTA = [
   "app/(app)/administracion/reportes.tsx",
   "app/(app)/administracion/baja.tsx",
   "app/(app)/administracion/usuarios/index.tsx",
+  "app/(app)/administracion/usuarios/[id].tsx",
   "src/features/movimientos/FormularioMovimiento.tsx",
 ];
 
