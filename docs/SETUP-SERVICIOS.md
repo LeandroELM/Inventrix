@@ -78,11 +78,13 @@ select vault.create_secret('<valor>', 'webhook_secret');
 ```
 Verifica: `select name from vault.decrypted_secrets;` lista ambos nombres; una salida que cruza el punto de pedido genera una notificación en el teléfono del admin.
 
-## 5. Primer administrador (tarea posterior)
+## 5. Primer administrador
 ```
-npx tsx scripts/crear-admin.ts
+npx tsx --env-file=.env scripts/crear-admin.ts <usuario> <nombre> <password>
 ```
-El script se agrega en una tarea posterior; requiere la service_role del entorno destino. Verifica: puedes iniciar sesión en la app con ese usuario.
+Requiere `SUPABASE_URL` (o `EXPO_PUBLIC_SUPABASE_URL`) y `SUPABASE_SERVICE_ROLE_KEY` del entorno destino. Verifica: puedes iniciar sesión en la app con ese usuario.
+
+Las demás cuentas se crean desde la app, en Administración > Usuarios (Edge Function `admin-usuarios`, que debe estar desplegada).
 
 ## 6. Ingesta de manuales remota
 Carga los manuales (`docs/manuales/*.md`) como fragmentos con embeddings en la tabla `manual_fragmentos` del proyecto remoto. Requiere haber aplicado la migración `20261010000008_manuales.sql` (`npx supabase db push`) y poner en `.env` `SUPABASE_URL` (o `EXPO_PUBLIC_SUPABASE_URL`) y `SUPABASE_SERVICE_ROLE_KEY` del proyecto remoto (nunca se sube a git).
