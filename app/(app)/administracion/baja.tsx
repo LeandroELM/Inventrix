@@ -67,7 +67,7 @@ function Baja() {
           { etiqueta: "Existencias retiradas", valor: resultado.retiradas },
           { etiqueta: "Fecha", valor: resultado.fecha },
         ]}
-        principal={{ titulo: "Ver en Existencias", onPress: () => router.replace("/buscar") }}
+        principal={{ titulo: "Ver en Existencias", onPress: () => router.dismissTo("/buscar") }}
         secundario={{ titulo: "Volver a Administración", onPress: () => router.dismissTo("/administracion") }}
       />
     );

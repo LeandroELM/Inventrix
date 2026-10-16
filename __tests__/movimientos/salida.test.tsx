@@ -7,6 +7,7 @@ import { TemaProvider } from "@/tema/TemaProvider";
 const mockRegistrar = jest.fn();
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
+const mockDismissTo = jest.fn();
 let mockPuedeVolver = true;
 let mockParams: { productoId?: string; motivo?: string } = {};
 let mockProducto: Record<string, unknown> = {};
@@ -29,7 +30,7 @@ jest.mock("@/features/movimientos/api", () => ({
   registrarMovimiento: (...args: unknown[]) => mockRegistrar(...args),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, canGoBack: () => mockPuedeVolver }),
+  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, dismissTo: mockDismissTo, canGoBack: () => mockPuedeVolver }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -134,7 +135,7 @@ describe("Salida", () => {
     expect(screen.getByText("El producto alcanzó su punto de pedido. Se generó una alerta de reabastecimiento.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Registrar otra salida" })).toBeTruthy();
     await fireEvent.press(screen.getByRole("button", { name: "Volver al inicio" }));
-    expect(mockReplace).toHaveBeenCalledWith("/");
+    expect(mockDismissTo).toHaveBeenCalledWith("/");
   });
 
   it("no muestra el aviso de alerta cuando no corresponde", async () => {

@@ -102,7 +102,11 @@ function ListaAlertas() {
                     <Presionable
                       accessibilityRole="button"
                       accessibilityLabel={`${a.leida ? "" : "No leída. "}${titulo}. ${detalle} ${hora}`}
-                      onPress={() => router.push("/administracion/pedir")}
+                      onPress={() => {
+                        // Modal sobre toda la app: se cierra y "A pedir" se abre sobre Inicio.
+                        router.back();
+                        router.push("/administracion/pedir");
+                      }}
                       style={[
                         {
                           backgroundColor: a.leida ? colores.superficie : colores.primario,

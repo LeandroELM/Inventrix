@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Movimientos from "../../app/(app)/movimientos/index";
+import Movimientos from "../../app/(app)/(tabs)/movimientos";
+import Historial from "../../app/(app)/movimientos/historial";
 import type { FilaHistorial } from "@/features/movimientos/api";
 import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
@@ -64,7 +65,7 @@ const FILA_AYER: FilaHistorial = {
   existencias_despues: 15,
 };
 
-async function montar(conEspacio = false) {
+async function montar(conEspacio = false, Pantalla = Movimientos) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   await render(
     <SafeAreaProvider
@@ -73,7 +74,7 @@ async function montar(conEspacio = false) {
       <TemaProvider>
         <QueryClientProvider client={qc}>
           <EspacioInferiorContext.Provider value={conEspacio}>
-            <Movimientos />
+            <Pantalla />
           </EspacioInferiorContext.Provider>
         </QueryClientProvider>
       </TemaProvider>
@@ -104,15 +105,15 @@ describe("Pantalla de Historial", () => {
     expect(screen.queryByRole("button", { name: "Volver" })).toBeNull();
   });
 
-  it("operativo sin producto no tiene flecha de volver", async () => {
+  it("como pestaña es una raíz: sin flecha de volver", async () => {
     await montar();
     await screen.findByText("HOY");
     expect(screen.queryByRole("button", { name: "Volver" })).toBeNull();
   });
 
-  it("admin tiene flecha de volver", async () => {
+  it("apilada (menú de Administración o ficha) tiene flecha de volver", async () => {
     mockRol = "admin";
-    await montar();
+    await montar(false, Historial);
     await screen.findByText("HOY");
     expect(screen.getByRole("button", { name: "Volver" })).toBeTruthy();
   });

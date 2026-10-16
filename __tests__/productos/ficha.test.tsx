@@ -127,7 +127,7 @@ describe("Ficha del producto", () => {
     await montar("admin");
     expect(screen.getByText("Movimientos del producto")).toBeTruthy();
     await fireEvent.press(screen.getByLabelText("Ver todo"));
-    expect(mockPush).toHaveBeenCalledWith("/movimientos?productoId=p1");
+    expect(mockPush).toHaveBeenCalledWith("/movimientos/historial?productoId=p1");
   });
 
   it("conserva los datos si una recarga falla", async () => {

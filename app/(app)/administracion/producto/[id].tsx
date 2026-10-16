@@ -142,7 +142,7 @@ export default function Ficha() {
             <Presionable
               accessibilityRole="button"
               accessibilityLabel="Ver todo"
-              onPress={() => router.push(`/movimientos?productoId=${p.id}`)}
+              onPress={() => router.push(`/movimientos/historial?productoId=${p.id}`)}
               style={{ minHeight: 48, justifyContent: "center" }}
             >
               <Texto tono="interactivo" variante="etiqueta">

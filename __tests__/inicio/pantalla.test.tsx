@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Inicio from "../../app/(app)/index";
+import Inicio from "../../app/(app)/(tabs)/index";
 import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 import type { Inicio as DatosInicio } from "@/features/inicio/api";
@@ -27,22 +27,6 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-const ahora = new Date().toISOString();
-const movimiento = (id: number, producto: string) => ({
-  id,
-  created_at: ahora,
-  producto_id: `p${id}`,
-  producto,
-  codigo: null,
-  unidad: "kilogramo" as const,
-  tipo: "entrada" as const,
-  cantidad: 5,
-  motivo: null,
-  existencias_antes: 0,
-  existencias_despues: 5,
-  usuario_id: "u1",
-  usuario: "Ana",
-});
 const prod = (id: string, nombre: string) => ({
   id,
   nombre,
@@ -56,7 +40,6 @@ const base: DatosInicio = {
   productosActivos: 12,
   resumen: [{ unidad: "kilogramo", total: 30 }],
   aPedir: { total: 4, primeros: [prod("a", "Harina"), prod("b", "Aceite"), prod("c", "Sal")] },
-  recientes: [movimiento(1, "Azucar"), movimiento(2, "Arroz")],
   hoy: { entradas: 18, salidas: 9 },
 };
 
@@ -103,7 +86,7 @@ describe("Inicio", () => {
     expect(estilo.paddingBottom).toBe(16 + 162);
   });
 
-  it("administrador: saludo, chips de hoy, alerta, proximos a agotarse y movimientos", async () => {
+  it("administrador: saludo, chips de hoy, alerta y proximos a agotarse, sin movimientos recientes", async () => {
     await montar({ data: base });
     expect(screen.getByText("Hola, Ana")).toBeTruthy();
     expect(screen.getByText("ADMINISTRADOR")).toBeTruthy();
@@ -114,8 +97,8 @@ describe("Inicio", () => {
     expect(screen.getByText("Harina")).toBeTruthy();
     expect(screen.getByText("Aceite")).toBeTruthy();
     expect(screen.getByText("Sal")).toBeTruthy();
-    expect(screen.getByText("Movimientos recientes")).toBeTruthy();
-    expect(screen.getByText("Azucar")).toBeTruthy();
+    expect(screen.queryByText("Movimientos recientes")).toBeNull();
+    expect(screen.queryByText("Historial")).toBeNull();
   });
 
   it("administrador sin datos de hoy: no hay chips", async () => {
@@ -124,16 +107,14 @@ describe("Inicio", () => {
     expect(screen.queryByText(/salidas hoy/)).toBeNull();
   });
 
-  it("administrador sin nada que pedir ni movimientos", async () => {
+  it("administrador sin nada que pedir", async () => {
     await montar({
-      data: { ...base, productosActivos: 0, resumen: [], aPedir: { total: 0, primeros: [] }, recientes: [] },
+      data: { ...base, productosActivos: 0, resumen: [], aPedir: { total: 0, primeros: [] } },
     });
     expect(screen.queryByText("Productos próximos a agotarse")).toBeNull();
-    expect(screen.queryByText("Movimientos recientes")).toBeNull();
-    expect(screen.getByText("Aún no hay movimientos.")).toBeTruthy();
   });
 
-  it("operativo: sin campana ni alerta, con resumen completo y ultimos movimientos", async () => {
+  it("operativo: sin campana ni alerta, con resumen completo y sin ultimos movimientos", async () => {
     const resumen = (["unidad", "libra", "kilogramo", "litro", "caja"] as const).map((unidad, i) => ({
       unidad,
       total: i + 1,
@@ -144,8 +125,7 @@ describe("Inicio", () => {
     expect(screen.queryByText(/Productos en punto de pedido/)).toBeNull();
     expect(screen.getByText("Resumen de existencias")).toBeTruthy();
     for (const t of ["1 unid.", "2 lb", "3 kg", "4 L", "5 cajas"]) expect(screen.getByText(t)).toBeTruthy();
-    expect(screen.getByText("Últimos movimientos")).toBeTruthy();
-    expect(screen.queryByText("Historial")).toBeNull();
+    expect(screen.queryByText("Últimos movimientos")).toBeNull();
   });
 
   it("escanear navega al escaner de existencias", async () => {
@@ -156,7 +136,7 @@ describe("Inicio", () => {
 
   it("si falla una recarga conserva los datos y avisa", async () => {
     await montar({ data: base, isError: true });
-    expect(screen.getByText("Movimientos recientes")).toBeTruthy();
+    expect(screen.getByText("Productos próximos a agotarse")).toBeTruthy();
     expect(screen.getByText("No se pudo actualizar.")).toBeTruthy();
     expect(screen.getByText("Reintentar")).toBeTruthy();
   });

@@ -11,6 +11,7 @@ import {
   EspacioInferiorContext,
   MARGEN_BARRA,
   espacioInferior,
+  pestanaActiva,
   useEspacioInferior,
 } from "@/components/BarraInferior";
 import { Texto } from "@/components/Texto";
@@ -28,16 +29,9 @@ type Props = ComponentProps<typeof BarraInferior>;
 
 function propsBarra(rol: "admin" | "operativo", activa = 0) {
   const visibles = tabsPara(rol);
-  const navigate = jest.fn();
-  const emit = jest.fn((_e: unknown) => ({ defaultPrevented: false }));
-  const props = {
-    state: { index: activa, routes: visibles.map((name) => ({ key: name, name })) },
-    navigation: { navigate, emit },
-    descriptors: {},
-    insets: { top: 0, bottom: 0, left: 0, right: 0 },
-    visibles,
-  } as unknown as Props;
-  return { props, navigate, emit };
+  const onPresionar = jest.fn();
+  const props: Props = { visibles, activa: visibles[activa], onPresionar };
+  return { props, onPresionar };
 }
 
 async function dibujar(props: Props) {
@@ -80,33 +74,18 @@ describe("BarraInferior", () => {
     expect(tabs[0].props.accessibilityState).toMatchObject({ selected: false });
   });
 
-  it("presionar Buscar navega a buscar", async () => {
-    const { props, navigate } = propsBarra("operativo");
+  it("presionar Buscar avisa la pestaña elegida", async () => {
+    const { props, onPresionar } = propsBarra("operativo");
     await dibujar(props);
     fireEvent.press(screen.getByRole("tab", { name: "Buscar" }));
-    expect(navigate).toHaveBeenCalledWith("buscar");
+    expect(onPresionar).toHaveBeenCalledWith("buscar");
   });
 
-  it("emite tabPress con la clave de la ruta", async () => {
-    const { props, emit } = propsBarra("operativo");
+  it("el botón + avisa Nuevo producto", async () => {
+    const { props, onPresionar } = propsBarra("admin");
     await dibujar(props);
-    fireEvent.press(screen.getByRole("tab", { name: "Buscar" }));
-    expect(emit).toHaveBeenCalledWith({ type: "tabPress", target: "buscar", canPreventDefault: true });
-  });
-
-  it("Movimientos navega a la raíz de su stack", async () => {
-    const { props, navigate } = propsBarra("operativo");
-    await dibujar(props);
-    fireEvent.press(screen.getByRole("tab", { name: "Movimientos" }));
-    expect(navigate).toHaveBeenCalledWith("movimientos", { screen: "index", pop: true });
-  });
-
-  it("no navega si tabPress fue prevenido", async () => {
-    const { props, navigate, emit } = propsBarra("operativo");
-    emit.mockReturnValue({ defaultPrevented: true });
-    await dibujar(props);
-    fireEvent.press(screen.getByRole("tab", { name: "Buscar" }));
-    expect(navigate).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText("Nuevo producto"));
+    expect(onPresionar).toHaveBeenCalledWith("nuevo");
   });
 
   it("la barra es un tablist", async () => {
@@ -150,9 +129,30 @@ describe("BarraInferior", () => {
     expect(screen.getByText(String(espacioInferior(24)))).toBeTruthy();
   });
 
-  it("el layout de pestañas no reserva espacio en la escena", () => {
+  it("el layout de la app no reserva espacio en la escena", () => {
     const fuente = fs.readFileSync(path.join(__dirname, "../../app/(app)/_layout.tsx"), "utf8");
     expect(fuente).not.toContain("paddingBottom");
     expect(fuente).toContain("EspacioInferiorContext.Provider");
+  });
+
+  it("tocar una pestaña cierra lo apilado y cambia a ella", () => {
+    const fuente = fs.readFileSync(path.join(__dirname, "../../app/(app)/_layout.tsx"), "utf8");
+    expect(fuente).toContain('navigation.navigate("(tabs)", { screen: nombre }, { pop: true })');
+  });
+});
+
+describe("pestanaActiva", () => {
+  it("es la pestaña enfocada de (tabs), aunque haya pantallas apiladas encima", () => {
+    const estado = {
+      routes: [
+        { name: "(tabs)", state: { index: 1, routes: [{ name: "index" }, { name: "buscar" }] } },
+        { name: "administracion/producto/[id]" },
+      ],
+    };
+    expect(pestanaActiva(estado)).toBe("buscar");
+  });
+
+  it("antes de montar las pestañas es Inicio", () => {
+    expect(pestanaActiva({ routes: [{ name: "(tabs)" }] })).toBe("index");
   });
 });

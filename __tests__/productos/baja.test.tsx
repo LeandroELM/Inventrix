@@ -140,6 +140,16 @@ describe("Baja de producto", () => {
     expect(mockDismissTo).toHaveBeenCalledWith("/administracion");
   });
 
+  it("Ver en Existencias cierra la baja y cambia a la pestaña Buscar", async () => {
+    await abrir();
+    await fireEvent.press(chip("Descontinuado"));
+    await fireEvent.press(chip("Dar de baja"));
+    await fireEvent.press(screen.getByText("Confirmar baja"));
+    await screen.findByText("Producto dado de baja");
+    await fireEvent.press(screen.getByText("Ver en Existencias"));
+    expect(mockDismissTo).toHaveBeenCalledWith("/buscar");
+  });
+
   it("si la baja falla cierra la hoja, muestra el error y conserva el motivo", async () => {
     await abrir();
     mockDarBaja.mockRejectedValue(new Error("NO_AUTORIZADO"));

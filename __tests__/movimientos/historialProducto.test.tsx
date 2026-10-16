@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Movimientos from "../../app/(app)/movimientos/index";
+import Movimientos from "../../app/(app)/movimientos/historial";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockUseHistorial = jest.fn();
@@ -88,7 +88,7 @@ describe("Historial filtrado por producto", () => {
     expect(mockSetParams).toHaveBeenCalledWith({ productoId: undefined });
   });
 
-  it("operativo con productoId tiene flecha de volver", async () => {
+  it("abierta desde la ficha tiene flecha de volver", async () => {
     mockParams = { productoId: "p1" };
     await montar();
     expect(screen.getByRole("button", { name: "Volver" })).toBeTruthy();

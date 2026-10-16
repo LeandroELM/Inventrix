@@ -175,6 +175,13 @@ function NuevoProducto() {
     }
   }
 
+  function reiniciar() {
+    reset(VACIO);
+    setDatos(null);
+    setAvisoImagen(null);
+    setPaso("formulario");
+  }
+
   if (paso === "listo" && datos) {
     return (
       <PantallaResultado
@@ -185,16 +192,15 @@ function NuevoProducto() {
           { etiqueta: "Cantidad inicial", valor: formatearCantidad(datos.cantidadInicial, datos.unidad) },
           { etiqueta: "Punto de pedido", valor: formatearCantidad(datos.puntoPedido, datos.unidad) },
         ]}
-        principal={{ titulo: "Ver en Existencias", onPress: () => router.replace("/buscar") }}
-        secundario={{
-          titulo: "Registrar otro producto",
+        principal={{
+          titulo: "Ver en Existencias",
+          // Es una pestaña: queda montada, así que se deja lista para el próximo registro.
           onPress: () => {
-            reset(VACIO);
-            setDatos(null);
-            setAvisoImagen(null);
-            setPaso("formulario");
+            reiniciar();
+            router.navigate("/buscar");
           },
         }}
+        secundario={{ titulo: "Registrar otro producto", onPress: reiniciar }}
       />
     );
   }
