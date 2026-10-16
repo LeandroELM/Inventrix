@@ -26,6 +26,13 @@ const OPCIONES: { titulo: string; detalle: string; ruta: Href; accion: Accion; i
     icono: "movimientos",
   },
   {
+    titulo: "Usuarios",
+    detalle: "Altas, roles, contraseñas y acceso",
+    ruta: "/administracion/usuarios",
+    accion: "gestionar_usuarios",
+    icono: "usuario",
+  },
+  {
     titulo: "Dar de baja producto",
     detalle: "Retira un producto del catálogo",
     ruta: "/administracion/baja",
