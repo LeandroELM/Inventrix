@@ -9,6 +9,9 @@ const MENSAJES: Record<string, string> = {
   DETALLE_REQUERIDO: "Escribe el motivo de la baja.",
   RANGO_INVALIDO: "El periodo seleccionado no es válido.",
   DATOS_INVALIDOS: "Los datos ingresados no son válidos.",
+  USUARIO_EXISTENTE: "Ya existe un usuario con ese nombre.",
+  USUARIO_NO_ENCONTRADO: "No se encontró el usuario.",
+  ACCION_SOBRE_SI_MISMO: "No puedes cambiar tu propia cuenta desde aquí.",
 };
 
 const GENERICO = "Ocurrió un error. Intenta de nuevo.";

@@ -3,6 +3,7 @@ import { puede, type Accion } from "@/features/auth/permisos";
 const todas: Accion[] = [
   "registrar_producto", "editar_producto", "dar_baja", "ver_a_pedir", "ver_reportes",
   "ver_alertas", "registrar_movimiento", "ver_existencias", "exportar_existencias", "ver_historial",
+  "gestionar_usuarios",
 ];
 const operativas: Accion[] = ["registrar_movimiento", "ver_existencias", "exportar_existencias", "ver_historial"];
 
