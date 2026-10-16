@@ -51,6 +51,14 @@ Referencia de requisitos: `docs/superpowers/specs/2026-10-10-inventrix-design.md
 - [ ] **RF-14 Chatbot y WhatsApp.**
   - Admin: botón "?" > preguntar "¿Cómo genero un reporte?"; pedir al bot que modifique inventario; tocar "Contactar por WhatsApp". Esperado: responde según los manuales (incluye temas de admin), declina modificar inventario, abre WhatsApp con el mensaje predeterminado.
   - Operativo: preguntar "¿Cómo genero un reporte?". Esperado: responde solo con funciones de su rol (no explica funciones de admin); WhatsApp igual que admin.
+- [ ] **Gestión de usuarios.**
+  - Admin: Administración > Usuarios > Nuevo usuario (operativo). Esperado: "¡Usuario creado!" con contraseña temporal de 10 caracteres; "Compartir acceso" abre el menú de compartir; el usuario nuevo entra con esa contraseña.
+  - Admin: crear de nuevo el mismo usuario. Esperado: "Ya existe un usuario con ese nombre." bajo el campo.
+  - Admin: en la ficha, cambiar a Administrador. Esperado: al volver a entrar, la persona ve las pestañas de administrador.
+  - Admin: "Restablecer contraseña". Esperado: la contraseña anterior deja de funcionar y la temporal sí.
+  - Admin: "Desactivar usuario". Esperado: la persona pierde acceso (se cierra su sesión al recargar el perfil) y deja de recibir push; aparece en "Inactivos".
+  - Admin: "Reactivar usuario". Esperado: vuelve a entrar con su contraseña actual.
+  - Admin: abrir su propia ficha. Esperado: "Tu cuenta se administra en Configuración." y sin acciones.
 
 ## Verificaciones pendientes en dispositivo / remoto
 

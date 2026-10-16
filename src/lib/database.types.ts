@@ -222,6 +222,12 @@ isOneToOne: false
               "contenido": string,"seccion": string,"similitud": number
             }[]
                            },
+"cambiar_estado_usuario":
+{ Args: { "p_activo": boolean,"p_id": string }; Returns: undefined
+                           },
+"cambiar_rol_usuario":
+{ Args: { "p_id": string,"p_rol": Database["public"]['Enums']["rol_usuario"] }; Returns: undefined
+                           },
 "dar_baja_producto":
 { Args: { "p_detalle"?: string,"p_id": string,"p_motivo": Database["public"]['Enums']["motivo_baja"] }; Returns: {
               "activo": boolean,

@@ -21,7 +21,7 @@ jest.mock("@/features/auth/AuthProvider", () => ({
 }));
 
 describe("rutas", () => {
-  it("el menú de administración muestra Reportes, Historial y Dar de baja", async () => {
+  it("el menú de administración muestra Reportes, Historial, Usuarios y Dar de baja", async () => {
     await render(
       <SafeAreaProvider
         initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
@@ -34,6 +34,8 @@ describe("rutas", () => {
     expect(screen.getByText("Reportes")).toBeTruthy();
     expect(screen.getByText("Indicadores, gráfico y exportación a Excel")).toBeTruthy();
     expect(screen.getByText("Historial de movimientos")).toBeTruthy();
+    expect(screen.getByText("Usuarios")).toBeTruthy();
+    expect(screen.getByText("Altas, roles, contraseñas y acceso")).toBeTruthy();
     expect(screen.getByText("Dar de baja producto")).toBeTruthy();
     expect(screen.getByText("Retira un producto del catálogo")).toBeTruthy();
     expect(screen.queryByText("Existencias")).toBeNull();

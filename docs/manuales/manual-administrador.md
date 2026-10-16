@@ -116,6 +116,19 @@ Si la cantidad es mayor que lo que hay, la app muestra "La cantidad supera las e
 
 Si estás viendo un solo producto, arriba aparece "Mostrando:" y puedes tocar "Quitar filtro". Para volver a la pantalla anterior usa "Volver". El historial no se puede editar ni borrar.
 
+## Gestionar usuarios
+Desde aquí creas las cuentas de tu equipo, cambias su rol, restableces su contraseña y les quitas o devuelves el acceso.
+1. Toca "Admin." en la barra inferior y luego "Usuarios". Verás los "Activos" y, si hay, los "Inactivos". Tu propia cuenta aparece con "(tú)".
+2. Para crear una cuenta, toca "Nuevo usuario". Escribe el "Nombre" y el "Usuario" (minúsculas, números, punto o guion, de 3 a 30 caracteres) y elige el rol: "Operativo" o "Administrador". Toca "Crear usuario".
+3. Verás "¡Usuario creado!" con una contraseña temporal. Toca "Compartir acceso" para enviarla, por ejemplo por WhatsApp, y luego "Volver a Usuarios". La persona puede cambiarla después en Configuración.
+4. Toca un usuario para abrir su ficha. Ahí puedes:
+   - Cambiar su rol con "Operativo" o "Administrador" y confirmar con "Cambiar rol".
+   - Tocar "Restablecer contraseña" si la olvidó. Confirma con "Restablecer" y comparte la nueva contraseña temporal con "Compartir". La anterior deja de funcionar.
+   - Tocar "Desactivar usuario" cuando alguien deja de trabajar contigo. No podrá entrar ni ver el inventario, deja de recibir notificaciones y su historial se conserva.
+   - Tocar "Reactivar usuario" para devolverle el acceso con su contraseña actual.
+
+Si el usuario ya existe, la app indica "Ya existe un usuario con ese nombre." Tu propia cuenta no se cambia desde aquí: verás "Tu cuenta se administra en Configuración."
+
 ## Productos a pedir
 Esta pantalla lista los productos que alcanzaron su punto de pedido y necesitan reabastecerse.
 1. Para abrirla, toca la tarjeta "Productos en punto de pedido" de Inicio, o "Ver todos" en "Productos próximos a agotarse". También se abre al tocar una alerta en Notificaciones o la tarjeta "En punto de pedido" de Reportes.

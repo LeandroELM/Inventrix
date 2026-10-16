@@ -10,7 +10,8 @@ export type Accion =
   | "registrar_movimiento"
   | "ver_existencias"
   | "exportar_existencias"
-  | "ver_historial";
+  | "ver_historial"
+  | "gestionar_usuarios";
 
 const ACCIONES_OPERATIVO: ReadonlySet<Accion> = new Set<Accion>([
   "registrar_movimiento",
