@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { Share } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import FichaUsuario from "../../app/(app)/administracion/usuarios/[id]";
@@ -20,7 +20,9 @@ jest.mock("expo-router", () => ({
   Redirect: () => null,
 }));
 jest.mock("@/features/auth/AuthProvider", () => ({
-  useAuth: () => ({ perfil: { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin" } }),
+  useAuth: () => ({
+    perfil: { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin" },
+  }),
 }));
 jest.mock("@/features/usuarios/hooks", () => ({
   useUsuario: (id: string) => mockUseUsuario(id),
@@ -37,15 +39,35 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-const CARLOS: Usuario = { id: "u2", usuario: "carlos.m", nombre: "Carlos Mejía", rol: "operativo", activo: true };
-const ANA: Usuario = { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin", activo: true };
+const CARLOS: Usuario = {
+  id: "u2",
+  usuario: "carlos.m",
+  nombre: "Carlos Mejía",
+  rol: "operativo",
+  activo: true,
+};
+const ANA: Usuario = {
+  id: "u1",
+  usuario: "ana.lopez",
+  nombre: "Ana López",
+  rol: "admin",
+  activo: true,
+};
 
 async function montar(usuario: Usuario | null = CARLOS) {
   mockId = usuario?.id ?? "u404";
-  mockUseUsuario.mockReturnValue({ data: usuario, isPending: false, isError: false, refetch: jest.fn() });
+  mockUseUsuario.mockReturnValue({
+    data: usuario,
+    isPending: false,
+    isError: false,
+    refetch: jest.fn(),
+  });
   await render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 360, height: 800 },
+        insets: { top: 0, left: 0, right: 0, bottom: 0 },
+      }}
     >
       <TemaProvider>
         <FichaUsuario />
@@ -75,7 +97,9 @@ describe("Ficha de usuario", () => {
     await fireEvent.press(screen.getByRole("tab", { name: "Administrador" }));
     expect(screen.getByText("¿Hacer administrador a Carlos Mejía?")).toBeTruthy();
     expect(
-      screen.getByText("Podrá registrar y editar productos, dar de baja, ver reportes y alertas, y administrar usuarios."),
+      screen.getByText(
+        "Podrá registrar y editar productos, dar de baja, ver reportes y alertas, y administrar usuarios.",
+      ),
     ).toBeTruthy();
     await fireEvent.press(screen.getByText("Cancelar"));
     expect(mockCambiarRol).not.toHaveBeenCalled();
@@ -89,14 +113,20 @@ describe("Ficha de usuario", () => {
     await montar();
     await fireEvent.press(screen.getByText("Restablecer contraseña"));
     expect(screen.getByText("¿Restablecer la contraseña?")).toBeTruthy();
-    expect(screen.getByText("Se generará una contraseña temporal y la actual dejará de funcionar.")).toBeTruthy();
+    expect(
+      screen.getByText("Se generará una contraseña temporal y la actual dejará de funcionar."),
+    ).toBeTruthy();
     await fireEvent.press(screen.getByText("Restablecer"));
     expect(mockRestablecer).toHaveBeenCalledWith("u2");
     expect(await screen.findByText("Xk7mPq2Rtz")).toBeTruthy();
     expect(screen.getByText("Contraseña temporal")).toBeTruthy();
-    expect(screen.getByText("Compártela con Carlos Mejía. Podrá cambiarla en Configuración.")).toBeTruthy();
+    expect(
+      screen.getByText("Compártela con Carlos Mejía. Podrá cambiarla en Configuración."),
+    ).toBeTruthy();
     await fireEvent.press(screen.getByText("Compartir"));
-    expect(compartir).toHaveBeenCalledWith({ message: mensajeAcceso({ usuario: "carlos.m", password: "Xk7mPq2Rtz" }) });
+    expect(compartir).toHaveBeenCalledWith({
+      message: mensajeAcceso({ usuario: "carlos.m", password: "Xk7mPq2Rtz" }),
+    });
     await fireEvent.press(screen.getByText("Listo"));
     expect(screen.queryByText("Xk7mPq2Rtz")).toBeNull();
   });
@@ -105,7 +135,9 @@ describe("Ficha de usuario", () => {
     await montar();
     await fireEvent.press(screen.getByText("Desactivar usuario"));
     expect(screen.getByText("¿Desactivar a Carlos Mejía?")).toBeTruthy();
-    expect(screen.getByText("No podrá entrar ni ver el inventario. Su historial se conserva.")).toBeTruthy();
+    expect(
+      screen.getByText("No podrá entrar ni ver el inventario. Su historial se conserva."),
+    ).toBeTruthy();
     await fireEvent.press(screen.getByText("Desactivar"));
     expect(mockCambiarEstado).toHaveBeenCalledWith({ id: "u2", activo: false });
   });
@@ -127,6 +159,24 @@ describe("Ficha de usuario", () => {
     expect(screen.queryByText("Restablecer contraseña")).toBeNull();
     expect(screen.queryByText("Desactivar usuario")).toBeNull();
     expect(screen.queryByRole("tab", { name: "Administrador" })).toBeNull();
+  });
+
+  it("la hoja se dibuja fuera del contenido desplazable", async () => {
+    await montar();
+    await fireEvent.press(screen.getByText("Desactivar usuario"));
+    expect(screen.getByText("¿Desactivar a Carlos Mejía?")).toBeTruthy();
+    expect(
+      within(screen.getByTestId("contenido-principal")).queryByText("¿Desactivar a Carlos Mejía?"),
+    ).toBeNull();
+  });
+
+  it("con la contraseña a la vista, tocar el fondo no la cierra", async () => {
+    await montar();
+    await fireEvent.press(screen.getByText("Restablecer contraseña"));
+    await fireEvent.press(screen.getByText("Restablecer"));
+    expect(await screen.findByText("Xk7mPq2Rtz")).toBeTruthy();
+    await fireEvent.press(screen.getByRole("button", { name: "Cerrar" }));
+    expect(screen.getByText("Xk7mPq2Rtz")).toBeTruthy();
   });
 
   it("usuario inexistente", async () => {
@@ -153,7 +203,9 @@ describe("Ficha de usuario", () => {
     await montar();
     await fireEvent.press(screen.getByText("Restablecer contraseña"));
     await fireEvent.press(screen.getByText("Restablecer"));
-    expect(await screen.findByText("Sin conexión. Revisa tu internet e intenta de nuevo.")).toBeTruthy();
+    expect(
+      await screen.findByText("Sin conexión. Revisa tu internet e intenta de nuevo."),
+    ).toBeTruthy();
     expect(screen.getByText("¿Restablecer la contraseña?")).toBeTruthy();
     await fireEvent.press(screen.getByText("Restablecer"));
     expect(await screen.findByText("Xk7mPq2Rtz")).toBeTruthy();

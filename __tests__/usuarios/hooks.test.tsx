@@ -21,7 +21,9 @@ jest.mock("@/features/usuarios/api", () => ({
 function envoltorio() {
   const qc = new QueryClient();
   const espia = jest.spyOn(qc, "invalidateQueries");
-  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  );
   return { wrapper, espia };
 }
 
@@ -32,7 +34,10 @@ describe("hooks de usuarios", () => {
     ["cambiar estado", () => useCambiarEstado(), { id: "u2", activo: false }],
   ])("%s invalida la lista de usuarios", async (_n, hook, variables) => {
     const { wrapper, espia } = envoltorio();
-    const { result } = await renderHook(hook as () => { mutateAsync: (v: never) => Promise<unknown> }, { wrapper });
+    const { result } = await renderHook(
+      hook as () => { mutateAsync: (v: never) => Promise<unknown> },
+      { wrapper },
+    );
     await act(() => result.current.mutateAsync(variables as never));
     expect(espia).toHaveBeenCalledWith({ queryKey: ["usuarios"] });
   });

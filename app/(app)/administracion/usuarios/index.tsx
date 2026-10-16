@@ -53,12 +53,22 @@ function ListaUsuarios() {
         variante="pantalla"
         titulo="Usuarios"
         onAtras={() => router.back()}
-        accion={{ icono: "mas", etiqueta: "Nuevo usuario", onPress: () => router.push("/administracion/usuarios/nuevo") }}
+        accion={{
+          icono: "mas",
+          etiqueta: "Nuevo usuario",
+          onPress: () => router.push("/administracion/usuarios/nuevo"),
+        }}
       />
       <ScrollView
         testID="contenido-principal"
-        contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
+        contentContainerStyle={{
+          padding: ESPACIO.l,
+          paddingBottom: ESPACIO.l + espacio,
+          gap: ESPACIO.l,
+        }}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
+        }
       >
         {/* Si una recarga falla pero ya hay datos, se siguen mostrando. */}
         {data && isError ? <AvisoRecarga onReintentar={() => void refetch()} /> : null}
@@ -70,7 +80,10 @@ function ListaUsuarios() {
           </>
         ) : null}
         {!data && isError ? (
-          <EstadoError mensaje="No se pudo cargar la lista de usuarios." onReintentar={() => void refetch()} />
+          <EstadoError
+            mensaje="No se pudo cargar la lista de usuarios."
+            onReintentar={() => void refetch()}
+          />
         ) : null}
         {data ? (
           <View style={{ gap: ESPACIO.s }}>

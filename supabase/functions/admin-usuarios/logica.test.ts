@@ -18,6 +18,11 @@ Deno.test("validarSolicitud acepta crear y restablecer válidos", () => {
   assertEquals(validarSolicitud({ accion: "restablecer", id }), { accion: "restablecer", id });
 });
 
+Deno.test("validarSolicitud normaliza el id a minúsculas (la comparación con el llamador es exacta)", () => {
+  const s = validarSolicitud({ accion: "restablecer", id: "6F1C2A7E-0B1D-4C3E-9F00-1234567890AB" });
+  assertEquals(s.accion === "restablecer" ? s.id : null, "6f1c2a7e-0b1d-4c3e-9f00-1234567890ab");
+});
+
 Deno.test("validarSolicitud recorta el nombre", () => {
   const s = validarSolicitud({ accion: "crear", usuario: "ana", nombre: "  Ana  ", rol: "admin" });
   assertEquals(s.accion === "crear" ? s.nombre : null, "Ana");

@@ -17,7 +17,13 @@ export const ETIQUETA_ROL: Record<Rol, "Administrador" | "Operativo"> = {
   operativo: "Operativo",
 };
 
-export function mensajeAcceso({ usuario, password }: { usuario: string; password: string }): string {
+export function mensajeAcceso({
+  usuario,
+  password,
+}: {
+  usuario: string;
+  password: string;
+}): string {
   return [
     "Tu acceso a Inventrix",
     `Usuario: ${usuario}`,

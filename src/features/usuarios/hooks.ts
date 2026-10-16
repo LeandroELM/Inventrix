@@ -16,7 +16,11 @@ export function useUsuarios() {
 }
 
 export function useUsuario(id: string) {
-  return useQuery({ queryKey: [...CLAVE, id], queryFn: () => obtenerUsuario(id), enabled: id !== "" });
+  return useQuery({
+    queryKey: [...CLAVE, id],
+    queryFn: () => obtenerUsuario(id),
+    enabled: id !== "",
+  });
 }
 
 function useInvalidar() {
@@ -36,7 +40,10 @@ export function useRestablecerContrasena() {
 
 export function useCambiarRol() {
   const invalidar = useInvalidar();
-  return useMutation({ mutationFn: ({ id, rol }: { id: string; rol: Rol }) => cambiarRol(id, rol), onSuccess: invalidar });
+  return useMutation({
+    mutationFn: ({ id, rol }: { id: string; rol: Rol }) => cambiarRol(id, rol),
+    onSuccess: invalidar,
+  });
 }
 
 export function useCambiarEstado() {

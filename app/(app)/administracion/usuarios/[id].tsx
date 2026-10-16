@@ -18,7 +18,12 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import type { Rol } from "@/features/auth/permisos";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import type { Usuario } from "@/features/usuarios/api";
-import { useCambiarEstado, useCambiarRol, useRestablecerContrasena, useUsuario } from "@/features/usuarios/hooks";
+import {
+  useCambiarEstado,
+  useCambiarRol,
+  useRestablecerContrasena,
+  useUsuario,
+} from "@/features/usuarios/hooks";
 import { ETIQUETA_ROL, mensajeAcceso } from "@/features/usuarios/validacion";
 import { mensajeDeError } from "@/lib/errores";
 import { useEspacioInferior } from "@/components/BarraInferior";
@@ -51,7 +56,9 @@ function Ficha() {
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const { data: u, isPending, isError, refetch } = useUsuario(id);
   const espacio = useEspacioInferior();
-  const encabezado = <Encabezado variante="pantalla" titulo="Usuario" onAtras={() => router.back()} />;
+  const encabezado = (
+    <Encabezado variante="pantalla" titulo="Usuario" onAtras={() => router.back()} />
+  );
 
   if (!u) {
     return (
@@ -63,7 +70,10 @@ function Ficha() {
           ) : isPending ? (
             <Skeleton.Tarjeta />
           ) : isError ? (
-            <EstadoError mensaje="No se pudo cargar el usuario." onReintentar={() => void refetch()} />
+            <EstadoError
+              mensaje="No se pudo cargar el usuario."
+              onReintentar={() => void refetch()}
+            />
           ) : null}
         </View>
       </View>
@@ -73,35 +83,45 @@ function Ficha() {
   return (
     <View style={{ flex: 1, backgroundColor: colores.fondo }}>
       {encabezado}
-      <ScrollView
-        testID="contenido-principal"
-        contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}
-      >
-        <Tarjeta>
-          <View
-            accessible
-            accessibilityLabel={`${u.nombre}, usuario ${u.usuario}, ${ETIQUETA_ROL[u.rol]}, ${u.activo ? "activo" : "inactivo"}`}
-            style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.m }}
-          >
-            <AvatarProducto nombre={u.nombre} tamano={56} />
-            <View style={{ flex: 1, gap: ESPACIO.xs, alignItems: "flex-start" }}>
-              <Texto variante="cuerpoFuerte">{u.nombre}</Texto>
-              <Texto tono="secundario">{`@${u.usuario}`}</Texto>
-              {u.activo ? <Etiqueta tipo="disponible" texto="Activo" /> : <Etiqueta tipo="inactivo" texto="Inactivo" />}
-            </View>
-          </View>
-        </Tarjeta>
-        {u.id === perfil?.id ? (
-          <Texto tono="secundario">Tu cuenta se administra en Configuración.</Texto>
-        ) : (
-          <Acciones usuario={u} />
-        )}
-      </ScrollView>
+      <Detalle usuario={u} propio={u.id === perfil?.id} espacio={espacio} />
     </View>
   );
 }
 
-function Acciones({ usuario: u }: { usuario: Usuario }) {
+function Cabecera({ usuario: u }: { usuario: Usuario }) {
+  return (
+    <Tarjeta>
+      <View
+        accessible
+        accessibilityLabel={`${u.nombre}, usuario ${u.usuario}, ${ETIQUETA_ROL[u.rol]}, ${u.activo ? "activo" : "inactivo"}`}
+        style={{ flexDirection: "row", alignItems: "center", gap: ESPACIO.m }}
+      >
+        <AvatarProducto nombre={u.nombre} tamano={56} />
+        <View style={{ flex: 1, gap: ESPACIO.xs, alignItems: "flex-start" }}>
+          <Texto variante="cuerpoFuerte">{u.nombre}</Texto>
+          <Texto tono="secundario">{`@${u.usuario}`}</Texto>
+          {u.activo ? (
+            <Etiqueta tipo="disponible" texto="Activo" />
+          ) : (
+            <Etiqueta tipo="inactivo" texto="Inactivo" />
+          )}
+        </View>
+      </View>
+    </Tarjeta>
+  );
+}
+
+// La hoja va después del ScrollView (como en baja.tsx): dentro, su posición absoluta se mediría
+// contra el contenido desplazable y no contra la pantalla.
+function Detalle({
+  usuario: u,
+  propio,
+  espacio,
+}: {
+  usuario: Usuario;
+  propio: boolean;
+  espacio: number;
+}) {
   const { colores } = useTema();
   const cambiarRol = useCambiarRol();
   const cambiarEstado = useCambiarEstado();
@@ -156,42 +176,70 @@ function Acciones({ usuario: u }: { usuario: Usuario }) {
 
   return (
     <>
-      <View style={{ gap: ESPACIO.s }}>
-        <Texto variante="etiqueta" tono="secundario">
-          Rol
-        </Texto>
-        <Segmentado opciones={ROLES} valor={u.rol} onCambio={(rol) => rol !== u.rol && abrir({ tipo: "rol", rol })} />
-      </View>
-      <Tarjeta>
-        <FilaLista
-          titulo="Restablecer contraseña"
-          izquierda={<Icono nombre="candado" tamano={22} color={colores.primario} />}
-          onPress={() => abrir({ tipo: "restablecer" })}
-        />
-        {u.activo ? (
-          <FilaLista
-            titulo="Desactivar usuario"
-            tono="peligro"
-            izquierda={<Icono nombre="salir" tamano={22} color={colores.peligro} />}
-            onPress={() => abrir({ tipo: "estado", activo: false })}
-          />
+      <ScrollView
+        testID="contenido-principal"
+        contentContainerStyle={{
+          padding: ESPACIO.l,
+          paddingBottom: ESPACIO.l + espacio,
+          gap: ESPACIO.l,
+        }}
+      >
+        <Cabecera usuario={u} />
+        {propio ? (
+          <Texto tono="secundario">Tu cuenta se administra en Configuración.</Texto>
         ) : (
-          <FilaLista
-            titulo="Reactivar usuario"
-            izquierda={<Icono nombre="check" tamano={22} color={colores.primario} />}
-            onPress={() => abrir({ tipo: "estado", activo: true })}
-          />
+          <>
+            <View style={{ gap: ESPACIO.s }}>
+              <Texto variante="etiqueta" tono="secundario">
+                Rol
+              </Texto>
+              <Segmentado
+                opciones={ROLES}
+                valor={u.rol}
+                onCambio={(rol) => rol !== u.rol && abrir({ tipo: "rol", rol })}
+              />
+            </View>
+            <Tarjeta>
+              <FilaLista
+                titulo="Restablecer contraseña"
+                izquierda={<Icono nombre="candado" tamano={22} color={colores.primario} />}
+                onPress={() => abrir({ tipo: "restablecer" })}
+              />
+              {u.activo ? (
+                <FilaLista
+                  titulo="Desactivar usuario"
+                  tono="peligro"
+                  izquierda={<Icono nombre="salir" tamano={22} color={colores.peligro} />}
+                  onPress={() => abrir({ tipo: "estado", activo: false })}
+                />
+              ) : (
+                <FilaLista
+                  titulo="Reactivar usuario"
+                  izquierda={<Icono nombre="check" tamano={22} color={colores.primario} />}
+                  onPress={() => abrir({ tipo: "estado", activo: true })}
+                />
+              )}
+            </Tarjeta>
+          </>
         )}
-      </Tarjeta>
+      </ScrollView>
       {hoja ? (
-        // La hoja no se cierra mientras la acción está en curso.
-        <HojaInferior bloqueado={ocupado} onCerrar={() => setHoja(null)}>
+        // No se cierra mientras la acción está en curso ni con la contraseña a la vista: un toque
+        // suelto en el fondo la perdería. Se sale con "Listo".
+        <HojaInferior
+          bloqueado={ocupado || hoja.tipo === "contrasena"}
+          onCerrar={() => setHoja(null)}
+        >
           <View style={{ padding: ESPACIO.xl, gap: ESPACIO.l }}>
             {hoja.tipo === "contrasena" ? (
               <ContrasenaTemporal
                 nombre={u.nombre}
                 password={hoja.password}
-                onCompartir={() => void Share.share({ message: mensajeAcceso({ usuario: u.usuario, password: hoja.password }) })}
+                onCompartir={() =>
+                  void Share.share({
+                    message: mensajeAcceso({ usuario: u.usuario, password: hoja.password }),
+                  })
+                }
                 onListo={() => setHoja(null)}
               />
             ) : (
@@ -208,7 +256,12 @@ function Acciones({ usuario: u }: { usuario: Usuario }) {
                     loading={ocupado}
                     onPress={confirmar}
                   />
-                  <Boton titulo="Cancelar" variante="secundario" disabled={ocupado} onPress={() => setHoja(null)} />
+                  <Boton
+                    titulo="Cancelar"
+                    variante="secundario"
+                    disabled={ocupado}
+                    onPress={() => setHoja(null)}
+                  />
                 </View>
               </>
             )}
@@ -222,7 +275,10 @@ function Acciones({ usuario: u }: { usuario: Usuario }) {
 type HojaConfirmar = Exclude<Hoja, { tipo: "contrasena" }>;
 
 function titulo(h: HojaConfirmar, nombre: string): string {
-  if (h.tipo === "rol") return h.rol === "admin" ? `¿Hacer administrador a ${nombre}?` : `¿Cambiar a ${nombre} a operativo?`;
+  if (h.tipo === "rol")
+    return h.rol === "admin"
+      ? `¿Hacer administrador a ${nombre}?`
+      : `¿Cambiar a ${nombre} a operativo?`;
   if (h.tipo === "restablecer") return "¿Restablecer la contraseña?";
   return h.activo ? `¿Reactivar a ${nombre}?` : `¿Desactivar a ${nombre}?`;
 }
@@ -233,7 +289,8 @@ function texto(h: HojaConfirmar): string {
       ? "Podrá registrar y editar productos, dar de baja, ver reportes y alertas, y administrar usuarios."
       : "Solo podrá consultar existencias y registrar entradas y salidas.";
   }
-  if (h.tipo === "restablecer") return "Se generará una contraseña temporal y la actual dejará de funcionar.";
+  if (h.tipo === "restablecer")
+    return "Se generará una contraseña temporal y la actual dejará de funcionar.";
   return h.activo
     ? "Podrá volver a entrar con su contraseña actual."
     : "No podrá entrar ni ver el inventario. Su historial se conserva.";

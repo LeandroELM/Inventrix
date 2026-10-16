@@ -29,7 +29,8 @@ export function validarSolicitud(input: unknown): Solicitud {
     return { accion: "crear", usuario, nombre: limpio, rol };
   }
   if (datos.accion === "restablecer" && typeof datos.id === "string" && PATRON_UUID.test(datos.id)) {
-    return { accion: "restablecer", id: datos.id };
+    // En minúsculas: index.ts lo compara tal cual con el id del llamador.
+    return { accion: "restablecer", id: datos.id.toLowerCase() };
   }
   throw new Error("DATOS_INVALIDOS");
 }

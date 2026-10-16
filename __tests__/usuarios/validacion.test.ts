@@ -1,4 +1,9 @@
-import { ETIQUETA_ROL, mensajeAcceso, normalizarUsuario, usuarioValido } from "@/features/usuarios/validacion";
+import {
+  ETIQUETA_ROL,
+  mensajeAcceso,
+  normalizarUsuario,
+  usuarioValido,
+} from "@/features/usuarios/validacion";
 import { mensajeDeError } from "@/lib/errores";
 
 describe("validación de usuarios", () => {
@@ -25,8 +30,12 @@ describe("validación de usuarios", () => {
   });
 
   it("mensajes de los errores nuevos", () => {
-    expect(mensajeDeError(new Error("USUARIO_EXISTENTE"))).toBe("Ya existe un usuario con ese nombre.");
+    expect(mensajeDeError(new Error("USUARIO_EXISTENTE"))).toBe(
+      "Ya existe un usuario con ese nombre.",
+    );
     expect(mensajeDeError(new Error("USUARIO_NO_ENCONTRADO"))).toBe("No se encontró el usuario.");
-    expect(mensajeDeError(new Error("ACCION_SOBRE_SI_MISMO"))).toBe("No puedes cambiar tu propia cuenta desde aquí.");
+    expect(mensajeDeError(new Error("ACCION_SOBRE_SI_MISMO"))).toBe(
+      "No puedes cambiar tu propia cuenta desde aquí.",
+    );
   });
 });

@@ -11,7 +11,12 @@ import { Texto } from "@/components/Texto";
 import type { Rol } from "@/features/auth/permisos";
 import { RequiereRol } from "@/features/auth/RequiereRol";
 import { useCrearUsuario } from "@/features/usuarios/hooks";
-import { ETIQUETA_ROL, mensajeAcceso, normalizarUsuario, usuarioValido } from "@/features/usuarios/validacion";
+import {
+  ETIQUETA_ROL,
+  mensajeAcceso,
+  normalizarUsuario,
+  usuarioValido,
+} from "@/features/usuarios/validacion";
 import { mensajeDeError } from "@/lib/errores";
 import { useEspacioInferior } from "@/components/BarraInferior";
 import { ESPACIO } from "@/tema/tokens";
@@ -86,7 +91,10 @@ function Formulario() {
         ]}
         principal={{
           titulo: "Compartir acceso",
-          onPress: () => void Share.share({ message: mensajeAcceso({ usuario: creado.usuario, password: creado.password }) }),
+          onPress: () =>
+            void Share.share({
+              message: mensajeAcceso({ usuario: creado.usuario, password: creado.password }),
+            }),
         }}
         secundario={{ titulo: "Volver a Usuarios", onPress: () => router.back() }}
       />
@@ -98,12 +106,17 @@ function Formulario() {
       <Encabezado
         variante="pantalla"
         titulo="Nuevo usuario"
-        accion={{ icono: "cerrar", etiqueta: "Cerrar", onPress: () => router.back() }}
+        // Mientras se crea no se sale: la contraseña temporal solo se muestra al terminar.
+        accion={{ icono: "cerrar", etiqueta: "Cerrar", onPress: () => !cargando && router.back() }}
       />
       <ScrollView
         testID="contenido-principal"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: ESPACIO.l, paddingBottom: ESPACIO.l + espacio, gap: ESPACIO.l }}
+        contentContainerStyle={{
+          padding: ESPACIO.l,
+          paddingBottom: ESPACIO.l + espacio,
+          gap: ESPACIO.l,
+        }}
       >
         <Campo
           label="Nombre"
@@ -142,7 +155,12 @@ function Formulario() {
           <Segmentado opciones={ROLES} valor={rol} onCambio={setRol} />
         </View>
         {error ? <AvisoAdvertencia tono="peligro" alerta texto={error} /> : null}
-        <Boton titulo="Crear usuario" disabled={!listo} loading={cargando} onPress={() => void enviar()} />
+        <Boton
+          titulo="Crear usuario"
+          disabled={!listo}
+          loading={cargando}
+          onPress={() => void enviar()}
+        />
       </ScrollView>
     </View>
   );

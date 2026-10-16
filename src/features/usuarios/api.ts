@@ -12,7 +12,11 @@ export async function listarUsuarios(): Promise<Usuario[]> {
 }
 
 export async function obtenerUsuario(id: string): Promise<Usuario | null> {
-  const { data, error } = await supabase.from("perfiles").select(COLUMNAS).eq("id", id).maybeSingle();
+  const { data, error } = await supabase
+    .from("perfiles")
+    .select(COLUMNAS)
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -34,13 +38,20 @@ async function codigoDelCuerpo(error: unknown): Promise<string | null> {
 async function invocar<T>(body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke<T>("admin-usuarios", { body });
   if (error) {
+    // Sin red supabase-js no devuelve el error de fetch sino uno propio con otro texto.
+    if ((error as { name?: unknown }).name === "FunctionsFetchError")
+      throw new Error("Network request failed");
     const codigo = await codigoDelCuerpo(error);
     throw codigo ? new Error(codigo) : error;
   }
   return data as T;
 }
 
-export function crearUsuario(d: { usuario: string; nombre: string; rol: Rol }): Promise<{ id: string; password: string }> {
+export function crearUsuario(d: {
+  usuario: string;
+  nombre: string;
+  rol: Rol;
+}): Promise<{ id: string; password: string }> {
   return invocar({ accion: "crear", ...d });
 }
 

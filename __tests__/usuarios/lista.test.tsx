@@ -16,7 +16,9 @@ jest.mock("expo-router", () => ({
   Redirect: () => null,
 }));
 jest.mock("@/features/auth/AuthProvider", () => ({
-  useAuth: () => ({ perfil: { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin" } }),
+  useAuth: () => ({
+    perfil: { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin" },
+  }),
 }));
 jest.mock("@/features/usuarios/hooks", () => ({ useUsuarios: () => mockUseUsuarios() }));
 jest.mock("@/features/configuracion/apariencia", () => ({
@@ -28,17 +30,48 @@ jest.mock("react-native-reanimated", () => {
   return { ...mock, useReducedMotion: () => true };
 });
 
-const ANA: Usuario = { id: "u1", usuario: "ana.lopez", nombre: "Ana López", rol: "admin", activo: true };
-const CARLOS: Usuario = { id: "u2", usuario: "carlos.m", nombre: "Carlos Mejía", rol: "operativo", activo: true };
-const LUIS: Usuario = { id: "u3", usuario: "luis.r", nombre: "Luis Ruiz", rol: "operativo", activo: false };
+const ANA: Usuario = {
+  id: "u1",
+  usuario: "ana.lopez",
+  nombre: "Ana López",
+  rol: "admin",
+  activo: true,
+};
+const CARLOS: Usuario = {
+  id: "u2",
+  usuario: "carlos.m",
+  nombre: "Carlos Mejía",
+  rol: "operativo",
+  activo: true,
+};
+const LUIS: Usuario = {
+  id: "u3",
+  usuario: "luis.r",
+  nombre: "Luis Ruiz",
+  rol: "operativo",
+  activo: false,
+};
 
 const refetch = jest.fn();
 
-async function montar(estado: Partial<{ data: Usuario[]; isPending: boolean; isError: boolean }>, conEspacio = false) {
-  mockUseUsuarios.mockReturnValue({ data: undefined, isPending: false, isError: false, isRefetching: false, refetch, ...estado });
+async function montar(
+  estado: Partial<{ data: Usuario[]; isPending: boolean; isError: boolean }>,
+  conEspacio = false,
+) {
+  mockUseUsuarios.mockReturnValue({
+    data: undefined,
+    isPending: false,
+    isError: false,
+    isRefetching: false,
+    refetch,
+    ...estado,
+  });
   await render(
     <SafeAreaProvider
-      initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 } }}
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 360, height: 800 },
+        insets: { top: 0, left: 0, right: 0, bottom: conEspacio ? 24 : 0 },
+      }}
     >
       <TemaProvider>
         <EspacioInferiorContext.Provider value={conEspacio}>
@@ -88,7 +121,9 @@ describe("Lista de usuarios", () => {
 
   it("deja espacio final para la barra y Trix", async () => {
     await montar({ data: [ANA] }, true);
-    const estilo = StyleSheet.flatten(screen.getByTestId("contenido-principal").props.contentContainerStyle);
+    const estilo = StyleSheet.flatten(
+      screen.getByTestId("contenido-principal").props.contentContainerStyle,
+    );
     expect(estilo.paddingBottom).toBe(16 + 162);
   });
 });
