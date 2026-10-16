@@ -19,6 +19,7 @@ const LISTA = [
   "app/(app)/administracion/baja.tsx",
   "app/(app)/administracion/usuarios/index.tsx",
   "app/(app)/administracion/usuarios/[id].tsx",
+  "app/(app)/administracion/usuarios/nuevo.tsx",
   "src/features/movimientos/FormularioMovimiento.tsx",
 ];
 
