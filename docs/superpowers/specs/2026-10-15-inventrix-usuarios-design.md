@@ -118,11 +118,11 @@ Las tres son rutas apiladas sobre las pestañas (Stack de `app/(app)`), así que
 - Encabezado "Nuevo usuario" con acción de icono `cerrar` (`router.back()`).
 - Campos (`Campo`):
   - **Nombre** — "Nombre y apellido", `autoCapitalize="words"`.
-  - **Usuario** — `autoCapitalize="none"`, `autoCorrect={false}`. Debajo, mientras no haya error, un `Texto variante="pequeno" tono="secundario"` con la pista "Minúsculas, números, punto o guion (3 a 30)" (`Campo` no tiene prop de pista). Error en vivo (prop `error` de `Campo`) cuando el texto no está vacío y no cumple `usuarioValido`: "Usa de 3 a 30 minúsculas, números, punto o guion."
+  - **Usuario** — se normaliza con `normalizarUsuario` (recorta espacios y pasa a minúsculas) antes de validar y enviar; `autoCapitalize="none"`, `autoCorrect={false}`. Debajo, mientras no haya error, un `Texto variante="pequeno" tono="secundario"` con la pista "Minúsculas, números, punto o guion (3 a 30)" (`Campo` no tiene prop de pista). Error en vivo (prop `error` de `Campo`) cuando el texto no está vacío y no cumple `usuarioValido`: "Usa de 3 a 30 minúsculas, números, punto o guion."
   - **Rol** — `Segmentado` Operativo / Administrador, Operativo por defecto.
 - Botón "Crear usuario": deshabilitado si falta el nombre o el usuario no es válido; `loading` en curso; una referencia `enCurso` impide un segundo envío.
 - `USUARIO_EXISTENTE` aparece como error del campo Usuario ("Ya existe un usuario con ese nombre."). Los demás errores, en `AvisoAdvertencia` sobre el botón. Ambos se borran al editar.
-- Éxito: `PantallaResultado` "¡Usuario creado!", frase "<nombre> ya puede entrar a Inventrix con esta contraseña temporal.", datos Usuario, Rol y Contraseña temporal. Principal **"Compartir acceso"** (`Share`, §3.3; la pantalla se mantiene). Secundario **"Volver a Usuarios"** (`router.back()`).
+- Éxito: `PantallaResultado` "¡Usuario creado!", frase "<nombre> ya puede entrar a Inventrix con esta contraseña temporal.", `producto={{ nombre, detalle: "@<usuario>" }}` y los dos datos que admite el componente: Rol y Contraseña temporal. Principal **"Compartir acceso"** (`Share`, §3.3; la pantalla se mantiene). Secundario **"Volver a Usuarios"** (`router.back()`).
 
 ## 3. Datos en la app
 
@@ -134,7 +134,7 @@ Las tres son rutas apiladas sobre las pestañas (Stack de `app/(app)`), así que
   - `crearUsuario({ usuario, nombre, rol })` → `{ id, password }` y `restablecerContrasena(id)` → `{ password }`: `supabase.functions.invoke("admin-usuarios", { body })`. Ante un error leen `{ error }` del cuerpo de la respuesta (`error.context`, como `src/features/soporte/api.ts`) y lanzan `new Error(codigo)`; sin cuerpo, relanzan el error original.
   - `cambiarRol(id, rol)` y `cambiarEstado(id, activo)`: `supabase.rpc(...)`; ante error lanzan `new Error(error.message)`.
 - `hooks.ts`: `useUsuarios()` (`["usuarios"]`), `useUsuario(id)` (`["usuarios", id]`) y mutaciones `useCrearUsuario`, `useRestablecerContrasena`, `useCambiarRol`, `useCambiarEstado`. Las que cambian datos invalidan `["usuarios"]` al terminar.
-- `validacion.ts`: `PATRON_USUARIO` (misma expresión que el servidor), `usuarioValido(texto)`, `ETIQUETA_ROL` (`Administrador`/`Operativo`) y `mensajeAcceso({ usuario, password })`.
+- `validacion.ts`: `PATRON_USUARIO` (misma expresión que el servidor), `normalizarUsuario(texto)` (trim + minúsculas), `usuarioValido(texto)`, `ETIQUETA_ROL` (`Administrador`/`Operativo`) y `mensajeAcceso({ usuario, password })`.
 
 ### 3.2 Tipos y errores
 
