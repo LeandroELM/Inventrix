@@ -1,5 +1,5 @@
-import { Redirect } from "expo-router";
+import { PantallaHistorial } from "@/features/movimientos/PantallaHistorial";
 
 export default function Historial() {
-  return <Redirect href="/movimientos" />;
+  return <PantallaHistorial apilada />;
 }

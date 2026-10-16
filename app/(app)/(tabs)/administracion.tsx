@@ -19,6 +19,13 @@ const OPCIONES: { titulo: string; detalle: string; ruta: Href; accion: Accion; i
     icono: "administracion",
   },
   {
+    titulo: "Historial de movimientos",
+    detalle: "Entradas y salidas con filtros y detalle",
+    ruta: "/movimientos/historial",
+    accion: "ver_historial",
+    icono: "movimientos",
+  },
+  {
     titulo: "Dar de baja producto",
     detalle: "Retira un producto del catálogo",
     ruta: "/administracion/baja",

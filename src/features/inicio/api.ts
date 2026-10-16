@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import type { Rol } from "@/features/auth/permisos";
-import { listarHistorial, type FilaHistorial } from "@/features/movimientos/api";
 import { obtenerDashboard } from "@/features/reportes/api";
 import { aFecha } from "@/features/reportes/dashboard";
 import { formatearCantidad, UNIDADES, type Unidad } from "@/features/productos/unidades";
@@ -20,7 +19,6 @@ export type Inicio = {
   productosActivos: number;
   resumen: ResumenUnidad[];
   aPedir?: { total: number; primeros: ProductoAPedir[] };
-  recientes: FilaHistorial[];
   hoy?: { entradas: number; salidas: number };
 };
 
@@ -53,13 +51,12 @@ async function movimientosDeHoy(ahora: Date): Promise<Inicio["hoy"]> {
 }
 
 export async function obtenerInicio(rol: Rol, ahora: Date = new Date()): Promise<Inicio> {
-  const [activos, resumen, aPedir, recientes, hoy] = await Promise.all([
+  const [activos, resumen, aPedir, hoy] = await Promise.all([
     supabase.from("productos").select("*", { count: "exact", head: true }).eq("activo", true),
     supabase.rpc("resumen_existencias"),
     rol === "admin"
       ? supabase.from("productos_a_pedir").select("*", { count: "exact" }).limit(3)
       : Promise.resolve(null),
-    listarHistorial({ pagina: 0 }).then((f) => f.slice(0, 5)),
     rol === "admin" ? movimientosDeHoy(ahora) : Promise.resolve(undefined),
   ]);
   if (activos.error) throw activos.error;
@@ -71,7 +68,6 @@ export async function obtenerInicio(rol: Rol, ahora: Date = new Date()): Promise
     aPedir: aPedir
       ? { total: aPedir.count ?? aPedir.data.length, primeros: aPedir.data as ProductoAPedir[] }
       : undefined,
-    recientes,
     hoy,
   };
 }

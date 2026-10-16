@@ -132,10 +132,15 @@ export default function Escaner() {
     return () => sub.remove();
   }, [hojaAbierta]);
 
+  // El escáner es un modal sobre toda la app: se cierra primero y se navega desde la pantalla que
+  // lo abrió. Navegar desde el propio modal apilaría una segunda copia de la app encima.
   function usarProducto(productoId: string) {
+    router.back();
     if (destino === "existencias") {
-      router.replace({ pathname: "/administracion/producto/[id]", params: { id: productoId } });
+      // La ficha se apila sobre la pantalla de origen: volver regresa a ella.
+      router.push({ pathname: "/administracion/producto/[id]", params: { id: productoId } });
     } else if (destino === "entrada") {
+      // El formulario que abrió el escáner se reemplaza por uno con el producto elegido.
       router.replace({ pathname: "/movimientos/entrada", params: { productoId } });
     } else if (destino === "salida") {
       router.replace({ pathname: "/movimientos/salida", params: { productoId } });
@@ -145,7 +150,9 @@ export default function Escaner() {
   }
 
   function registrar(codigo: string) {
-    router.replace({ pathname: "/nuevo", params: { codigo } });
+    router.back();
+    // Nuevo producto es una pestaña: se cierra lo apilado encima y se cambia a ella.
+    router.dismissTo({ pathname: "/nuevo", params: { codigo } });
   }
 
   async function leerDesdeImagen() {

@@ -5,7 +5,6 @@ const mockConsulta: Record<string, jest.Mock> = {
   limit: jest.fn(() => Promise.resolve({ data: [], count: 0, error: null })),
 };
 jest.mock("@/lib/supabase", () => ({ supabase: { from: () => mockConsulta, rpc: (...a: unknown[]) => mockRpc(...a) } }));
-jest.mock("@/features/movimientos/api", () => ({ listarHistorial: jest.fn().mockResolvedValue([]) }));
 
 import { obtenerInicio } from "@/features/inicio/api";
 

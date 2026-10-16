@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Nuevo from "../../app/(app)/nuevo";
+import Nuevo from "../../app/(app)/(tabs)/nuevo";
 import { TemaProvider } from "@/tema/TemaProvider";
 
 const mockRegistrar = jest.fn();
@@ -10,6 +10,7 @@ const mockLeerImagen = jest.fn();
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
+const mockNavigate = jest.fn();
 let mockParams: { codigo?: string } = {};
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 jest.mock("@/features/productos/api", () => ({
@@ -20,7 +21,7 @@ jest.mock("@/features/productos/leerImagen", () => ({
   leerCodigoDeImagen: (...args: unknown[]) => mockLeerImagen(...args),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack, navigate: mockNavigate }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -192,6 +193,17 @@ describe("Nuevo producto", () => {
     expect(await screen.findByText("¡Producto registrado!")).toBeTruthy();
   });
 
+  it("Ver en Existencias cambia a la pestaña Buscar y deja el formulario listo", async () => {
+    mockRegistrar.mockResolvedValue({ id: "p1" });
+    await irAlPaso2();
+    await fireEvent.press(screen.getByRole("button", { name: "Confirmar registro" }));
+    await screen.findByText("¡Producto registrado!");
+    await fireEvent.press(screen.getByRole("button", { name: "Ver en Existencias" }));
+    expect(mockNavigate).toHaveBeenCalledWith("/buscar");
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByText("Paso 1 de 2 · Datos del producto")).toBeTruthy();
+  });
+
   it("resultado", async () => {
     mockRegistrar.mockResolvedValue({ id: "p1" });
     await irAlPaso2();
@@ -210,8 +222,6 @@ describe("Nuevo producto", () => {
     expect(screen.getByText("Código 750999")).toBeTruthy();
     expect(screen.getByText("50 unid.")).toBeTruthy();
     expect(screen.getByText("15 unid.")).toBeTruthy();
-    await fireEvent.press(screen.getByRole("button", { name: "Ver en Existencias" }));
-    expect(mockReplace).toHaveBeenCalledWith("/buscar");
     await fireEvent.press(screen.getByRole("button", { name: "Registrar otro producto" }));
     expect(screen.getByText("Paso 1 de 2 · Datos del producto")).toBeTruthy();
     expect(screen.getByLabelText("Nombre").props.value).toBe("");

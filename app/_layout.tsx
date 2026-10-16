@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAbrirDesdeNotificacion } from "@/features/alertas/useAbrirDesdeNotificacion";
 import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -7,7 +7,8 @@ import * as SystemUI from "expo-system-ui";
 import { CargadorFuentes } from "@/tema/CargadorFuentes";
 import { TemaProvider, useTema } from "@/tema/TemaProvider";
 import { Boton } from "@/components/Boton";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, ThemeProvider, useRouter, useSegments } from "expo-router";
+import { temaNavegacion } from "@/tema/temaNavegacion";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
 import { queryClient } from "@/lib/queryClient";
@@ -84,15 +85,17 @@ function Raiz() {
     void SystemUI.setBackgroundColorAsync(colores.fondo).catch(() => {});
   }, [colores.fondo]);
 
+  const tema = useMemo(() => temaNavegacion(colores, esquema), [colores, esquema]);
+
   return (
-    <>
+    <ThemeProvider value={tema}>
       <StatusBar style={esquema === "oscuro" ? "light" : "dark"} />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Navegacion />
         </AuthProvider>
       </QueryClientProvider>
-    </>
+    </ThemeProvider>
   );
 }
 

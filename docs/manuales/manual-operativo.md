@@ -13,7 +13,7 @@ Si los datos no son correctos, la app muestra "No fue posible iniciar sesión. V
 ## Navegar por la aplicación
 La barra inferior flota sobre el contenido y tiene cuatro secciones: "Inicio", "Buscar", "Movimientos" y "Config.". La sección donde estás se marca con un punto verde. Toca una para cambiar de pantalla.
 
-En Inicio ves tu saludo y la tarjeta "Productos registrados" con tres accesos rápidos: "Entrada", "Salida" y "Escanear". Más abajo están el "Resumen de existencias" (una cifra por cada unidad: unidades, libras, cajas, etc.; las unidades distintas nunca se suman entre sí) y los "Últimos movimientos". Desliza hacia abajo para ver todo el contenido; lo último queda completo por encima de la barra. Para actualizar los datos, arrastra la pantalla hacia abajo.
+En Inicio ves tu saludo y la tarjeta "Productos registrados" con tres accesos rápidos: "Entrada", "Salida" y "Escanear". Más abajo está el "Resumen de existencias" (una cifra por cada unidad: unidades, libras, cajas, etc.; las unidades distintas nunca se suman entre sí). Los movimientos se consultan en "Movimientos", en la barra inferior. Desliza hacia abajo para ver todo el contenido; lo último queda completo por encima de la barra. Para actualizar los datos, arrastra la pantalla hacia abajo.
 
 Trix, el asistente de ayuda, flota sobre el contenido como un botón redondo en la esquina inferior derecha (mira la sección Pedir ayuda a Trix).
 

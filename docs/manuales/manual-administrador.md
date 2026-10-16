@@ -13,7 +13,7 @@ Si los datos no son correctos, la app muestra "No fue posible iniciar sesión. V
 ## Navegar por la aplicación
 La barra inferior flota sobre el contenido y tiene cuatro secciones, más un botón redondo + en el centro: "Inicio", "Buscar", + (el botón "Nuevo producto"), "Admin." y "Config.". La sección donde estás se marca con un punto verde.
 
-En Inicio ves tu saludo con el rótulo "Administrador" y la campana "Notificaciones" arriba a la derecha. La tarjeta "Productos registrados" tiene tres accesos rápidos: "Entrada", "Salida" y "Escanear". Debajo están "Productos en punto de pedido", "Existencias generales" (una cifra por cada unidad; las unidades distintas nunca se suman entre sí), "Productos próximos a agotarse" y "Movimientos recientes". El historial de movimientos se abre con el enlace "Historial" de esa última sección. Para actualizar los datos, arrastra la pantalla hacia abajo.
+En Inicio ves tu saludo con el rótulo "Administrador" y la campana "Notificaciones" arriba a la derecha. La tarjeta "Productos registrados" tiene tres accesos rápidos: "Entrada", "Salida" y "Escanear". Debajo están "Productos en punto de pedido", "Existencias generales" (una cifra por cada unidad; las unidades distintas nunca se suman entre sí), y "Productos próximos a agotarse". El historial de movimientos se abre desde "Administración". Para actualizar los datos, arrastra la pantalla hacia abajo.
 
 Trix, el asistente de ayuda, flota sobre el contenido como un botón redondo en la esquina inferior derecha (mira la sección Pedir ayuda a Trix).
 
@@ -108,7 +108,7 @@ Una salida resta existencias.
 Si la cantidad es mayor que lo que hay, la app muestra "La cantidad supera las existencias disponibles" y no permite registrar. Si la salida deja el producto en su punto de pedido o por debajo, antes de registrar aparece un aviso y, al terminar, la app indica "El producto alcanzó su punto de pedido". Verás "¡Salida registrada!"; toca "Registrar otra salida" o "Volver al inicio".
 
 ## Ver el historial de movimientos
-1. En Inicio, en "Movimientos recientes", toca "Historial". También puedes tocar "Ver todo" en una ficha para ver solo los movimientos de ese producto.
+1. Toca "Admin." en la barra inferior y luego "Historial de movimientos". También puedes tocar "Ver todo" en una ficha para ver solo los movimientos de ese producto.
 2. Se abre el "Historial de movimientos", con lo más reciente primero y agrupado por día.
 3. Para buscar, escribe en "Buscar por producto o código".
 4. Filtra por tipo con "Todos", "Entradas" o "Salidas".

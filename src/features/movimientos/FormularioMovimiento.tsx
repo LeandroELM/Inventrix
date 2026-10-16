@@ -110,7 +110,8 @@ export function FormularioMovimiento({ tipo }: { tipo: "entrada" | "salida" }) {
             : undefined
         }
         principal={{ titulo: entrada ? "Registrar otra entrada" : "Registrar otra salida", onPress: reiniciar }}
-        secundario={{ titulo: "Volver al inicio", onPress: () => router.replace("/") }}
+        // Cierra lo apilado y vuelve a la pestaña Inicio, sin apilar otra copia de las pestañas.
+        secundario={{ titulo: "Volver al inicio", onPress: () => router.dismissTo("/") }}
       />
     );
   }

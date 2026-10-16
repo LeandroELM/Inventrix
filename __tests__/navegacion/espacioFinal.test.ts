@@ -6,12 +6,12 @@ const RAIZ = path.resolve(__dirname, "../..");
 const PANTALLAS = path.join(RAIZ, "app", "(app)");
 
 const LISTA = [
-  "app/(app)/index.tsx",
-  "app/(app)/buscar.tsx",
-  "app/(app)/nuevo.tsx",
-  "app/(app)/configuracion.tsx",
-  "app/(app)/movimientos/index.tsx",
-  "app/(app)/administracion/index.tsx",
+  "app/(app)/(tabs)/index.tsx",
+  "app/(app)/(tabs)/buscar.tsx",
+  "app/(app)/(tabs)/nuevo.tsx",
+  "app/(app)/(tabs)/configuracion.tsx",
+  "app/(app)/(tabs)/administracion.tsx",
+  "src/features/movimientos/PantallaHistorial.tsx",
   "app/(app)/administracion/pedir.tsx",
   "app/(app)/administracion/producto/[id].tsx",
   "app/(app)/administracion/producto/[id]/editar.tsx",
@@ -41,7 +41,7 @@ function reservaEspacio(contenido: string): boolean {
 
 // Esta prueba solo ve que el espacio se lee y se aplica en algún paddingBottom, no dónde. Los pies
 // fijos fuera del scroll (Buscar) y las hojas (HojaInferior) tienen sus propias pruebas de render.
-describe("espacio final de las pantallas de pestaña", () => {
+describe("espacio final de las pantallas de la app", () => {
   it("toda pantalla de pestaña reserva el espacio final", () => {
     for (const archivo of LISTA) {
       expect({ archivo, reserva: reservaEspacio(leer(archivo)) }).toEqual({ archivo, reserva: true });
@@ -55,6 +55,7 @@ describe("espacio final de las pantallas de pestaña", () => {
       .filter((ruta) => !fs.readFileSync(ruta, "utf8").includes("<Redirect"))
       .filter((ruta) => !enLista.has(ruta))
       .filter((ruta) => !fs.readFileSync(ruta, "utf8").includes("FormularioMovimiento"))
+      .filter((ruta) => !fs.readFileSync(ruta, "utf8").includes("<PantallaHistorial"))
       .map((ruta) => path.relative(RAIZ, ruta));
     expect(sinCubrir).toEqual([]);
   });

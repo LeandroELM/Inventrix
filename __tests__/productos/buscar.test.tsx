@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Buscar from "../../app/(app)/buscar";
+import Buscar from "../../app/(app)/(tabs)/buscar";
 import { EspacioInferiorContext } from "@/components/BarraInferior";
 import { TemaProvider } from "@/tema/TemaProvider";
 import { estadoInventario } from "@/features/productos/estado";

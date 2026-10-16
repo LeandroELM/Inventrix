@@ -9,6 +9,7 @@ import { TemaProvider } from "@/tema/TemaProvider";
 const mockRegistrar = jest.fn();
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
+const mockDismissTo = jest.fn();
 let mockPuedeVolver = true;
 let mockParams: { productoId?: string } = {};
 const producto = {
@@ -29,7 +30,7 @@ jest.mock("@/features/movimientos/api", () => ({
   registrarMovimiento: (...args: unknown[]) => mockRegistrar(...args),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, canGoBack: () => mockPuedeVolver }),
+  useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: mockBack, dismissTo: mockDismissTo, canGoBack: () => mockPuedeVolver }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -104,7 +105,7 @@ describe("Entrada", () => {
     expect(screen.getByText("Código 750123")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Registrar otra entrada" })).toBeTruthy();
     await fireEvent.press(screen.getByRole("button", { name: "Volver al inicio" }));
-    expect(mockReplace).toHaveBeenCalledWith("/");
+    expect(mockDismissTo).toHaveBeenCalledWith("/");
   });
 
   it("Registrar otra entrada vuelve al buscador", async () => {

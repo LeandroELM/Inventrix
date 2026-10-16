@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Configuracion from "../../app/(app)/configuracion";
+import Configuracion from "../../app/(app)/(tabs)/configuracion";
 import { guardarApariencia } from "@/features/configuracion/apariencia";
 import { TemaProvider } from "@/tema/TemaProvider";
 

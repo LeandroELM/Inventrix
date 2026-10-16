@@ -8,6 +8,7 @@ const mockBuscar = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 const mockPedirPermiso = jest.fn();
 const mockLeerImagen = jest.fn();
 let mockParams: { destino?: string } = {};
@@ -31,7 +32,7 @@ jest.mock("expo-camera", () => ({
   useCameraPermissions: () => [mockPermiso, mockPedirPermiso],
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ replace: mockReplace, dismissTo: mockDismissTo, back: mockBack }),
+  useRouter: () => ({ replace: mockReplace, dismissTo: mockDismissTo, back: mockBack, push: mockPush }),
   useLocalSearchParams: () => mockParams,
   useIsFocused: () => true,
 }));
@@ -86,7 +87,21 @@ describe("Escáner", () => {
     expect(screen.getByText("Harina de trigo")).toBeTruthy();
     expect(screen.getByText("750 · 5 unid. disponibles")).toBeTruthy();
     await fireEvent.press(screen.getByRole("button", { name: "Usar este producto" }));
+    // Cierra el escáner y reemplaza el formulario que lo abrió.
+    expect(mockBack).toHaveBeenCalledTimes(1);
     expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movimientos/salida", params: { productoId: "p1" } });
+    expect(mockBack.mock.invocationCallOrder[0]).toBeLessThan(mockReplace.mock.invocationCallOrder[0]);
+  });
+
+  it("destino existencias cierra el escáner y apila la ficha sobre la pantalla de origen", async () => {
+    mockParams = { destino: "existencias" };
+    await renderizar();
+    await leer("750");
+    await screen.findByText("CÓDIGO RECONOCIDO");
+    await fireEvent.press(screen.getByRole("button", { name: "Usar este producto" }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/administracion/producto/[id]", params: { id: "p1" } });
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it("con la hoja abierta no se procesan lecturas", async () => {
@@ -115,7 +130,10 @@ describe("Escáner", () => {
     expect(screen.getByText("750")).toBeTruthy();
     expect(screen.getByText("El código escaneado no corresponde a ningún producto registrado.")).toBeTruthy();
     await fireEvent.press(screen.getByRole("button", { name: "Registrar producto" }));
-    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/nuevo", params: { codigo: "750" } });
+    // Cierra el escáner y vuelve a la pestaña Nuevo producto (sin apilar otra copia de las pestañas).
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/nuevo", params: { codigo: "750" } });
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it("no encontrado operativo muestra el aviso", async () => {

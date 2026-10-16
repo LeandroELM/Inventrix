@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react";
 import { View } from "react-native";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
-import type { BottomTabBarProps } from "expo-router/tabs";
 import { Presionable } from "@/animacion/Presionable";
 import { Icono, type NombreIcono } from "@/components/Icono";
 import { Texto } from "@/components/Texto";
@@ -18,8 +17,8 @@ export function espacioInferior(insetInferior: number): number {
   return ALTO_BARRA + MARGEN_BARRA + insetInferior + ESPACIO_TRIX;
 }
 
-// Las pestañas lo activan: dentro de ellas el contenido se desplaza bajo la barra y Trix, y cada
-// pantalla suma este espacio al final para que lo último no quede tapado.
+// La app lo activa: en sus pantallas (pestañas y lo apilado encima) el contenido se desplaza bajo
+// la barra y Trix, y cada pantalla suma este espacio al final para que lo último no quede tapado.
 export const EspacioInferiorContext = createContext(false);
 
 export function useEspacioInferior(): number {
@@ -29,8 +28,16 @@ export function useEspacioInferior(): number {
   return enPestanas ? espacioInferior(insets?.bottom ?? 0) : 0;
 }
 
-// Pestañas con un Stack anidado: al tocarlas se vuelve a su pantalla raíz.
-const CON_STACK: NombreTab[] = ["administracion", "movimientos"];
+type EstadoApp = {
+  routes: readonly { name: string; state?: { index?: number; routes: readonly { name: string }[] } }[];
+};
+
+// Pestaña enfocada dentro de "(tabs)", la base del Stack de la app. Sigue marcada mientras haya
+// pantallas apiladas encima. Antes de que las pestañas monten su estado, es Inicio.
+export function pestanaActiva(estado: EstadoApp): string {
+  const pestanas = estado.routes.find((r) => r.name === "(tabs)")?.state;
+  return pestanas?.routes[pestanas.index ?? 0]?.name ?? "index";
+}
 
 const TAMANO_MAS = 54;
 const ELEVACION_MAS = 30;
@@ -62,23 +69,18 @@ const ICONOS_TAB: Record<Exclude<NombreTab, "nuevo">, NombreIcono> = {
 };
 
 export function BarraInferior({
-  state,
-  navigation,
-  insets,
   visibles,
-}: BottomTabBarProps & { visibles: NombreTab[] }) {
+  activa,
+  onPresionar,
+}: {
+  visibles: NombreTab[];
+  activa: string;
+  onPresionar: (nombre: NombreTab) => void;
+}) {
   const { colores, esquema } = useTema();
+  const insets = useContext(SafeAreaInsetsContext);
   const tecladoVisible = useTecladoVisible();
   if (tecladoVisible) return null;
-  const activa = state.routes[state.index]?.name;
-
-  const presionar = (nombre: NombreTab) => {
-    const ruta = state.routes.find((r) => r.name === nombre);
-    const evento = navigation.emit({ type: "tabPress", target: ruta?.key, canPreventDefault: true });
-    if (evento.defaultPrevented) return;
-    if (CON_STACK.includes(nombre)) navigation.navigate(nombre, { screen: "index", pop: true });
-    else navigation.navigate(nombre);
-  };
 
   return (
     <View
@@ -91,7 +93,7 @@ export function BarraInferior({
           position: "absolute",
           left: MARGEN_BARRA,
           right: MARGEN_BARRA,
-          bottom: MARGEN_BARRA + insets.bottom,
+          bottom: MARGEN_BARRA + (insets?.bottom ?? 0),
           height: ALTO_TOTAL,
           flexDirection: "row",
           alignItems: "flex-end",
@@ -122,7 +124,7 @@ export function BarraInferior({
               <Presionable
                 accessibilityRole="button"
                 accessibilityLabel="Nuevo producto"
-                onPress={() => presionar(nombre)}
+                onPress={() => onPresionar(nombre)}
                 style={[
                   {
                     width: TAMANO_MAS,
@@ -150,7 +152,7 @@ export function BarraInferior({
             accessibilityRole="tab"
             accessibilityLabel={ETIQUETAS[nombre]}
             accessibilityState={{ selected: seleccionada }}
-            onPress={() => presionar(nombre)}
+            onPress={() => onPresionar(nombre)}
             style={{ flex: 1, height: ALTO_BARRA, alignItems: "center", justifyContent: "center", gap: 2 }}
           >
             <Icono nombre={ICONOS_TAB[nombre]} tamano={22} color={color} />

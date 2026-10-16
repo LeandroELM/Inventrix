@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import Notificaciones from "../../app/notificaciones";
 
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 const mockListar = jest.fn();
 const mockMarcar = jest.fn();
 jest.mock("@/features/alertas/api", () => ({
@@ -14,7 +15,7 @@ jest.mock("@/features/inicio/api", () => ({
   contarAlertasNoLeidas: jest.fn().mockResolvedValue(1),
 }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: mockPush, replace: jest.fn(), back: jest.fn() }),
+  useRouter: () => ({ push: mockPush, replace: jest.fn(), back: mockBack }),
   useIsFocused: () => true,
   Redirect: () => null,
 }));
@@ -123,7 +124,9 @@ describe("Notificaciones", () => {
   it("al tocar una alerta abre A pedir", async () => {
     await renderizar();
     await fireEvent.press(await screen.findByRole("button", { name: /Reabastecer: Aceite/ }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/administracion/pedir");
+    expect(mockBack.mock.invocationCallOrder[0]).toBeLessThan(mockPush.mock.invocationCallOrder[0]);
   });
 
   it("error de primera carga muestra el mensaje y reintenta", async () => {

@@ -9,7 +9,6 @@ import { Skeleton } from "@/animacion/Skeleton";
 import { AvisoRecarga } from "@/components/AvisoRecarga";
 import { Encabezado } from "@/components/Encabezado";
 import { EstadoError } from "@/components/EstadoError";
-import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { FilaProducto } from "@/components/FilaProducto";
 import { TarjetaIndicador } from "@/components/TarjetaIndicador";
 import { TarjetaPrincipal } from "@/components/TarjetaPrincipal";
@@ -183,32 +182,6 @@ function Contenido({ datos, esAdmin }: { datos: DatosInicio; esAdmin: boolean })
           </Seccion>
         </Animated.View>
       ) : null}
-
-      {datos.recientes.length === 0 ? (
-        <Texto tono="secundario">Aún no hay movimientos.</Texto>
-      ) : (
-        <Animated.View entering={entradaEscalonada(3)}>
-          <Seccion
-            titulo={esAdmin ? "Movimientos recientes" : "Últimos movimientos"}
-            enlace={esAdmin ? "Historial" : undefined}
-            onEnlace={() => router.push("/movimientos")}
-          >
-            {datos.recientes.map((m, i) => (
-              <Animated.View key={m.id} entering={entradaEscalonada(i + 4)}>
-                <FilaMovimiento
-                  producto={m.producto}
-                  tipo={m.tipo}
-                  motivo={m.motivo}
-                  fecha={m.created_at}
-                  cantidad={m.cantidad}
-                  unidad={m.unidad}
-                  usuario={m.usuario}
-                />
-              </Animated.View>
-            ))}
-          </Seccion>
-        </Animated.View>
-      )}
     </>
   );
 }
