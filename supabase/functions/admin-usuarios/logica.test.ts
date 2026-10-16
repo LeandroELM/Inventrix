@@ -1,25 +1,51 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert@1";
-import { emailDeUsuario, validarAltaUsuario } from "./logica.ts";
+import {
+  ALFABETO_CONTRASENA,
+  emailDeUsuario,
+  generarContrasena,
+  LARGO_CONTRASENA,
+  validarSolicitud,
+} from "./logica.ts";
 
-Deno.test("rechaza usuario con mayúsculas y espacios", () => {
-  assertThrows(
-    () => validarAltaUsuario({ usuario: "Ana Lopez", nombre: "Ana", rol: "admin", password: "12345678" }),
-    Error,
-    "DATOS_INVALIDOS",
-  );
+Deno.test("validarSolicitud acepta crear y restablecer válidos", () => {
+  assertEquals(validarSolicitud({ accion: "crear", usuario: "ana.lopez", nombre: "Ana", rol: "operativo" }), {
+    accion: "crear",
+    usuario: "ana.lopez",
+    nombre: "Ana",
+    rol: "operativo",
+  });
+  const id = "6f1c2a7e-0b1d-4c3e-9f00-1234567890ab";
+  assertEquals(validarSolicitud({ accion: "restablecer", id }), { accion: "restablecer", id });
 });
 
-Deno.test("rechaza contraseña corta, rol inválido y nombre vacío", () => {
-  const base = { usuario: "ana.lopez", nombre: "Ana", rol: "admin", password: "12345678" };
-  assertThrows(() => validarAltaUsuario({ ...base, password: "1234567" }), Error, "DATOS_INVALIDOS");
-  assertThrows(() => validarAltaUsuario({ ...base, rol: "root" }), Error, "DATOS_INVALIDOS");
-  assertThrows(() => validarAltaUsuario({ ...base, nombre: "  " }), Error, "DATOS_INVALIDOS");
-  assertThrows(() => validarAltaUsuario(null), Error, "DATOS_INVALIDOS");
+Deno.test("validarSolicitud recorta el nombre", () => {
+  const s = validarSolicitud({ accion: "crear", usuario: "ana", nombre: "  Ana  ", rol: "admin" });
+  assertEquals(s.accion === "crear" ? s.nombre : null, "Ana");
 });
 
-Deno.test("acepta una alta válida", () => {
-  const entrada = { usuario: "ana.lopez", nombre: "Ana", rol: "admin", password: "12345678" };
-  assertEquals(validarAltaUsuario(entrada), entrada);
+Deno.test("validarSolicitud rechaza entradas inválidas", () => {
+  const base = { accion: "crear", usuario: "ana.lopez", nombre: "Ana", rol: "admin" };
+  for (const malo of [
+    null,
+    {},
+    { ...base, accion: "borrar" },
+    { ...base, usuario: "Ana Lopez" },
+    { ...base, usuario: "ab" },
+    { ...base, rol: "root" },
+    { ...base, nombre: "   " },
+    { ...base, nombre: "x".repeat(121) },
+    { accion: "restablecer", id: "no-es-uuid" },
+    { accion: "restablecer" },
+  ]) {
+    assertThrows(() => validarSolicitud(malo), Error, "DATOS_INVALIDOS");
+  }
+});
+
+Deno.test("generarContrasena: 10 caracteres del alfabeto y distinta en cada llamada", () => {
+  const a = generarContrasena();
+  assertEquals(a.length, LARGO_CONTRASENA);
+  for (const c of a) assertEquals(ALFABETO_CONTRASENA.includes(c), true);
+  assertEquals(new Set(Array.from({ length: 50 }, generarContrasena)).size, 50);
 });
 
 Deno.test("emailDeUsuario usa el dominio sintético", () => {
